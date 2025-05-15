@@ -182,12 +182,13 @@ class MainWindow(QMainWindow):
         nav_layout.setContentsMargins(5, 5, 5, 5)
         nav_layout.setSpacing(2)  # Зменшуємо відстань між кнопками
 
-        # Створюємо кнопки навігації (видалені непотрібні пункти)
+        # Створюємо кнопки навігації (повернуто пункт "Налаштування")
         nav_items = [
             {"icon": "resources/images/icons/weeks.png", "text": "Тижні", "index": 1},
             {"icon": "resources/images/icons/calendar.png", "text": "Календар", "index": 2},
             {"icon": "resources/images/icons/tools.png", "text": "Інструменти", "index": 3},
             {"icon": "resources/images/icons/checklist.png", "text": "Чекліст", "index": 4},
+            {"icon": "resources/images/icons/settings.png", "text": "Налаштування", "index": 5}
         ]
 
         self.nav_buttons = []
@@ -197,26 +198,21 @@ class MainWindow(QMainWindow):
             button.setObjectName(f"nav_{item['text'].lower()}")
             button.setCheckable(True)
             button.setFixedHeight(60)
-            # Адаптивна ширина - встановлюємо мінімальну ширину, але дозволяємо розширюватись
             button.setMinimumWidth(60)
             button.setSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed)
 
-            # Встановлюємо іконку, якщо файл існує
             if os.path.exists(item["icon"]):
                 button.setIcon(QIcon(item["icon"]))
                 button.setIconSize(QSize(22, 22))
 
-            # Встановлюємо текст і зменшуємо шрифт
             button.setText(item["text"])
-
-            # Стиль для кнопок з меншим шрифтом
             button.setStyleSheet("""
                 QPushButton {
                     background-color: transparent;
                     border: none;
                     color: #888888;
                     padding-top: 5px;
-                    font-size: 10px;  /* Зменшений розмір шрифту */
+                    font-size: 10px;
                 }
                 QPushButton:checked {
                     color: #FF8C00;
@@ -226,13 +222,10 @@ class MainWindow(QMainWindow):
                 }
             """)
 
-            # Підключаємо подію кліку
             button.clicked.connect(lambda checked, idx=item["index"]: self.navigate_to(idx))
-
             nav_layout.addWidget(button)
             self.nav_buttons.append(button)
 
-        # Додаємо панель навігації до головного layout
         self.main_layout.addWidget(bottom_nav)
 
     def navigate_to(self, screen_index):

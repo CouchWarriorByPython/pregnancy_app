@@ -191,7 +191,7 @@ class WeekSelector(QWidget):
         # Головний горизонтальний layout без відступів
         layout = QHBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(8)  # Відстань між кнопками
+        layout.setSpacing(8)
 
         # Кнопка "назад"
         self.prev_btn = QPushButton("<")
@@ -240,7 +240,7 @@ class WeekSelector(QWidget):
                         f"Встановлено найближчий: {self.current_week}")
 
         # Визначаємо діапазон тижнів для показу (завжди 5 кнопок)
-        total_buttons = 5  # Завжди показуємо 5 кнопок
+        total_buttons = 5
         half_range = total_buttons // 2
 
         # Розраховуємо початковий і кінцевий індекси
@@ -257,48 +257,37 @@ class WeekSelector(QWidget):
 
         logger.debug(f"Видимі тижні: {visible_weeks}, поточний: {self.current_week}")
 
-        # Створюємо кнопки для кожного тижня
+        # Створюємо кнопки для кожного тижня з кольоровим фоном та цифрами, як на зображенні 5
         for week in visible_weeks:
-            # Створюємо кнопку з зображенням замість простого тексту
+            # Встановлюємо колір фону залежно від тижня
+            color = self.get_week_color(week)
+
             week_btn = QPushButton(str(week))
             week_btn.setObjectName(f"week_btn_{week}")
-            week_btn.setFixedSize(60, 60)  # Збільшуємо розмір для кращого відображення зображення
+            week_btn.setFixedSize(60, 60)
             week_btn.setCheckable(True)
             week_btn.setChecked(week == self.current_week)
 
-            # Стиль з використанням зображення фрукта
+            # Встановлюємо стиль з кольоровим фоном
             week_btn.setStyleSheet(f"""
                 QPushButton {{
-                    background-color: #333333;
+                    background-color: {color};
                     border-radius: 30px;
                     font-weight: bold;
-                    font-size: 14px;
-                    color: #FFFFFF;
+                    font-size: 18px;
+                    color: white;
                     text-align: center;
                 }}
                 QPushButton:checked {{
                     background-color: #FF8C00;
                     color: white;
                 }}
-                QPushButton:hover:!checked {{
-                    background-color: #444444;
-                }}
             """)
-
-            # Завантажуємо зображення фрукта для тижня
-            # При реальній імплементації тут буде завантаження зображення з файлу
-            from utils.image_utils import generate_fruit_image
-            pixmap = generate_fruit_image(week, size=40)
-
-            # Встановлюємо зображення як іконку
-            icon = QIcon(pixmap)
-            week_btn.setIcon(icon)
-            week_btn.setIconSize(QSize(40, 40))
 
             # Зберігаємо тиждень як властивість кнопки
             week_btn.week = week
 
-            # Створюємо локальну копію для замикання (щоб уникнути проблем з lambda)
+            # Створюємо локальну копію для замикання
             current_btn = week_btn
             current_btn.clicked.connect(lambda checked, b=current_btn: self.week_changed(b.week))
 
@@ -335,6 +324,15 @@ class WeekSelector(QWidget):
 
         # Налаштування розміру віджета
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+
+    def get_week_color(self, week):
+        """Повертає колір для тижня відповідно до триместру"""
+        if week <= 13:  # Перший триместр
+            return "#E91E63"  # Рожевий
+        elif week <= 27:  # Другий триместр
+            return "#9C27B0"  # Фіолетовий
+        else:  # Третій триместр
+            return "#3F51B5"  # Синій
 
     def update_ui_for_week(self, week):
         """Оновлює інтерфейс для показу нового діапазону тижнів"""

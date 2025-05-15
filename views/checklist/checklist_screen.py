@@ -179,15 +179,10 @@ class ChecklistScreen(QWidget):
         progress_title.setFont(QFont('Arial', 16))
 
         self.progress_bar = QLabel()
-        self.progress_bar.setObjectName("progress_bar")
         self.progress_bar.setMinimumHeight(20)
-        self.progress_bar.setStyleSheet("""
-            background-color: #333333;
-            border-radius: 10px;
-        """)
+        self.progress_bar.setStyleSheet("background-color: #333333; border-radius: 10px;")
 
         self.progress_text = QLabel("0% виконано")
-        self.progress_text.setObjectName("progress_text")
         self.progress_text.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         progress_layout.addWidget(progress_title)
@@ -198,8 +193,12 @@ class ChecklistScreen(QWidget):
 
         # Секція з чекбоксами
         self.checklist_section = QFrame()
-        self.checklist_section.setObjectName("checklist_section")  # Додаємо ім'я для пошуку
+        self.checklist_section.setObjectName("checklist_section")
         self.checklist_section.setStyleSheet("background-color: #121212; border-radius: 15px;")
+
+        # Встановлюємо фіксовану ширину секції для уніфікації вигляду між триместрами
+        self.checklist_section.setMaximumWidth(600)
+
         self.checklist_layout = QVBoxLayout(self.checklist_section)
 
         self.content_layout.addWidget(self.checklist_section)

@@ -26,44 +26,53 @@ class PregnancyInfoScreen(QWidget):
         title.setStyleSheet("color: #FF8C00; font-size: 22px; font-weight: bold;")
         main_layout.addWidget(title)
 
-        # Вертикальний спейсер для вирівнювання по центру
-        main_layout.addItem(QSpacerItem(20, 20, QSizePolicy.Policy.Minimum,
+        # Вертикальний спейсер
+        main_layout.addItem(QSpacerItem(20, 40, QSizePolicy.Policy.Minimum,
                                         QSizePolicy.Policy.Expanding))
 
         # Форма для введення даних
         form_layout = QFormLayout()
-        form_layout.setSpacing(15)
+        form_layout.setSpacing(20)
+        form_layout.setContentsMargins(0, 0, 0, 0)
 
         # Дата останньої менструації
         last_period_label = QLabel("Дата останньої менструації:")
+        last_period_label.setStyleSheet("color: white; font-size: 16px;")
+
         self.last_period_edit = QDateEdit()
         self.last_period_edit.setDisplayFormat("dd.MM.yyyy")
         self.last_period_edit.setCalendarPopup(True)
-        self.last_period_edit.setDate(QDate.currentDate().addDays(-30))  # За замовчуванням 30 днів тому
+        self.last_period_edit.setDate(QDate.currentDate().addDays(-30))
+        self.last_period_edit.setMinimumHeight(50)
         self.last_period_edit.setStyleSheet("""
             QDateEdit {
                 background-color: #222222;
                 border: none;
                 border-radius: 8px;
-                padding: 8px;
+                padding: 10px;
                 color: white;
+                font-size: 16px;
             }
         """)
         form_layout.addRow(last_period_label, self.last_period_edit)
 
         # Дата зачаття (якщо відома)
         conception_label = QLabel("Дата зачаття (якщо відома):")
+        conception_label.setStyleSheet("color: white; font-size: 16px;")
+
         self.conception_edit = QDateEdit()
         self.conception_edit.setDisplayFormat("dd.MM.yyyy")
         self.conception_edit.setCalendarPopup(True)
-        self.conception_edit.setDate(QDate.currentDate().addDays(-14))  # За замовчуванням 14 днів тому
+        self.conception_edit.setDate(QDate.currentDate().addDays(-14))
+        self.conception_edit.setMinimumHeight(50)
         self.conception_edit.setStyleSheet("""
             QDateEdit {
                 background-color: #222222;
                 border: none;
                 border-radius: 8px;
-                padding: 8px;
+                padding: 10px;
                 color: white;
+                font-size: 16px;
             }
         """)
         form_layout.addRow(conception_label, self.conception_edit)
@@ -71,20 +80,23 @@ class PregnancyInfoScreen(QWidget):
         main_layout.addLayout(form_layout)
 
         # Вертикальний спейсер
-        main_layout.addItem(QSpacerItem(20, 20, QSizePolicy.Policy.Minimum,
+        main_layout.addItem(QSpacerItem(20, 40, QSizePolicy.Policy.Minimum,
                                         QSizePolicy.Policy.Expanding))
 
-        # Кнопка "Далі"
+        # Кнопка "Продовжити"
         next_btn = QPushButton("Продовжити")
-        next_btn.setMinimumHeight(50)
+        next_btn.setMinimumHeight(70)
         next_btn.setStyleSheet("""
             QPushButton {
                 background-color: #FF8C00;
                 border: none;
-                border-radius: 25px;
+                border-radius: 35px;
                 color: white;
                 font-weight: bold;
-                font-size: 16px;
+                font-size: 18px;
+            }
+            QPushButton:hover {
+                background-color: #FFA500;
             }
         """)
         next_btn.clicked.connect(self.on_next_clicked)

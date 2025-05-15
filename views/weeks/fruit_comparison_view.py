@@ -36,20 +36,21 @@ class FruitComparisonView(QWidget):
         title.setStyleSheet("color: #FF8C00;")
         layout.addWidget(title)
 
-        # Зображення фрукта/овоча (замінено на коло)
+        # Зображення фрукта/овоча (коло з кольором відповідно до тижня)
         image_label = QLabel()
         image_label.setObjectName("fruit_image")
         image_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         image_label.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
 
-        # Створюємо зображення кола замість фрукта
+        # Створюємо зображення кола
+        from utils.image_utils import generate_fruit_image
         pixmap = generate_fruit_image(self.week, size=200)
         image_label.setPixmap(pixmap)
 
         layout.addWidget(image_label)
 
         # Текст з описом
-        description = QLabel(self.fruit_data['description'])
+        description = QLabel(self.fruit_data.get('description', 'Тіло дитини наповнюється і формуються пропорції'))
         description.setObjectName("fruit_description")
         description.setFont(QFont('Arial', 12))
         description.setAlignment(Qt.AlignmentFlag.AlignCenter)
