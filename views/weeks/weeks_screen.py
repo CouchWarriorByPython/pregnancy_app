@@ -602,9 +602,6 @@ class WeeksScreen(QWidget):
             week_btn.setCheckable(True)
             week_btn.setChecked(week == self.current_week)
 
-            # Централізуємо текст за допомогою Qt.AlignmentFlag.AlignCenter
-            week_btn.setAlignment(Qt.AlignmentFlag.AlignCenter)
-
             # Встановлюємо стиль з кольоровим фоном
             week_btn.setStyleSheet(f"""
                 QPushButton {{
@@ -613,6 +610,9 @@ class WeeksScreen(QWidget):
                     font-weight: bold;
                     font-size: 18px;
                     color: white;
+                    text-align: center;
+                    padding: 0px;
+                    qproperty-alignment: AlignCenter;
                 }}
                 QPushButton:checked {{
                     background-color: #FF8C00;

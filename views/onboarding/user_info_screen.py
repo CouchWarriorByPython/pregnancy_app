@@ -219,9 +219,24 @@ class UserInfoScreen(QWidget):
                 height: 12px;
                 image: url(resources/images/icons/minus.png);
             }
+            QSpinBox::edit-focus {
+                background-color: #333333;
+                color: white;
+            }
+            QSpinBox {
+                selection-background-color: #FF8C00;
+                selection-color: white;
+            }
         """)
         # Підключити сигнал valueChanged
         self.cycle_spin.valueChanged.connect(self.on_cycle_changed)
+
+        # Дозволяємо пряме редагування значення
+        self.cycle_spin.setButtonSymbols(QSpinBox.ButtonSymbols.UpDownArrows)
+        self.cycle_spin.setKeyboardTracking(True)
+        self.cycle_spin.setReadOnly(False)
+        self.cycle_spin.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
+
         profile_form.addRow("Середня тривалість циклу:", self.cycle_spin)
 
         # Дієтичні вподобання (чекбокси)
