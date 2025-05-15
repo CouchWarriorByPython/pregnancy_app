@@ -238,4 +238,11 @@ class PregnancyEditor(QWidget):
         self.update_pregnancy_info()
         
         # Повідомлення про успішне збереження
-        print("Дані про вагітність успішно оновлено") 
+        print("Дані про вагітність успішно оновлено")
+
+    def showEvent(self, event):
+        """Оновлення даних при показі вікна"""
+        super().showEvent(event)
+        # Оновлюємо дані при кожному показі віджета
+        self.data_controller = DataController()  # Створюємо новий контролер для отримання свіжих даних
+        self.load_pregnancy_data()

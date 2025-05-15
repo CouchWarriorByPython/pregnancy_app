@@ -2,7 +2,7 @@
 QMainWindow, QWidget {
     background-color: #000000;
     color: #FFFFFF;
-    font-family: Arial, sans-serif;
+    font-family: Arial, Helvetica, sans-serif;
 }
 
 /* Стилі кнопок */
@@ -225,18 +225,24 @@ QSpinBox::down-arrow, QDoubleSpinBox::down-arrow {
 }
 
 /* Додавання + та - на кнопках спінбоксу */
-QSpinBox::up-button:after, QDoubleSpinBox::up-button:after {
-    content: "+";
-    color: #FFFFFF;
-    font-size: 14px;
-    font-weight: bold;
+QSpinBox::up-button, QDoubleSpinBox::up-button {
+    background-color: #333333;
+    width: 20px;
+    height: 15px;
+    border-top-right-radius: 3px;
+    subcontrol-origin: border;
+    subcontrol-position: top right;
+    image: url(resources/images/icons/plus.png);
 }
 
-QSpinBox::down-button:after, QDoubleSpinBox::down-button:after {
-    content: "-";
-    color: #FFFFFF;
-    font-size: 14px;
-    font-weight: bold;
+QSpinBox::down-button, QDoubleSpinBox::down-button {
+    background-color: #333333;
+    width: 20px;
+    height: 15px;
+    border-bottom-right-radius: 3px;
+    subcontrol-origin: border;
+    subcontrol-position: bottom right;
+    image: url(resources/images/icons/minus.png);
 }
 
 /* Стилі для віджету календаря */

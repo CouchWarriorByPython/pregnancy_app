@@ -232,3 +232,10 @@ class DataController:
             "gender": self.pregnancy_data.baby_gender,
             "first_labour": self.user_profile.previous_pregnancies == 0
         }
+
+    def refresh_data(self):
+        """Оновлює дані з бази даних"""
+        logger.info("Оновлення даних з бази")
+        self._load_user_profile()
+        self._load_pregnancy_data()
+        return True

@@ -35,6 +35,8 @@ class CheckItem(QWidget):
                 border: 2px solid #4CAF50;
             }
         """)
+        # Підключаємо сигнал toggled для оновлення прогресу при зміні стану чекбоксу
+        self.checkbox.toggled.connect(self.on_checkbox_toggled)
         layout.addWidget(self.checkbox)
 
         # Текстова інформація
@@ -54,6 +56,17 @@ class CheckItem(QWidget):
 
         layout.addLayout(text_layout)
         layout.setStretch(1, 1)  # Розтягуємо текст на всю доступну ширину
+
+    def on_checkbox_toggled(self, checked):
+        """Обробка зміни стану чекбоксу"""
+        # Знаходимо батьківський екран чекліста
+        parent = self.parent()
+        while parent and not isinstance(parent, ChecklistScreen):
+            parent = parent.parent()
+
+        # Оновлюємо прогрес, якщо знайшли батьківський екран
+        if parent and isinstance(parent, ChecklistScreen):
+            parent.update_progress(parent.tab_widget.currentIndex())
 
 
 class ChecklistScreen(QWidget):
@@ -369,18 +382,15 @@ class ChecklistScreen(QWidget):
         progress_text = tab.findChild(QLabel, "progress_text")
 
         if progress_bar and progress_text:
-            # Встановлюємо стиль для прогрес-бару
-            width = progress_bar.width()
-            filled_width = int((width * progress_percent) / 100)
-
+            # Встановлюємо стиль для прогрес-бару з фіксованими розмірами
             progress_bar.setStyleSheet(f"""
                 background-color: #333333;
                 border-radius: 10px;
-                qproperty-alignment: AlignLeft;
-                padding-right: {width - filled_width}px;
-                background-color: qlineargradient(x1:0, y1:0, x2:1, y2:0,
-                                                stop:0 #FF8C00, stop:{progress_percent / 100} #FF8C00,
-                                                stop:{progress_percent / 100} #333333, stop:1 #333333);
+                padding: 0px;
+                text-align: left;
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                                          stop:0 #FF8C00, stop:{progress_percent / 100} #FF8C00,
+                                          stop:{progress_percent / 100} #333333, stop:1 #333333);
             """)
 
             progress_text.setText(f"{progress_percent}% виконано")
@@ -388,3 +398,9 @@ class ChecklistScreen(QWidget):
     def on_tab_changed(self, index):
         """Оновлює прогрес при зміні вкладки"""
         self.update_progress(index)
+
+    def resizeEvent(self, event):
+        """Обробка зміни розміру вікна для коректного відображення прогрес-бару"""
+        super().resizeEvent(event)
+        current_index = self.tab_widget.currentIndex()
+        self.update_progress(current_index)
