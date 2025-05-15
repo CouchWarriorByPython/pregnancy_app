@@ -103,20 +103,25 @@ class ChecklistScreen(QWidget):
                 border: none;
                 background: transparent;
             }
+            QTabWidget::tab-bar {
+                alignment: left;
+                width: 100%;
+            }
+            QTabBar {
+                width: 100%;
+            }
             QTabBar::tab {
                 background-color: #121212;
                 color: #AAAAAA;
                 padding: 10px 20px;
                 border-top-left-radius: 5px;
                 border-top-right-radius: 5px;
-                min-width: 120px;
+                width: 33.3%;
+                min-width: 0px;
             }
             QTabBar::tab:selected {
                 background-color: #222222;
                 color: #FF8C00;
-            }
-            QTabBar {
-                alignment: center;
             }
         """)
 
@@ -178,11 +183,14 @@ class ChecklistScreen(QWidget):
         progress_title = QLabel("Прогрес:")
         progress_title.setFont(QFont('Arial', 16))
 
+        # ВАЖЛИВО: Додаємо objectName для progress_bar та progress_text
         self.progress_bar = QLabel()
+        self.progress_bar.setObjectName("progress_bar")
         self.progress_bar.setMinimumHeight(20)
         self.progress_bar.setStyleSheet("background-color: #333333; border-radius: 10px;")
 
         self.progress_text = QLabel("0% виконано")
+        self.progress_text.setObjectName("progress_text")
         self.progress_text.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         progress_layout.addWidget(progress_title)
@@ -400,7 +408,8 @@ class ChecklistScreen(QWidget):
         checked = sum(1 for cb in checkboxes if cb.isChecked())
         progress_percent = int((checked / total) * 100)
 
-        # Оновлюємо відображення прогресу
+        # Знаходимо прогрес-бар
+        # ВАЖЛИВО: Оновлюємо пошук прогрес-бару та тексту
         progress_bar = tab.findChild(QLabel, "progress_bar")
         progress_text = tab.findChild(QLabel, "progress_text")
 

@@ -520,130 +520,147 @@ class WeeksScreen(QWidget):
         self.setup_ui()
 
     def setup_ui(self):
-        # Головний layout
-        main_layout = QVBoxLayout(self)
-        main_layout.setContentsMargins(0, 0, 0, 0)
-        main_layout.setSpacing(0)
+        """Налаштування інтерфейсу користувача"""
+        # Головний горизонтальний layout без відступів
+        layout = QHBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(8)
 
-        # Верхній заголовок
-        header = QWidget()
-        header.setObjectName("headerWidget")
-        header.setMinimumHeight(60)
-        header.setStyleSheet("background-color: #121212;")
-
-        header_layout = QHBoxLayout(header)
-        header_layout.setContentsMargins(15, 5, 15, 5)
-
-        if self.data_controller.get_days_left():
-            days_text = f"{self.data_controller.get_days_left()} днів до пологів"
-        else:
-            days_text = "Дата пологів не встановлена"
-
-        weeks_label = QLabel(days_text)
-        weeks_label.setFont(QFont('Arial', 18, QFont.Weight.Bold))
-        weeks_label.setStyleSheet("color: #FF8C00;")
-        # Зробимо текст адаптивним до ширини екрану
-        weeks_label.setWordWrap(True)
-        weeks_label.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
-
-        header_layout.addWidget(weeks_label)
-        main_layout.addWidget(header)
-
-        # Вміст сторінки у прокрутному вікні
-        scroll_area = QScrollArea()
-        scroll_area.setWidgetResizable(True)
-        scroll_area.setStyleSheet("border: none; background-color: #000000;")
-        scroll_area.setHorizontalScrollBarPolicy(
-            Qt.ScrollBarPolicy.ScrollBarAlwaysOff)  # Вимкнути горизонтальну прокрутку
-
-        content_widget = QWidget()
-        content_widget.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-
-        self.content_layout = QVBoxLayout(content_widget)
-        self.content_layout.setContentsMargins(15, 15, 15, 15)
-        self.content_layout.setSpacing(15)
-
-        # Селектор тижнів
-        self.week_selector = WeekSelector(
-            current_week=self.current_week,
-            available_weeks=self.available_weeks,
-            on_week_change=self.update_content,
-            parent=self
-        )
-        self.content_layout.addWidget(self.week_selector)
-
-        # Секція інформаційних карток
-        self.cards_section = QWidget()
-        self.cards_section.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
-
-        self.cards_layout = QVBoxLayout(self.cards_section)
-        self.cards_layout.setContentsMargins(0, 0, 0, 0)
-        self.cards_layout.setSpacing(10)
-
-        # Додаємо секцію карток до контенту
-        self.content_layout.addWidget(self.cards_section)
-
-        # Заповнюємо картки для поточного тижня
-        self.update_content(self.current_week)
-
-        # Інформація про дитину
-        self.baby_info_section = QFrame()
-        self.baby_info_section.setProperty("card", True)
-        self.baby_info_section.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
-
-        self.baby_info_section.setStyleSheet("""
-            QFrame {
+        # Кнопка "назад"
+        self.prev_btn = QPushButton("<")
+        self.prev_btn.setObjectName("prev_week_btn")
+        self.prev_btn.setFixedSize(45, 45)  # Збільшуємо розмір для запобігання обрізанню
+        self.prev_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #333333;
+                border-radius: 22px;
+                font-weight: bold;
+                color: #DDDDDD;
+                font-size: 18px;  /* Збільшуємо шрифт для стрілки */
+            }
+            QPushButton:disabled {
                 background-color: #222222;
-                border-radius: 15px;
-                padding: 10px;
+                color: #555555;
+            }
+            QPushButton:hover:enabled {
+                background-color: #444444;
+            }
+            QPushButton:pressed {
+                background-color: #555555;
             }
         """)
-        baby_info_layout = QVBoxLayout(self.baby_info_section)
+        self.prev_btn.clicked.connect(self.prev_week)
+        layout.addWidget(self.prev_btn)
 
-        # Заголовок "Ваша дитина"
-        baby_title = QLabel("Ваша дитина")
-        baby_title.setProperty("heading", True)
-        baby_title.setFont(QFont('Arial', 16, QFont.Weight.Bold))
-        baby_title.setStyleSheet("color: #FF8C00;")
-        baby_info_layout.addWidget(baby_title)
+        # ДИНАМІЧНЕ СТВОРЕННЯ КНОПОК ТИЖНІВ
+        self.week_btns = []
 
-        # Отримуємо інформацію про дитину
-        child_info = self.data_controller.get_child_info()
-
-        # Ім'я дитини (якщо вказано)
-        if child_info["name"]:
-            baby_name_label = QLabel(f"Ім'я: {child_info['name']}")
-            baby_name_label.setFont(QFont('Arial', 12))
-            baby_info_layout.addWidget(baby_name_label)
-
-        # Стать дитини
-        baby_gender_label = QLabel(f"Стать: {child_info['gender']}")
-        baby_gender_label.setFont(QFont('Arial', 12))
-        baby_info_layout.addWidget(baby_gender_label)
-
-        # Дата пологів
-        due_date_text = "Очікувана дата пологів: "
-        if self.data_controller.pregnancy_data.due_date:
-            due_date = self.data_controller.pregnancy_data.due_date.strftime("%d %B %Y")
-            due_date_text += due_date
+        # Знаходимо індекс поточного тижня серед доступних
+        if self.current_week in self.available_weeks:
+            current_index = self.available_weeks.index(self.current_week)
         else:
-            due_date_text += "не встановлено"
+            # Якщо поточний тиждень не знайдено, вибираємо найближчий
+            current_index = 0
+            min_diff = abs(self.available_weeks[0] - self.current_week)
 
-        due_date_label = QLabel(due_date_text)
-        due_date_label.setFont(QFont('Arial', 12))
-        baby_info_layout.addWidget(due_date_label)
+            for i, week in enumerate(self.available_weeks):
+                diff = abs(week - self.current_week)
+                if diff < min_diff:
+                    min_diff = diff
+                    current_index = i
 
-        # Додаємо інформацію про дитину до головного контенту
-        self.content_layout.addWidget(self.baby_info_section)
+            self.current_week = self.available_weeks[current_index]
+            logger.info(f"Тиждень {self.current_week} не знайдено серед доступних. "
+                        f"Встановлено найближчий: {self.current_week}")
 
-        # Додаємо пусте місце внизу для прокрутки
-        self.content_layout.addStretch(1)
+        # Визначаємо діапазон тижнів для показу (завжди 5 кнопок)
+        total_buttons = 5
+        half_range = total_buttons // 2
 
-        # Додаємо контент до прокрутного вікна
-        scroll_area.setWidget(content_widget)
-        main_layout.addWidget(scroll_area)
+        # Розраховуємо початковий і кінцевий індекси
+        start_idx = max(0, current_index - half_range)
+        end_idx = min(len(self.available_weeks), start_idx + total_buttons)
 
-        logger.info("Інтерфейс екрану тижнів налаштовано")
+        # Якщо не вистачає тижнів з правого боку, додаємо більше з лівого
+        if end_idx - start_idx < total_buttons and start_idx > 0:
+            shift = total_buttons - (end_idx - start_idx)
+            start_idx = max(0, start_idx - shift)
+
+        # Отримуємо тижні для показу
+        visible_weeks = self.available_weeks[start_idx:end_idx]
+
+        logger.debug(f"Видимі тижні: {visible_weeks}, поточний: {self.current_week}")
+
+        # Створюємо кнопки для кожного тижня з кольоровим фоном та цифрами
+        for week in visible_weeks:
+            # Встановлюємо колір фону залежно від тижня
+            color = self.get_week_color(week)
+
+            week_btn = QPushButton(str(week))
+            week_btn.setObjectName(f"week_btn_{week}")
+            week_btn.setFixedSize(60, 60)
+            week_btn.setCheckable(True)
+            week_btn.setChecked(week == self.current_week)
+
+            # Централізуємо текст за допомогою Qt.AlignmentFlag.AlignCenter
+            week_btn.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+            # Встановлюємо стиль з кольоровим фоном
+            week_btn.setStyleSheet(f"""
+                QPushButton {{
+                    background-color: {color};
+                    border-radius: 30px;
+                    font-weight: bold;
+                    font-size: 18px;
+                    color: white;
+                }}
+                QPushButton:checked {{
+                    background-color: #FF8C00;
+                    color: white;
+                }}
+            """)
+
+            # Зберігаємо тиждень як властивість кнопки
+            week_btn.week = week
+
+            # Створюємо локальну копію для замикання
+            current_btn = week_btn
+            current_btn.clicked.connect(lambda checked, b=current_btn: self.week_changed(b.week))
+
+            layout.addWidget(week_btn)
+            self.week_btns.append(week_btn)
+
+        # Кнопка "вперед"
+        self.next_btn = QPushButton(">")
+        self.next_btn.setObjectName("next_week_btn")
+        self.next_btn.setFixedSize(45, 45)  # Збільшуємо розмір для запобігання обрізанню
+        self.next_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #333333;
+                border-radius: 22px;
+                font-weight: bold;
+                color: #DDDDDD;
+                font-size: 18px;  /* Збільшуємо шрифт для стрілки */
+            }
+            QPushButton:disabled {
+                background-color: #222222;
+                color: #555555;
+            }
+            QPushButton:hover:enabled {
+                background-color: #444444;
+            }
+            QPushButton:pressed {
+                background-color: #555555;
+            }
+        """)
+        self.next_btn.clicked.connect(self.next_week)
+        layout.addWidget(self.next_btn)
+
+        # Оновлюємо стан кнопок
+        self.update_buttons_state()
+
+        # Налаштування розміру віджета
+        self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
 
     def update_content(self, week):
         """Оновлює контент відповідно до вибраного тижня"""

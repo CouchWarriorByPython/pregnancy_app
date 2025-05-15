@@ -1,12 +1,13 @@
 from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel,
-                             QPushButton, QTabWidget, QComboBox, QSlider,
-                             QSpacerItem, QSizePolicy, QFrame, QCheckBox)
-from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QFont, QPixmap, QIcon
+                             QPushButton, QTabWidget, QComboBox,
+                             QSizePolicy, QFrame, QCheckBox)
+
+from PyQt6.QtGui import QFont
 
 from controllers.data_controller import DataController
 from .profile_editor import ProfileEditor
 from .pregnancy_editor import PregnancyEditor
+from .child_info_editor import ChildInfoEditor  # Додаємо імпорт
 
 
 class SettingsScreen(QWidget):
@@ -55,7 +56,7 @@ class SettingsScreen(QWidget):
                 padding: 10px 20px;
                 border-top-left-radius: 5px;
                 border-top-right-radius: 5px;
-                min-width: 120px;
+                min-width: 90px;
             }
             QTabBar::tab:selected {
                 background-color: #222222;
@@ -66,14 +67,17 @@ class SettingsScreen(QWidget):
         # Вкладки для різних категорій налаштувань
         profile_tab = QWidget()
         pregnancy_tab = QWidget()
+        child_tab = QWidget()  # Додаємо нову вкладку
 
         # Налаштовуємо кожну вкладку
         self.setup_profile_tab(profile_tab)
         self.setup_pregnancy_tab(pregnancy_tab)
+        self.setup_child_tab(child_tab)  # Налаштовуємо нову вкладку
 
         # Додаємо вкладки до таб-віджету
         tab_widget.addTab(profile_tab, "Профіль")
         tab_widget.addTab(pregnancy_tab, "Вагітність")
+        tab_widget.addTab(child_tab, "Дитина")  # Додаємо нову вкладку
 
         main_layout.addWidget(tab_widget)
 
@@ -83,6 +87,8 @@ class SettingsScreen(QWidget):
         # Встановлюємо політику розміру для всього віджета
         profile_tab.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         pregnancy_tab.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        child_tab.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+
     def setup_profile_tab(self, tab):
         """Налаштування вкладки профілю"""
         layout = QVBoxLayout(tab)
@@ -100,6 +106,15 @@ class SettingsScreen(QWidget):
         # Додаємо редактор інформації про вагітність
         pregnancy_editor = PregnancyEditor()
         layout.addWidget(pregnancy_editor)
+
+    def setup_child_tab(self, tab):
+        """Налаштування вкладки інформації про дитину"""
+        layout = QVBoxLayout(tab)
+        layout.setContentsMargins(10, 10, 10, 10)
+
+        # Додаємо редактор інформації про дитину
+        child_editor = ChildInfoEditor()
+        layout.addWidget(child_editor)
 
     def setup_appearance_tab(self, tab):
         """Налаштування вкладки зовнішнього вигляду"""
