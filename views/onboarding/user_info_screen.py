@@ -1,14 +1,10 @@
-from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QLabel,
-                             QLineEdit, QCheckBox, QPushButton,
-                             QSpacerItem, QSizePolicy, QDateEdit,
-                             QDoubleSpinBox, QSpinBox, QFormLayout, QScrollArea,
-                             QFrame)
+from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QLabel, QAbstractSpinBox,
+                             QLineEdit, QCheckBox, QPushButton, QDateEdit,
+                             QDoubleSpinBox, QSpinBox, QFormLayout, QScrollArea)
 from PyQt6.QtCore import pyqtSignal, QDate, Qt
-from PyQt6.QtGui import QFont, QIcon
 from utils.logger import get_logger
 from datetime import datetime
 from controllers.data_controller import DataController
-import os
 
 logger = get_logger('user_info_screen')
 
@@ -89,154 +85,85 @@ class UserInfoScreen(QWidget):
         """)
         profile_form.addRow("Дата народження:", self.birth_date_edit)
 
-        # Вага до вагітності
-        self.weight_spin = QDoubleSpinBox()
-        self.weight_spin.setObjectName("weight_spin")
-        self.weight_spin.setMinimumHeight(40)
-        self.weight_spin.setRange(30.0, 150.0)
-        self.weight_spin.setDecimals(1)
-        self.weight_spin.setValue(60.0)
-        self.weight_spin.setSuffix(" кг")
-
-        # Перевіряємо наявність іконок і встановлюємо їх
-        plus_icon_path = "resources/images/icons/plus.png"
-        minus_icon_path = "resources/images/icons/minus.png"
-
-        if os.path.exists(plus_icon_path) and os.path.exists(minus_icon_path):
-            self.weight_spin.setButtonSymbols(QSpinBox.ButtonSymbols.UpDownArrows)
-            # Налаштування видимості кнопок
-            self.weight_spin.setProperty("showButtons", True)
-        else:
-            logger.warning(f"Іконки не знайдено за шляхами: {plus_icon_path}, {minus_icon_path}")
-            # Використовуємо стандартні стрілки, якщо іконки не знайдено
-            self.weight_spin.setButtonSymbols(QSpinBox.ButtonSymbols.UpDownArrows)
-
-        self.weight_spin.setStyleSheet("""
-            QDoubleSpinBox {
+        # Спільні стилі для всіх спінбоксів
+        spinbox_style = """
+            {widget_type} {{
                 background-color: #222222;
                 border: none;
                 border-radius: 8px;
                 padding: 5px 10px;
                 color: white;
-            }
-            QDoubleSpinBox::up-button, QDoubleSpinBox::down-button {
+            }}
+            {widget_type}::up-button, {widget_type}::down-button {{
                 width: 25px;
                 height: 15px;
                 background-color: #333333;
                 border-radius: 3px;
                 margin: 3px;
-            }
-            QDoubleSpinBox::up-button:hover, QDoubleSpinBox::down-button:hover {
+            }}
+            {widget_type}::up-button:hover, {widget_type}::down-button:hover {{
                 background-color: #444444;
-            }
-            QDoubleSpinBox::up-arrow {
+            }}
+            {widget_type}::up-arrow {{
                 width: 12px;
                 height: 12px;
                 image: url(resources/images/icons/plus.png);
-            }
-            QDoubleSpinBox::down-arrow {
+            }}
+            {widget_type}::down-arrow {{
                 width: 12px;
                 height: 12px;
                 image: url(resources/images/icons/minus.png);
-            }
-        """)
-        # Правильно підключити сигнал valueChanged замість editingFinished
+            }}
+        """
+
+        # Спільні властивості для всіх спінбоксів
+        def setup_spinbox_common_properties(spinbox):
+            spinbox.setMinimumHeight(40)
+            spinbox.setButtonSymbols(QSpinBox.ButtonSymbols.UpDownArrows)
+            spinbox.setProperty("showButtons", True)
+            spinbox.setKeyboardTracking(True)
+            spinbox.setWrapping(False)
+            spinbox.setAccelerated(True)
+            spinbox.setFocusPolicy(Qt.FocusPolicy.WheelFocus)
+            spinbox.setContextMenuPolicy(Qt.ContextMenuPolicy.DefaultContextMenu)
+            spinbox.setStepType(QAbstractSpinBox.StepType.DefaultStepType)
+            spinbox.setCorrectionMode(QAbstractSpinBox.CorrectionMode.CorrectToNearestValue)
+
+        # Вага до вагітності
+        self.weight_spin = QDoubleSpinBox()
+        self.weight_spin.setObjectName("weight_spin")
+        self.weight_spin.setRange(30.0, 150.0)
+        self.weight_spin.setDecimals(1)
+        self.weight_spin.setValue(60.0)
+        self.weight_spin.setSuffix(" кг")
+        self.weight_spin.setSingleStep(0.1)
+        setup_spinbox_common_properties(self.weight_spin)
+        self.weight_spin.setStyleSheet(spinbox_style.format(widget_type="QDoubleSpinBox"))
         self.weight_spin.valueChanged.connect(self.on_weight_changed)
         profile_form.addRow("Вага до вагітності:", self.weight_spin)
 
         # Зріст
         self.height_spin = QSpinBox()
         self.height_spin.setObjectName("height_spin")
-        self.height_spin.setMinimumHeight(40)
         self.height_spin.setRange(100, 220)
         self.height_spin.setValue(165)
         self.height_spin.setSuffix(" см")
-        self.height_spin.setStyleSheet("""
-            QSpinBox {
-                background-color: #222222;
-                border: none;
-                border-radius: 8px;
-                padding: 5px 10px;
-                color: white;
-            }
-            QSpinBox::up-button, QSpinBox::down-button {
-                width: 25px;
-                height: 15px;
-                background-color: #333333;
-                border-radius: 3px;
-                margin: 3px;
-            }
-            QSpinBox::up-button:hover, QSpinBox::down-button:hover {
-                background-color: #444444;
-            }
-            QSpinBox::up-arrow {
-                width: 12px;
-                height: 12px;
-                image: url(resources/images/icons/plus.png);
-            }
-            QSpinBox::down-arrow {
-                width: 12px;
-                height: 12px;
-                image: url(resources/images/icons/minus.png);
-            }
-        """)
-        # Підключити сигнал valueChanged
+        self.height_spin.setSingleStep(1)
+        setup_spinbox_common_properties(self.height_spin)
+        self.height_spin.setStyleSheet(spinbox_style.format(widget_type="QSpinBox"))
         self.height_spin.valueChanged.connect(self.on_height_changed)
         profile_form.addRow("Зріст:", self.height_spin)
 
         # Тривалість циклу
         self.cycle_spin = QSpinBox()
         self.cycle_spin.setObjectName("cycle_spin")
-        self.cycle_spin.setMinimumHeight(40)
         self.cycle_spin.setRange(21, 35)
         self.cycle_spin.setValue(28)
         self.cycle_spin.setSuffix(" днів")
-        self.cycle_spin.setStyleSheet("""
-            QSpinBox {
-                background-color: #222222;
-                border: none;
-                border-radius: 8px;
-                padding: 5px 10px;
-                color: white;
-            }
-            QSpinBox::up-button, QSpinBox::down-button {
-                width: 25px;
-                height: 15px;
-                background-color: #333333;
-                border-radius: 3px;
-                margin: 3px;
-            }
-            QSpinBox::up-button:hover, QSpinBox::down-button:hover {
-                background-color: #444444;
-            }
-            QSpinBox::up-arrow {
-                width: 12px;
-                height: 12px;
-                image: url(resources/images/icons/plus.png);
-            }
-            QSpinBox::down-arrow {
-                width: 12px;
-                height: 12px;
-                image: url(resources/images/icons/minus.png);
-            }
-            QSpinBox::edit-focus {
-                background-color: #333333;
-                color: white;
-            }
-            QSpinBox {
-                selection-background-color: #FF8C00;
-                selection-color: white;
-            }
-        """)
-        # Підключити сигнал valueChanged
+        self.cycle_spin.setSingleStep(1)
+        setup_spinbox_common_properties(self.cycle_spin)
+        self.cycle_spin.setStyleSheet(spinbox_style.format(widget_type="QSpinBox"))
         self.cycle_spin.valueChanged.connect(self.on_cycle_changed)
-
-        # Дозволяємо пряме редагування значення
-        self.cycle_spin.setButtonSymbols(QSpinBox.ButtonSymbols.UpDownArrows)
-        self.cycle_spin.setKeyboardTracking(True)
-        self.cycle_spin.setReadOnly(False)
-        self.cycle_spin.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
-
         profile_form.addRow("Середня тривалість циклу:", self.cycle_spin)
 
         # Дієтичні вподобання (чекбокси)
