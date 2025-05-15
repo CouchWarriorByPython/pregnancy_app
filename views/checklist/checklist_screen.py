@@ -1,9 +1,7 @@
 from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QLabel,
-                             QPushButton, QHBoxLayout, QSpacerItem,
-                             QSizePolicy, QScrollArea, QFrame, QCheckBox,
-                             QListWidget, QListWidgetItem, QStackedWidget)
-from PyQt6.QtCore import Qt, QSize
-from PyQt6.QtGui import QFont, QPixmap, QIcon, QColor
+                             QPushButton, QHBoxLayout, QScrollArea, QFrame, QCheckBox, QStackedWidget)
+from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QFont
 
 
 class CheckItem(QWidget):
