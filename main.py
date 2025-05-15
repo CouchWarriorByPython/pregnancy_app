@@ -10,10 +10,12 @@ from views.calendar.calendar_screen import CalendarScreen
 from views.tools.tools_screen import ToolsScreen
 from views.checklist.checklist_screen import ChecklistScreen
 from views.settings.settings_screen import SettingsScreen
-from views.onboarding.onboarding_manager import OnboardingManager
+from views.onboarding.child_info_screen import ChildInfoScreen
+from views.onboarding.pregnancy_info_screen import PregnancyInfoScreen
 
 from controllers.data_controller import DataController
 from utils.logger import get_logger
+from datetime import datetime, timedelta
 
 # Ініціалізація логування
 logger = get_logger('main')
@@ -38,8 +40,8 @@ class MainWindow(QMainWindow):
 
         # Визначаємо розмір екрану (adaptive)
         screen_size = QApplication.primaryScreen().availableSize()
-        window_width = min(420, screen_size.width() - 40)  # Збільшено до 420px або розмір екрану - 40px
-        window_height = min(900, screen_size.height() - 60)  # Збільшено до 900px або розмір екрану - 60px
+        window_width = min(390, screen_size.width() - 40)  # Не більше 390px або розмір екрану - 40px
+        window_height = min(844, screen_size.height() - 60)  # Не більше 844px або розмір екрану - 60px
 
         # Встановлюємо розмір вікна з урахуванням екрану
         self.resize(window_width, window_height)
@@ -54,9 +56,9 @@ class MainWindow(QMainWindow):
         self.stack_widget = QStackedWidget()
 
         # Додаємо екран інформації про дитину як перший екран
-        self.onboarding_manager = OnboardingManager(self)
-        self.onboarding_manager.proceed_signal.connect(self.on_onboarding_completed)
-        self.stack_widget.addWidget(self.onboarding_manager)
+        self.child_info_screen = ChildInfoScreen(self)
+        self.child_info_screen.proceed_signal.connect(self.on_child_info_completed)
+        self.stack_widget.addWidget(self.child_info_screen)
 
         # Завантажуємо основні екрани
         self.load_screens()
@@ -95,24 +97,51 @@ class MainWindow(QMainWindow):
                 item.widget().setVisible(True)
                 logger.debug("Показано елемент нижньої навігації")
 
-    def on_onboarding_completed(self, data):
-        """Обробляє завершення введення всіх даних онбордингу"""
-        logger.info("Отримана інформація про дитину та користувача, переходимо до основного екрану")
+    def on_child_info_completed(self, child_data):
+        """Обробляє завершення введення інформації про дитину"""
+        logger.info("Отримана інформація про дитину, переходимо до екрану інформації про вагітність")
 
         # Зберігаємо дані
-        success = self.data_controller.save_child_info(data)
+        success = self.data_controller.save_child_info(child_data)
 
         if success:
+            # Переходимо до екрану інформації про вагітність
+            self.stack_widget.setCurrentIndex(6)  # PregnancyInfoScreen
+            logger.info("Успішно перейшли до екрану інформації про вагітність")
+        else:
+            # Повідомляємо про помилку
+            QMessageBox.critical(self, "Помилка", "Не вдалося зберегти інформацію про дитину")
+            logger.error("Не вдалося зберегти інформацію про дитину")
+
+    def on_pregnancy_info_completed(self, pregnancy_data):
+        """Обробляє завершення введення інформації про вагітність"""
+        logger.info("Отримана інформація про вагітність, переходимо до основного екрану")
+
+        # Зберігаємо дані
+        # Конвертуємо рядки дат у об'єкти date
+        try:
+            last_period = datetime.strptime(pregnancy_data['last_period_date'], "%Y-%m-%d").date()
+            self.data_controller.pregnancy_data.last_period_date = last_period
+
+            conception = datetime.strptime(pregnancy_data['conception_date'], "%Y-%m-%d").date()
+            self.data_controller.pregnancy_data.conception_date = conception
+
+            # Автоматичний розрахунок очікуваної дати пологів
+            self.data_controller.pregnancy_data.due_date = last_period + timedelta(days=280)
+
+            # Зберігаємо зміни
+            self.data_controller.save_pregnancy_data()
+
             # Показуємо нижню навігацію
             self.show_bottom_nav()
 
             # Переходимо до основного екрану
             self.stack_widget.setCurrentIndex(1)  # WeeksScreen
             logger.info("Успішно перейшли до основного екрану")
-        else:
+        except Exception as e:
             # Повідомляємо про помилку
-            QMessageBox.critical(self, "Помилка", "Не вдалося зберегти інформацію")
-            logger.error("Не вдалося зберегти інформацію")
+            QMessageBox.critical(self, "Помилка", f"Не вдалося зберегти інформацію про вагітність: {str(e)}")
+            logger.error(f"Не вдалося зберегти інформацію про вагітність: {str(e)}")
 
     def load_screens(self):
         logger.info("Завантаження екранів")
@@ -125,11 +154,16 @@ class MainWindow(QMainWindow):
             self.checklist_screen = ChecklistScreen(self)
             self.settings_screen = SettingsScreen(self)
 
+            # Додаємо новий екран для інформації про вагітність
+            self.pregnancy_info_screen = PregnancyInfoScreen(self)
+            self.pregnancy_info_screen.proceed_signal.connect(self.on_pregnancy_info_completed)
+
             self.stack_widget.addWidget(self.weeks_screen)
             self.stack_widget.addWidget(self.calendar_screen)
             self.stack_widget.addWidget(self.tools_screen)
             self.stack_widget.addWidget(self.checklist_screen)
             self.stack_widget.addWidget(self.settings_screen)
+            self.stack_widget.addWidget(self.pregnancy_info_screen)  # Додаємо новий екран
 
             logger.info("Екрани успішно завантажені")
 
@@ -154,7 +188,7 @@ class MainWindow(QMainWindow):
             {"icon": "resources/images/icons/calendar.png", "text": "Календар", "index": 2},
             {"icon": "resources/images/icons/tools.png", "text": "Інструменти", "index": 3},
             {"icon": "resources/images/icons/checklist.png", "text": "Чекліст", "index": 4},
-            {"icon": "resources/images/icons/settings.png", "text": "Налаштування", "index": 5}
+            {"icon": "resources/images/icons/settings.png", "text": "Налаштув.", "index": 5}
         ]
 
         self.nav_buttons = []
@@ -165,7 +199,7 @@ class MainWindow(QMainWindow):
             button.setCheckable(True)
             button.setFixedHeight(60)
             # Адаптивна ширина - встановлюємо мінімальну ширину, але дозволяємо розширюватись
-            button.setMinimumWidth(65)
+            button.setMinimumWidth(60)
             button.setSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed)
 
             # Встановлюємо іконку, якщо файл існує
@@ -183,7 +217,7 @@ class MainWindow(QMainWindow):
                     border: none;
                     color: #888888;
                     padding-top: 5px;
-                    font-size: 9px;  /* Зменшений розмір шрифту */
+                    font-size: 10px;  /* Зменшений розмір шрифту */
                 }
                 QPushButton:checked {
                     color: #FF8C00;

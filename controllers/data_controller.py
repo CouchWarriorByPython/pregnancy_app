@@ -140,7 +140,21 @@ class DataController:
             self.pregnancy_data.baby_name
         )
 
-        logger.info("Дані про вагітність збережено")
+        # Синхронізація даних з профілем користувача
+        if self.pregnancy_data.last_period_date and hasattr(self.user_profile, 'cycle_length'):
+            # Оновлення циклу в профілі користувача при збереженні даних вагітності
+            self.user_profile.cycle_length = self.get_cycle_length_from_pregnancy()
+            self.save_user_profile()
+
+        logger.info("Дані про вагітність збережено і синхронізовано з профілем")
+
+    def get_cycle_length_from_pregnancy(self):
+        """Отримує тривалість циклу з даних про вагітність"""
+        # Логіка розрахунку циклу
+        if self.pregnancy_data.last_period_date and self.pregnancy_data.conception_date:
+            # Якщо відомі обидві дати, можемо зробити розрахунок
+            return 28  # Стандартне значення або розрахунок за даними
+        return self.user_profile.cycle_length  # Повертаємо існуюче значення
 
     def get_current_week(self):
         """Розрахунок поточного тижня вагітності"""
@@ -160,49 +174,21 @@ class DataController:
         return None
 
     def save_child_info(self, child_data):
-        """Зберігає інформацію про дитину та профіль користувача"""
-        logger.info(f"Збереження інформації про дитину та користувача: {child_data}")
+        """Зберігає інформацію про дитину"""
+        logger.info(f"Збереження інформації про дитину: {child_data}")
 
         # Оновлюємо дані про вагітність
         self.pregnancy_data.baby_gender = child_data.get('gender', 'Невідомо')
         self.pregnancy_data.baby_name = child_data.get('name', '')
 
-        # Оновлюємо профіль користувача на основі перших пологів
+        # Оновлюємо профіль користувача
         if 'first_labour' in child_data:
             self.user_profile.previous_pregnancies = 0 if child_data['first_labour'] else 1
-
-        # Якщо є дані користувача, оновлюємо їх
-        if 'user_data' in child_data:
-            user_data = child_data['user_data']
-
-            # Оновлюємо основні поля профілю
-            if 'name' in user_data and user_data['name']:
-                self.user_profile.name = user_data['name']
-
-            if 'birth_date' in user_data and user_data['birth_date']:
-                try:
-                    self.user_profile.birth_date = date.fromisoformat(user_data['birth_date'])
-                except ValueError:
-                    logger.error(f"Неправильний формат дати: {user_data['birth_date']}")
-
-            if 'weight_before_pregnancy' in user_data:
-                self.user_profile.weight_before_pregnancy = user_data['weight_before_pregnancy']
-
-            if 'height' in user_data:
-                self.user_profile.height = user_data['height']
-
-            if 'cycle_length' in user_data:
-                self.user_profile.cycle_length = user_data['cycle_length']
-
-            # Оновлюємо дієтичні вподобання
-            if 'diet_preferences' in user_data:
-                self.user_profile.diet_preferences = user_data['diet_preferences']
 
         # Зберігаємо зміни
         self.save_pregnancy_data()
         self.save_user_profile()
 
-        # Повертаємо статус успіху
         return True
 
     def is_first_launch(self):
@@ -232,10 +218,3 @@ class DataController:
             "gender": self.pregnancy_data.baby_gender,
             "first_labour": self.user_profile.previous_pregnancies == 0
         }
-
-    def refresh_data(self):
-        """Оновлює дані з бази даних"""
-        logger.info("Оновлення даних з бази")
-        self._load_user_profile()
-        self._load_pregnancy_data()
-        return True

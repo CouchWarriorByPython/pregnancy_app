@@ -2,7 +2,7 @@
 QMainWindow, QWidget {
     background-color: #000000;
     color: #FFFFFF;
-    font-family: Arial, Helvetica, sans-serif;
+    font-family: Arial, sans-serif;
 }
 
 /* Стилі кнопок */
@@ -29,7 +29,7 @@ QPushButton:disabled {
 }
 
 /* Стилі для полів вводу */
-QLineEdit, QDateEdit, QComboBox {
+QLineEdit, QDateEdit, QSpinBox, QDoubleSpinBox, QComboBox {
     background-color: #222222;
     color: #FFFFFF;
     border: none;
@@ -49,14 +49,16 @@ QCheckBox {
 }
 
 QCheckBox::indicator {
-    width: 18px;
-    height: 18px;
+    width: 20px;
+    height: 20px;
     border-radius: 3px;
     background-color: #222222;
+    border: 1px solid #555555;
 }
 
 QCheckBox::indicator:checked {
     background-color: #FF8C00;
+    border: 1px solid #FF8C00;
     image: url(resources/images/icons/check.png);
 }
 
@@ -79,6 +81,8 @@ QFrame[card="true"] {
 QTabWidget::pane {
     border: none;
     background: transparent;
+    margin: 0px;
+    padding: 0px;
 }
 
 QTabBar::tab {
@@ -93,10 +97,6 @@ QTabBar::tab {
 QTabBar::tab:selected {
     background-color: #222222;
     color: #FF8C00;
-}
-
-QTabBar {
-    alignment: center;
 }
 
 /* Стилі для скроллингу */
@@ -174,7 +174,7 @@ QSlider::sub-page:horizontal {
     border-radius: 4px;
 }
 
-/* Покращені стилі для спінбоксів */
+/* Стилі для спінбоксів */
 QSpinBox, QDoubleSpinBox {
     background-color: #222222;
     color: #FFFFFF;
@@ -184,114 +184,40 @@ QSpinBox, QDoubleSpinBox {
     min-height: 30px;
 }
 
-QSpinBox::up-button, QDoubleSpinBox::up-button {
-    background-color: #333333;
-    width: 20px;
-    height: 15px;
-    border-top-right-radius: 3px;
-    subcontrol-origin: border;
-    subcontrol-position: top right;
-}
-
+QSpinBox::up-button, QDoubleSpinBox::up-button,
 QSpinBox::down-button, QDoubleSpinBox::down-button {
-    background-color: #333333;
-    width: 20px;
+    background-color: #FFFFFF;
+    width: 25px;
     height: 15px;
-    border-bottom-right-radius: 3px;
-    subcontrol-origin: border;
-    subcontrol-position: bottom right;
-}
-
-QSpinBox::up-button:hover, QDoubleSpinBox::up-button:hover,
-QSpinBox::down-button:hover, QDoubleSpinBox::down-button:hover {
-    background-color: #444444;
-}
-
-QSpinBox::up-button:pressed, QDoubleSpinBox::up-button:pressed,
-QSpinBox::down-button:pressed, QDoubleSpinBox::down-button:pressed {
-    background-color: #555555;
+    border-radius: 3px;
+    margin: 3px 3px;
 }
 
 QSpinBox::up-arrow, QDoubleSpinBox::up-arrow {
     image: url(resources/images/icons/up_arrow.png);
     width: 10px;
     height: 10px;
+    color: #000000;
 }
 
 QSpinBox::down-arrow, QDoubleSpinBox::down-arrow {
     image: url(resources/images/icons/down_arrow.png);
     width: 10px;
     height: 10px;
+    color: #000000;
 }
 
-/* Додавання + та - на кнопках спінбоксу */
-QSpinBox::up-button, QDoubleSpinBox::up-button {
-    background-color: #333333;
-    width: 20px;
-    height: 15px;
-    border-top-right-radius: 3px;
-    subcontrol-origin: border;
-    subcontrol-position: top right;
-    image: url(resources/images/icons/plus.png);
-}
-
-QSpinBox::down-button, QDoubleSpinBox::down-button {
-    background-color: #333333;
-    width: 20px;
-    height: 15px;
-    border-bottom-right-radius: 3px;
-    subcontrol-origin: border;
-    subcontrol-position: bottom right;
-    image: url(resources/images/icons/minus.png);
-}
-
-/* Стилі для віджету календаря */
-QCalendarWidget {
-    background-color: #222222;
-    color: white;
-}
-
-QCalendarWidget QWidget {
-    alternate-background-color: #121212;
-}
-
-QCalendarWidget QAbstractItemView:enabled {
-    color: white;
-    background-color: #222222;
-    selection-background-color: #FF8C00;
-    selection-color: white;
-}
-
-QCalendarWidget QWidget#qt_calendar_navigationbar {
-    background-color: #333333;
-}
-
-QCalendarWidget QToolButton {
-    color: white;
+/* Для сторінки сповіщень - спеціальний стиль для кнопок-чекбоксів */
+QPushButton[checkable="true"] {
     background-color: #333333;
     border: none;
-}
-
-QCalendarWidget QMenu {
-    background-color: #333333;
+    border-radius: 8px;
+    padding: 5px 10px;
+    text-align: left;
     color: white;
 }
 
-QCalendarWidget QSpinBox {
-    background-color: #333333;
+QPushButton[checkable="true"]:checked {
+    background-color: #FF8C00;
     color: white;
-    border: none;
-}
-
-QDateEdit::drop-down {
-    subcontrol-origin: padding;
-    subcontrol-position: center right;
-    width: 25px;
-    border-left-width: 0px;
-}
-
-QDateEdit::down-arrow {
-    image: url(resources/images/icons/calendar.png);
-    width: 16px;
-    height: 16px;
 }

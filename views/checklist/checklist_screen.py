@@ -263,6 +263,9 @@ class ChecklistScreen(QWidget):
         """Додає елементи чекліста для другого триместру"""
         checklist_layout = tab.findChild(QFrame, "checklist_section").layout()
 
+        # Змінюємо ширину блоку
+        tab.findChild(QFrame, "checklist_section").setMaximumWidth(600)
+
         # Аналізи
         analyses_label = QLabel("Аналізи")
         analyses_label.setFont(QFont('Arial', 16, QFont.Weight.Bold))
@@ -271,7 +274,10 @@ class ChecklistScreen(QWidget):
         items = [
             ("Загальний аналіз крові", "16-20 тижнів"),
             ("Загальний аналіз сечі", "16-20 тижнів"),
-            ("Глюкозотолерантний тест", "24-28 тижнів")
+            ("Глюкозотолерантний тест", "24-28 тижнів"),
+            ("Аналіз крові на RW", "20-22 тижні"),
+            ("Аналіз на групу крові", "16-18 тижнів"),
+            ("Аналіз на резус-фактор", "16-18 тижнів"),
         ]
 
         for text, desc in items:
@@ -284,7 +290,8 @@ class ChecklistScreen(QWidget):
         checklist_layout.addWidget(ultrasound_label)
 
         items = [
-            ("Друге скринінгове УЗД", "18-22 тижнів")
+            ("Друге скринінгове УЗД", "18-22 тижнів"),
+            ("Доплер-УЗД", "20-24 тижні")
         ]
 
         for text, desc in items:
@@ -298,7 +305,24 @@ class ChecklistScreen(QWidget):
 
         items = [
             ("Гінеколог", "Кожні 4 тижні"),
-            ("Окуліст", "До 20 тижнів")
+            ("Окуліст", "До 20 тижнів"),
+            ("Ендокринолог", "18-22 тижні"),
+            ("Терапевт", "20-24 тижні")
+        ]
+
+        for text, desc in items:
+            item = CheckItem(text, desc)
+            checklist_layout.addWidget(item)
+
+        # Інше
+        other_label = QLabel("Інше")
+        other_label.setFont(QFont('Arial', 16, QFont.Weight.Bold))
+        checklist_layout.addWidget(other_label)
+
+        items = [
+            ("Придбати одяг для вагітних", "16-20 тижнів"),
+            ("Вибрати пологовий будинок", "18-24 тижні"),
+            ("Записатись на курси для вагітних", "20-24 тижні")
         ]
 
         for text, desc in items:

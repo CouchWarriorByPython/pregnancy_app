@@ -46,6 +46,8 @@ class SettingsScreen(QWidget):
             QTabWidget::pane {
                 border: none;
                 background: transparent;
+                margin: 0px;
+                padding: 0px;
             }
             QTabBar::tab {
                 background-color: #121212;
@@ -59,27 +61,40 @@ class SettingsScreen(QWidget):
                 background-color: #222222;
                 color: #FF8C00;
             }
-            QTabBar {
-                alignment: center;
-            }
         """)
 
         # Вкладки для різних категорій налаштувань
         profile_tab = QWidget()
         pregnancy_tab = QWidget()
+        appearance_tab = QWidget()
         notifications_tab = QWidget()
+        backup_tab = QWidget()
 
         # Налаштовуємо кожну вкладку
         self.setup_profile_tab(profile_tab)
         self.setup_pregnancy_tab(pregnancy_tab)
+        self.setup_appearance_tab(appearance_tab)
         self.setup_notifications_tab(notifications_tab)
+        self.setup_backup_tab(backup_tab)
 
         # Додаємо вкладки до таб-віджету
         tab_widget.addTab(profile_tab, "Профіль")
         tab_widget.addTab(pregnancy_tab, "Вагітність")
+        tab_widget.addTab(appearance_tab, "Зовнішній вигляд")
         tab_widget.addTab(notifications_tab, "Сповіщення")
+        tab_widget.addTab(backup_tab, "Резервне копіювання")
 
         main_layout.addWidget(tab_widget)
+
+        # Налаштування розміру вікна
+        self.setMinimumWidth(self.parent.width() if self.parent else 390)
+
+        # Встановлюємо політику розміру для всього віджета
+        profile_tab.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        pregnancy_tab.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        appearance_tab.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        notifications_tab.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        backup_tab.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
 
     def setup_profile_tab(self, tab):
         """Налаштування вкладки профілю"""
@@ -98,6 +113,89 @@ class SettingsScreen(QWidget):
         # Додаємо редактор інформації про вагітність
         pregnancy_editor = PregnancyEditor()
         layout.addWidget(pregnancy_editor)
+
+    def setup_appearance_tab(self, tab):
+        """Налаштування вкладки зовнішнього вигляду"""
+        layout = QVBoxLayout(tab)
+        layout.setContentsMargins(10, 10, 10, 10)
+
+        # Заголовок
+        title = QLabel("Тема додатку")
+        title.setFont(QFont('Arial', 16, QFont.Weight.Bold))
+        layout.addWidget(title)
+
+        # Варіанти тем
+        theme_frame = QFrame()
+        theme_frame.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
+        theme_frame.setStyleSheet("""
+            QFrame {
+                background-color: #222222;
+                border-radius: 15px;
+                padding: 10px;
+            }
+        """)
+        theme_layout = QVBoxLayout(theme_frame)
+
+        # Комбобокс для вибору теми
+        theme_combo = QComboBox()
+        theme_combo.addItems(["Темна (стандартна)", "Темна з рожевим акцентом", "Темна з блакитним акцентом"])
+        theme_combo.setMinimumHeight(40)
+        theme_combo.setStyleSheet("""
+            background-color: #333333;
+            border: none;
+            border-radius: 8px;
+            padding: 5px 10px;
+            color: white;
+        """)
+        theme_layout.addWidget(theme_combo)
+
+        layout.addWidget(theme_frame)
+
+        # Акцентний колір
+        accent_title = QLabel("Акцентний колір")
+        accent_title.setFont(QFont('Arial', 16, QFont.Weight.Bold))
+        layout.addWidget(accent_title)
+
+        accent_frame = QFrame()
+        accent_frame.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
+        accent_frame.setStyleSheet("""
+            QFrame {
+                background-color: #222222;
+                border-radius: 15px;
+                padding: 10px;
+            }
+        """)
+        accent_layout = QVBoxLayout(accent_frame)
+
+        # Комбобокс для вибору акцентного кольору
+        accent_combo = QComboBox()
+        accent_combo.addItems(["Помаранчевий", "Рожевий", "Блакитний", "Зелений", "Фіолетовий"])
+        accent_combo.setMinimumHeight(40)
+        accent_combo.setStyleSheet("""
+            background-color: #333333;
+            border: none;
+            border-radius: 8px;
+            padding: 5px 10px;
+            color: white;
+        """)
+        accent_layout.addWidget(accent_combo)
+
+        layout.addWidget(accent_frame)
+
+        # Кнопка застосування змін
+        apply_btn = QPushButton("Застосувати зміни")
+        apply_btn.setMinimumHeight(50)
+        apply_btn.setStyleSheet("""
+            background-color: #FF8C00;
+            border: none;
+            border-radius: 15px;
+            color: white;
+            font-weight: bold;
+            font-size: 14px;
+        """)
+        layout.addWidget(apply_btn)
+
+        layout.addStretch(1)
 
     def setup_notifications_tab(self, tab):
         """Налаштування вкладки сповіщень"""
@@ -146,39 +244,19 @@ class SettingsScreen(QWidget):
         notif_layout.addWidget(types_label)
 
         # Чекбокси для типів сповіщень
-        notification_types = [
-            "Нагадування про прийом лікаря",
-            "Нагадування про аналізи",
-            "Важливі етапи вагітності",
-            "Щотижневі оновлення про розвиток дитини"
-        ]
-
-        for notification_type in notification_types:
-            notification_layout = QHBoxLayout()
-
-            checkbox = QCheckBox()
+        for notification_type in ["Нагадування про прийом лікаря", "Нагадування про аналізи",
+                                  "Важливі етапи вагітності",
+                                  "Щотижневі оновлення про розвиток дитини"]:
+            checkbox = QCheckBox(notification_type)
             checkbox.setChecked(True)
+            checkbox.setMinimumHeight(40)
             checkbox.setStyleSheet("""
-                QCheckBox::indicator {
-                    width: 25px;
-                    height: 25px;
-                    border-radius: 4px;
-                    border: 2px solid #555555;
-                }
-                QCheckBox::indicator:checked {
-                    background-color: #FF8C00;
-                    border: 2px solid #FF8C00;
+                QCheckBox {
+                    color: white;
+                    font-size: 14px;
                 }
             """)
-
-            notif_label = QLabel(notification_type)
-            notif_label.setStyleSheet("color: white; font-size: 14px;")
-
-            notification_layout.addWidget(checkbox)
-            notification_layout.addWidget(notif_label)
-            notification_layout.addStretch()
-
-            notif_layout.addLayout(notification_layout)
+            notif_layout.addWidget(checkbox)
 
         layout.addWidget(notif_frame)
 
@@ -195,6 +273,61 @@ class SettingsScreen(QWidget):
         """)
         layout.addWidget(save_btn)
 
+        layout.addStretch(1)
+
+    def setup_backup_tab(self, tab):
+        """Налаштування вкладки резервного копіювання"""
+        layout = QVBoxLayout(tab)
+        layout.setContentsMargins(10, 10, 10, 10)
+
+        # Заголовок
+        title = QLabel("Керування даними")
+        title.setFont(QFont('Arial', 16, QFont.Weight.Bold))
+        layout.addWidget(title)
+
+        # Рамка для кнопок
+        backup_frame = QFrame()
+        backup_frame.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
+        backup_frame.setStyleSheet("""
+            QFrame {
+                background-color: #222222;
+                border-radius: 15px;
+                padding: 10px;
+            }
+        """)
+        backup_layout = QVBoxLayout(backup_frame)
+
+        # Кнопки управління даними
+        for action, description in [
+            ("Створити резервну копію", "Зберегти всі ваші дані у вигляді резервної копії"),
+            ("Відновити з резервної копії", "Відновити дані з попередньо створеної копії"),
+            ("Експортувати дані", "Експортувати дані у форматі JSON для використання в інших програмах"),
+            ("Імпортувати дані", "Імпортувати дані з файлу JSON")
+        ]:
+            action_widget = QWidget()
+            action_layout = QVBoxLayout(action_widget)
+            action_layout.setContentsMargins(0, 5, 0, 5)
+
+            action_btn = QPushButton(action)
+            action_btn.setMinimumHeight(40)
+            action_btn.setStyleSheet("""
+                background-color: #333333;
+                border: none;
+                border-radius: 8px;
+                padding: 5px 10px;
+                color: white;
+                font-weight: bold;
+            """)
+
+            action_desc = QLabel(description)
+            action_desc.setStyleSheet("color: #AAAAAA;")
+
+            action_layout.addWidget(action_btn)
+            action_layout.addWidget(action_desc)
+
+            backup_layout.addWidget(action_widget)
+
+        layout.addWidget(backup_frame)
         layout.addStretch(1)
 
     def save_settings(self):
