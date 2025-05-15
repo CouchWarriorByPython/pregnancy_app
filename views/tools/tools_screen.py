@@ -1,21 +1,33 @@
 from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel,
-                             QPushButton, QScrollArea, QFrame, QGridLayout, QSizePolicy,
-                             QMessageBox)
+                             QScrollArea, QFrame, QGridLayout, QSizePolicy,
+                             QMessageBox, QStackedWidget)
 from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QFont, QPixmap, QIcon
+from PyQt6.QtGui import QFont, QPixmap
 
 from controllers.data_controller import DataController
+
+# Імпортуємо наші нові класи інструментів
+from .health_report import HealthReportScreen
+from .kegel_exercises import KegelExercisesScreen
+from .weight_monitor import WeightMonitorScreen
+from .kick_counter import KickCounterScreen
+from .contraction_counter import ContractionCounterScreen
+from .belly_tracker import BellyTrackerScreen
+from .blood_pressure_monitor import BloodPressureMonitorScreen
+from .wishlist import WishlistScreen
 
 
 class ToolCard(QFrame):
     """Картка інструменту для екрану інструментів"""
 
-    def __init__(self, title, description, icon_path, accent_color="#FF8C00", parent=None):
+    def __init__(self, title, description, icon_path, screen_class, accent_color="#FF8C00", parent=None):
         super().__init__(parent)
         self.title = title
         self.description = description
         self.icon_path = icon_path
         self.accent_color = accent_color
+        self.screen_class = screen_class
+        self.parent = parent
         self.setup_ui()
 
     def setup_ui(self):
@@ -81,7 +93,34 @@ class ToolCard(QFrame):
     def mousePressEvent(self, event):
         """Обробка кліку на картку"""
         super().mousePressEvent(event)
-        QMessageBox.information(self, "Інструмент", f"Ви вибрали інструмент: {self.title}")
+        if self.screen_class:
+            try:
+                # Створюємо екземпляр відповідного класу інструменту
+                tool_screen = self.screen_class(self.parent)
+
+                # Відображаємо інструмент у головному вікні
+                if hasattr(self.parent, 'parent') and self.parent.parent:
+                    main_window = self.parent.parent
+
+                    # Припускаємо, що у головного вікна є stack_widget для перемикання екранів
+                    main_stack = None
+
+                    # Шукаємо QStackedWidget у головному вікні
+                    for child in main_window.findChildren(QStackedWidget):
+                        main_stack = child
+                        break
+
+                    if main_stack:
+                        # Додаємо наш екран у стек
+                        index = main_stack.addWidget(tool_screen)
+                        # Переключаємося на нього
+                        main_stack.setCurrentIndex(index)
+                    else:
+                        QMessageBox.warning(self, "Помилка", "Не вдалося відкрити інструмент")
+                else:
+                    QMessageBox.warning(self, "Помилка", "Не вдалося відкрити інструмент")
+            except Exception as e:
+                QMessageBox.critical(self, "Помилка", f"Не вдалося відкрити інструмент: {str(e)}")
 
 
 class ToolsScreen(QWidget):
@@ -136,49 +175,57 @@ class ToolsScreen(QWidget):
                 "title": "Звіт про здоров'я в PDF",
                 "description": "Створіть PDF-звіт із усіма показниками вашого здоров'я за вибраний період.",
                 "icon": "resources/images/tools/health_report.png",
-                "accent_color": "#FF5252"  # червоний
+                "accent_color": "#FF5252",  # червоний
+                "screen_class": HealthReportScreen
             },
             {
                 "title": "Вправи Кегеля",
                 "description": "Інструкції та таймер для виконання вправ Кегеля протягом вагітності.",
                 "icon": "resources/images/tools/kegel.png",
-                "accent_color": "#9C27B0"  # пурпурний
+                "accent_color": "#9C27B0",  # пурпурний
+                "screen_class": KegelExercisesScreen
             },
             {
                 "title": "Монітор ваги",
                 "description": "Відстежуйте зміни ваги протягом вагітності. Поточна вага: 65.1 кг",
                 "icon": "resources/images/tools/weight_monitor.png",
-                "accent_color": "#757575"  # сірий
+                "accent_color": "#757575",  # сірий
+                "screen_class": WeightMonitorScreen
             },
             {
                 "title": "Лічильник поштовхів",
                 "description": "Рахуйте і записуйте поштовхи дитини для моніторингу її активності.",
                 "icon": "resources/images/tools/kick_counter.png",
-                "accent_color": "#4CAF50"  # зелений
+                "accent_color": "#4CAF50",  # зелений
+                "screen_class": KickCounterScreen
             },
             {
                 "title": "Лічильник переймів",
                 "description": "Вимірюйте частоту та тривалість переймів під час підготовки до пологів.",
                 "icon": "resources/images/tools/contraction_counter.png",
-                "accent_color": "#2196F3"  # блакитний
+                "accent_color": "#2196F3",  # блакитний
+                "screen_class": ContractionCounterScreen
             },
             {
                 "title": "Відстеження розміру живота",
                 "description": "Записуйте зміни розміру живота, щоб відстежувати ріст дитини.",
                 "icon": "resources/images/tools/belly_growth.png",
-                "accent_color": "#FF9800"  # оранжевий
+                "accent_color": "#FF9800",  # оранжевий
+                "screen_class": BellyTrackerScreen
             },
             {
                 "title": "Монітор тиску",
                 "description": "Контролюйте артеріальний тиск протягом вагітності.",
                 "icon": "resources/images/tools/pressure_monitor.png",
-                "accent_color": "#E91E63"  # рожевий
+                "accent_color": "#E91E63",  # рожевий
+                "screen_class": BloodPressureMonitorScreen
             },
             {
                 "title": "Список бажань",
                 "description": "Створіть список речей, які потрібно придбати для вас та дитини.",
                 "icon": "resources/images/tools/wishlist.png",
-                "accent_color": "#673AB7"  # фіолетовий
+                "accent_color": "#673AB7",  # фіолетовий
+                "screen_class": WishlistScreen
             }
         ]
 
@@ -189,7 +236,9 @@ class ToolsScreen(QWidget):
                 title=tool["title"],
                 description=tool["description"],
                 icon_path=tool["icon"],
-                accent_color=tool["accent_color"]
+                accent_color=tool["accent_color"],
+                screen_class=tool["screen_class"],
+                parent=self
             )
             cards_grid.addWidget(card, row, col)
 

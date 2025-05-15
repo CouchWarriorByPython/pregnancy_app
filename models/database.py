@@ -15,133 +15,295 @@ logging.basicConfig(
 
 logger = logging.getLogger('database')
 
+
 class Database:
     def __init__(self, db_path='pregnancy_diary.db'):
         self.db_path = db_path
         self._init_db()
-        
+
     def _init_db(self):
         """Ініціалізація бази даних і створення таблиць"""
         logger.info(f"Ініціалізація бази даних: {self.db_path}")
-        
+
         # Перевіряємо, чи існує файл БД
         db_exists = os.path.exists(self.db_path)
-        
+
         conn = sqlite3.connect(self.db_path)
         c = conn.cursor()
-        
+
         # Створюємо таблиці, якщо їх немає
         if not db_exists:
             logger.info("Створення структури бази даних")
-            
+
             # Таблиця для профілю користувача
             c.execute('''
-                CREATE TABLE IF NOT EXISTS user_profile (
-                    id INTEGER PRIMARY KEY,
-                    name TEXT,
-                    birth_date TEXT,
-                    height INTEGER,
-                    weight_before_pregnancy REAL,
-                    previous_pregnancies INTEGER,
-                    cycle_length INTEGER
-                )
-            ''')
-            
+                      CREATE TABLE IF NOT EXISTS user_profile
+                      (
+                          id
+                          INTEGER
+                          PRIMARY
+                          KEY,
+                          name
+                          TEXT,
+                          birth_date
+                          TEXT,
+                          height
+                          INTEGER,
+                          weight_before_pregnancy
+                          REAL,
+                          previous_pregnancies
+                          INTEGER,
+                          cycle_length
+                          INTEGER
+                      )
+                      ''')
+
             # Таблиця для дієтичних вподобань
             c.execute('''
-                CREATE TABLE IF NOT EXISTS diet_preferences (
-                    id INTEGER PRIMARY KEY,
-                    preference TEXT
-                )
-            ''')
-            
+                      CREATE TABLE IF NOT EXISTS diet_preferences
+                      (
+                          id
+                          INTEGER
+                          PRIMARY
+                          KEY,
+                          preference
+                          TEXT
+                      )
+                      ''')
+
             # Таблиця для даних про вагітність
             c.execute('''
-                CREATE TABLE IF NOT EXISTS pregnancy_data (
-                    id INTEGER PRIMARY KEY,
-                    last_period_date TEXT,
-                    due_date TEXT,
-                    conception_date TEXT,
-                    baby_gender TEXT,
-                    baby_name TEXT
-                )
-            ''')
-            
+                      CREATE TABLE IF NOT EXISTS pregnancy_data
+                      (
+                          id
+                          INTEGER
+                          PRIMARY
+                          KEY,
+                          last_period_date
+                          TEXT,
+                          due_date
+                          TEXT,
+                          conception_date
+                          TEXT,
+                          baby_gender
+                          TEXT,
+                          baby_name
+                          TEXT
+                      )
+                      ''')
+
             # Таблиця для записів ваги
             c.execute('''
-                CREATE TABLE IF NOT EXISTS weight_records (
-                    id INTEGER PRIMARY KEY,
-                    date TEXT,
-                    weight REAL
-                )
-            ''')
-            
+                      CREATE TABLE IF NOT EXISTS weight_records
+                      (
+                          id
+                          INTEGER
+                          PRIMARY
+                          KEY,
+                          date
+                          TEXT,
+                          weight
+                          REAL
+                      )
+                      ''')
+
             # Таблиця для подій у календарі
             c.execute('''
-                CREATE TABLE IF NOT EXISTS calendar_events (
-                    id INTEGER PRIMARY KEY,
-                    title TEXT,
-                    description TEXT,
-                    start_date TEXT,
-                    end_date TEXT,
-                    all_day BOOLEAN,
-                    reminder BOOLEAN,
-                    reminder_time TEXT,
-                    event_type TEXT
-                )
-            ''')
-            
+                      CREATE TABLE IF NOT EXISTS calendar_events
+                      (
+                          id
+                          INTEGER
+                          PRIMARY
+                          KEY,
+                          title
+                          TEXT,
+                          description
+                          TEXT,
+                          start_date
+                          TEXT,
+                          end_date
+                          TEXT,
+                          all_day
+                          BOOLEAN,
+                          reminder
+                          BOOLEAN,
+                          reminder_time
+                          TEXT,
+                          event_type
+                          TEXT
+                      )
+                      ''')
+
             # Таблиця для чекліста медичних обстежень
             c.execute('''
-                CREATE TABLE IF NOT EXISTS medical_checks (
-                    id INTEGER PRIMARY KEY,
-                    title TEXT,
-                    description TEXT,
-                    trimester INTEGER,
-                    is_completed BOOLEAN,
-                    completion_date TEXT,
-                    is_custom BOOLEAN
-                )
-            ''')
-            
+                      CREATE TABLE IF NOT EXISTS medical_checks
+                      (
+                          id
+                          INTEGER
+                          PRIMARY
+                          KEY,
+                          title
+                          TEXT,
+                          description
+                          TEXT,
+                          trimester
+                          INTEGER,
+                          is_completed
+                          BOOLEAN,
+                          completion_date
+                          TEXT,
+                          is_custom
+                          BOOLEAN
+                      )
+                      ''')
+
             # Таблиця для списку бажань
             c.execute('''
-                CREATE TABLE IF NOT EXISTS wishlist (
-                    id INTEGER PRIMARY KEY,
-                    title TEXT,
-                    description TEXT,
-                    category TEXT,
-                    price REAL,
-                    is_purchased BOOLEAN,
-                    purchase_date TEXT,
-                    priority INTEGER
-                )
-            ''')
-            
+                      CREATE TABLE IF NOT EXISTS wishlist
+                      (
+                          id
+                          INTEGER
+                          PRIMARY
+                          KEY,
+                          title
+                          TEXT,
+                          description
+                          TEXT,
+                          category
+                          TEXT,
+                          price
+                          REAL,
+                          is_purchased
+                          BOOLEAN,
+                          purchase_date
+                          TEXT,
+                          priority
+                          INTEGER
+                      )
+                      ''')
+
+            # Додати у метод _init_db()
+
+            # Таблиця для нотаток про здоров'я
+            c.execute('''
+                      CREATE TABLE IF NOT EXISTS health_notes
+                      (
+                          id
+                          INTEGER
+                          PRIMARY
+                          KEY,
+                          date
+                          TEXT,
+                          content
+                          TEXT,
+                          title
+                          TEXT
+                      )
+                      ''')
+
+            # Таблиця для поштовхів дитини
+            c.execute('''
+                      CREATE TABLE IF NOT EXISTS baby_kicks
+                      (
+                          id
+                          INTEGER
+                          PRIMARY
+                          KEY,
+                          date
+                          TEXT,
+                          time
+                          TEXT,
+                          count
+                          INTEGER
+                      )
+                      ''')
+
+            # Таблиця для переймів
+            c.execute('''
+                      CREATE TABLE IF NOT EXISTS contractions
+                      (
+                          id
+                          INTEGER
+                          PRIMARY
+                          KEY,
+                          date
+                          TEXT,
+                          start_time
+                          TEXT,
+                          end_time
+                          TEXT,
+                          duration
+                          INTEGER, -- тривалість у секундах
+                          intensity
+                          INTEGER  -- від 1 до 10
+                      )
+                      ''')
+
+            # Таблиця для показників тиску
+            c.execute('''
+                      CREATE TABLE IF NOT EXISTS blood_pressure
+                      (
+                          id
+                          INTEGER
+                          PRIMARY
+                          KEY,
+                          date
+                          TEXT,
+                          time
+                          TEXT,
+                          systolic
+                          INTEGER, -- верхній тиск
+                          diastolic
+                          INTEGER, -- нижній тиск
+                          pulse
+                          INTEGER, -- пульс
+                          notes
+                          TEXT
+                      )
+                      ''')
+
+            # Таблиця для розмірів живота
+            c.execute('''
+                      CREATE TABLE IF NOT EXISTS belly_measurements
+                      (
+                          id
+                          INTEGER
+                          PRIMARY
+                          KEY,
+                          date
+                          TEXT,
+                          measurement
+                          REAL, -- у сантиметрах
+                          notes
+                          TEXT
+                      )
+                      ''')
             # Додаємо початкові дані для профілю
             c.execute('''
-                INSERT INTO user_profile (id, name, birth_date, height, weight_before_pregnancy, previous_pregnancies, cycle_length) 
-                VALUES (1, 'Користувач', NULL, 165, 60.0, 0, 28)
-            ''')
-            
+                      INSERT INTO user_profile (id, name, birth_date, height, weight_before_pregnancy,
+                                                previous_pregnancies, cycle_length)
+                      VALUES (1, 'Користувач', NULL, 165, 60.0, 0, 28)
+                      ''')
+
             # Додаємо початкові дані для вагітності
             today = datetime.now().strftime('%Y-%m-%d')
             due_date = (datetime.now().replace(year=datetime.now().year + 1)).strftime('%Y-%m-%d')
-            
+
             c.execute('''
-                INSERT INTO pregnancy_data (id, last_period_date, due_date, conception_date, baby_gender, baby_name) 
-                VALUES (1, ?, ?, NULL, 'Невідомо', '')
-            ''', (today, due_date))
-            
+                      INSERT INTO pregnancy_data (id, last_period_date, due_date, conception_date, baby_gender,
+                                                  baby_name)
+                      VALUES (1, ?, ?, NULL, 'Невідомо', '')
+                      ''', (today, due_date))
+
             conn.commit()
             logger.info("Структура бази даних створена успішно")
-        
+
         conn.close()
-    
+
     def get_connection(self):
         """Повертає з'єднання з базою даних"""
         return sqlite3.connect(self.db_path)
-    
+
     def execute_query(self, query, params=()):
         """Виконує SQL запит та повертає результат"""
         logger.debug(f"SQL запит: {query} з параметрами: {params}")
@@ -152,7 +314,7 @@ class Database:
         conn.commit()
         conn.close()
         return result
-    
+
     def execute_insert(self, query, params=()):
         """Виконує SQL запит вставки та повертає ID вставленого запису"""
         logger.debug(f"SQL вставка: {query} з параметрами: {params}")
@@ -163,7 +325,7 @@ class Database:
         conn.commit()
         conn.close()
         return last_id
-    
+
     def execute_update(self, query, params=()):
         """Виконує SQL запит оновлення та повертає кількість змінених рядків"""
         logger.debug(f"SQL оновлення: {query} з параметрами: {params}")
@@ -174,7 +336,7 @@ class Database:
         conn.commit()
         conn.close()
         return rows_affected
-    
+
     # Методи для роботи з профілем користувача
     def get_user_profile(self):
         """Отримує профіль користувача"""
@@ -191,32 +353,33 @@ class Database:
                 'cycle_length': result[0][6]
             }
         return None
-        
-    def update_user_profile(self, name, birth_date, height, weight_before_pregnancy, previous_pregnancies, cycle_length):
+
+    def update_user_profile(self, name, birth_date, height, weight_before_pregnancy, previous_pregnancies,
+                            cycle_length):
         """Оновлює профіль користувача"""
         logger.info(f"Оновлення профілю користувача: {name}")
         return self.execute_update(
             "UPDATE user_profile SET name=?, birth_date=?, height=?, weight_before_pregnancy=?, previous_pregnancies=?, cycle_length=? WHERE id=1",
             (name, birth_date, height, weight_before_pregnancy, previous_pregnancies, cycle_length)
         )
-    
+
     # Методи для роботи з дієтичними вподобаннями
     def get_diet_preferences(self):
         """Отримує список дієтичних вподобань"""
         logger.info("Отримання дієтичних вподобань")
         result = self.execute_query("SELECT preference FROM diet_preferences")
         return [row[0] for row in result]
-        
+
     def update_diet_preferences(self, preferences):
         """Оновлює список дієтичних вподобань"""
         logger.info(f"Оновлення дієтичних вподобань: {preferences}")
         # Спочатку видаляємо всі поточні записи
         self.execute_update("DELETE FROM diet_preferences")
-        
+
         # Додаємо нові записи
         for pref in preferences:
             self.execute_insert("INSERT INTO diet_preferences (preference) VALUES (?)", (pref,))
-    
+
     # Методи для роботи з даними про вагітність
     def get_pregnancy_data(self):
         """Отримує дані про вагітність"""
@@ -232,7 +395,7 @@ class Database:
                 'baby_name': result[0][5]
             }
         return None
-        
+
     def update_pregnancy_data(self, last_period_date, due_date, conception_date, baby_gender, baby_name):
         """Оновлює дані про вагітність"""
         logger.info("Оновлення даних про вагітність")
@@ -240,7 +403,7 @@ class Database:
             "UPDATE pregnancy_data SET last_period_date=?, due_date=?, conception_date=?, baby_gender=?, baby_name=? WHERE id=1",
             (last_period_date, due_date, conception_date, baby_gender, baby_name)
         )
-    
+
     # Методи для роботи з вагою
     def add_weight_record(self, date, weight):
         """Додає новий запис про вагу"""
@@ -249,28 +412,29 @@ class Database:
             "INSERT INTO weight_records (date, weight) VALUES (?, ?)",
             (date, weight)
         )
-        
+
     def get_weight_records(self):
         """Отримує всі записи про вагу"""
         logger.info("Отримання записів про вагу")
         result = self.execute_query("SELECT date, weight FROM weight_records ORDER BY date")
         return [(row[0], row[1]) for row in result]
-    
+
     # Методи для роботи з календарем подій
-    def add_calendar_event(self, title, description, start_date, end_date, all_day=False, reminder=False, reminder_time=None, event_type='regular'):
+    def add_calendar_event(self, title, description, start_date, end_date, all_day=False, reminder=False,
+                           reminder_time=None, event_type='regular'):
         """Додає нову подію до календаря"""
         logger.info(f"Додавання події до календаря: {title} на дату {start_date}")
         return self.execute_insert(
             "INSERT INTO calendar_events (title, description, start_date, end_date, all_day, reminder, reminder_time, event_type) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
             (title, description, start_date, end_date, all_day, reminder, reminder_time, event_type)
         )
-        
+
     def get_calendar_events(self, start_date=None, end_date=None):
         """Отримує події з календаря у вказаному діапазоні дат"""
         logger.info(f"Отримання подій календаря між {start_date} і {end_date}")
         query = "SELECT * FROM calendar_events"
         params = []
-        
+
         if start_date and end_date:
             query += " WHERE start_date >= ? AND end_date <= ?"
             params.extend([start_date, end_date])
@@ -280,7 +444,7 @@ class Database:
         elif end_date:
             query += " WHERE end_date <= ?"
             params.append(end_date)
-        
+
         result = self.execute_query(query, tuple(params))
         events = []
         for row in result:
@@ -296,7 +460,7 @@ class Database:
                 'event_type': row[8]
             })
         return events
-    
+
     # Методи для роботи з чеклістом медичних обстежень
     def add_medical_check(self, title, description, trimester, is_custom=False):
         """Додає новий пункт до чекліста медичних обстежень"""
@@ -305,7 +469,7 @@ class Database:
             "INSERT INTO medical_checks (title, description, trimester, is_completed, is_custom) VALUES (?, ?, ?, 0, ?)",
             (title, description, trimester, is_custom)
         )
-        
+
     def get_medical_checks_by_trimester(self, trimester):
         """Отримує список медичних обстежень для вказаного триместру"""
         logger.info(f"Отримання медичних обстежень для триместру {trimester}")
@@ -325,18 +489,18 @@ class Database:
                 'is_custom': bool(row[6])
             })
         return checks
-        
+
     def complete_medical_check(self, check_id, completion_date=None):
         """Позначає медичне обстеження як виконане"""
         if not completion_date:
             completion_date = datetime.now().strftime('%Y-%m-%d')
-        
+
         logger.info(f"Позначення медичного обстеження {check_id} як виконаного")
         return self.execute_update(
             "UPDATE medical_checks SET is_completed = 1, completion_date = ? WHERE id = ?",
             (completion_date, check_id)
         )
-    
+
     # Методи для роботи зі списком бажань
     def add_wishlist_item(self, title, description, category, price=None, priority=3):
         """Додає новий товар до списку бажань"""
@@ -345,17 +509,17 @@ class Database:
             "INSERT INTO wishlist (title, description, category, price, is_purchased, priority) VALUES (?, ?, ?, ?, 0, ?)",
             (title, description, category, price, priority)
         )
-        
+
     def get_wishlist_items(self, category=None):
         """Отримує товари зі списку бажань, можливо за категорією"""
         logger.info(f"Отримання товарів зі списку бажань (категорія: {category})")
         query = "SELECT * FROM wishlist"
         params = []
-        
+
         if category:
             query += " WHERE category = ?"
             params.append(category)
-        
+
         result = self.execute_query(query, tuple(params))
         items = []
         for row in result:
@@ -370,14 +534,114 @@ class Database:
                 'priority': row[7]
             })
         return items
-        
+
     def mark_wishlist_item_purchased(self, item_id, purchase_date=None):
         """Позначає товар зі списку бажань як придбаний"""
         if not purchase_date:
             purchase_date = datetime.now().strftime('%Y-%m-%d')
-        
+
         logger.info(f"Позначення товару {item_id} як придбаного")
         return self.execute_update(
             "UPDATE wishlist SET is_purchased = 1, purchase_date = ? WHERE id = ?",
             (purchase_date, item_id)
-        ) 
+        )
+
+    # Методи для нотаток про здоров'я
+    def add_health_note(self, date, content, title=""):
+        """Додає нотатку про здоров'я"""
+        logger.info(f"Додавання нотатки про здоров'я за дату {date}")
+        return self.execute_insert(
+            "INSERT INTO health_notes (date, content, title) VALUES (?, ?, ?)",
+            (date, content, title)
+        )
+
+    def get_health_notes(self):
+        """Отримує всі нотатки про здоров'я"""
+        logger.info("Отримання нотаток про здоров'я")
+        result = self.execute_query("SELECT id, date, content, title FROM health_notes ORDER BY date DESC")
+        return [{"id": row[0], "date": row[1], "content": row[2], "title": row[3]} for row in result]
+
+    # Методи для поштовхів дитини
+    def add_baby_kick(self, date, time, count):
+        """Додає запис про поштовхи дитини"""
+        logger.info(f"Додавання запису про поштовхи на дату {date}, час {time}")
+        return self.execute_insert(
+            "INSERT INTO baby_kicks (date, time, count) VALUES (?, ?, ?)",
+            (date, time, count)
+        )
+
+    def get_baby_kicks(self, days=7):
+        """Отримує записи про поштовхи за вказану кількість днів"""
+        from datetime import datetime, timedelta
+        current_date = datetime.now().date()
+        start_date = (current_date - timedelta(days=days)).strftime("%Y-%m-%d")
+
+        logger.info(f"Отримання поштовхів з {start_date}")
+        result = self.execute_query(
+            "SELECT id, date, time, count FROM baby_kicks WHERE date >= ? ORDER BY date DESC, time DESC",
+            (start_date,)
+        )
+        return [{"id": row[0], "date": row[1], "time": row[2], "count": row[3]} for row in result]
+
+    # Методи для переймів
+    def add_contraction(self, date, start_time, end_time, duration, intensity):
+        """Додає запис про перейми"""
+        logger.info(f"Додавання запису про перейми на дату {date}")
+        return self.execute_insert(
+            "INSERT INTO contractions (date, start_time, end_time, duration, intensity) VALUES (?, ?, ?, ?, ?)",
+            (date, start_time, end_time, duration, intensity)
+        )
+
+    def get_contractions(self, days=1):
+        """Отримує записи про перейми за вказану кількість днів"""
+        from datetime import datetime, timedelta
+        current_date = datetime.now().date()
+        start_date = (current_date - timedelta(days=days)).strftime("%Y-%m-%d")
+
+        logger.info(f"Отримання переймів з {start_date}")
+        result = self.execute_query(
+            "SELECT id, date, start_time, end_time, duration, intensity FROM contractions WHERE date >= ? ORDER BY date DESC, start_time DESC",
+            (start_date,)
+        )
+        return [{"id": row[0], "date": row[1], "start_time": row[2], "end_time": row[3], "duration": row[4],
+                 "intensity": row[5]} for row in result]
+
+    # Методи для показників тиску
+    def add_blood_pressure(self, date, time, systolic, diastolic, pulse=None, notes=""):
+        """Додає запис про артеріальний тиск"""
+        logger.info(f"Додавання запису про тиск на дату {date}")
+        return self.execute_insert(
+            "INSERT INTO blood_pressure (date, time, systolic, diastolic, pulse, notes) VALUES (?, ?, ?, ?, ?, ?)",
+            (date, time, systolic, diastolic, pulse, notes)
+        )
+
+    def get_blood_pressure(self, days=30):
+        """Отримує записи про тиск за вказану кількість днів"""
+        from datetime import datetime, timedelta
+        current_date = datetime.now().date()
+        start_date = (current_date - timedelta(days=days)).strftime("%Y-%m-%d")
+
+        logger.info(f"Отримання тиску з {start_date}")
+        result = self.execute_query(
+            "SELECT id, date, time, systolic, diastolic, pulse, notes FROM blood_pressure WHERE date >= ? ORDER BY date DESC, time DESC",
+            (start_date,)
+        )
+        return [{"id": row[0], "date": row[1], "time": row[2], "systolic": row[3], "diastolic": row[4], "pulse": row[5],
+                 "notes": row[6]} for row in result]
+
+    # Методи для розмірів живота
+    def add_belly_measurement(self, date, measurement, notes=""):
+        """Додає запис про розмір живота"""
+        logger.info(f"Додавання запису про розмір живота на дату {date}")
+        return self.execute_insert(
+            "INSERT INTO belly_measurements (date, measurement, notes) VALUES (?, ?, ?)",
+            (date, measurement, notes)
+        )
+
+    def get_belly_measurements(self):
+        """Отримує всі записи про розмір живота"""
+        logger.info("Отримання записів про розмір живота")
+        result = self.execute_query(
+            "SELECT id, date, measurement, notes FROM belly_measurements ORDER BY date DESC"
+        )
+        return [{"id": row[0], "date": row[1], "measurement": row[2], "notes": row[3]} for row in result]
