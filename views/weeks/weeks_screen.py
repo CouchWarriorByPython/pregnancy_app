@@ -3,6 +3,8 @@ from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QLabel,
                              QSizePolicy, QScrollArea, QFrame)
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QFont, QPixmap
+from PyQt6.QtGui import QIcon
+from PyQt6.QtCore import QSize
 from controllers.data_controller import DataController
 from controllers.baby_development_controller import BabyDevelopmentController
 from .fruit_comparison_view import FruitComparisonView
@@ -257,28 +259,41 @@ class WeekSelector(QWidget):
 
         # Створюємо кнопки для кожного тижня
         for week in visible_weeks:
+            # Створюємо кнопку з зображенням замість простого тексту
             week_btn = QPushButton(str(week))
             week_btn.setObjectName(f"week_btn_{week}")
-            week_btn.setFixedSize(50, 50)
+            week_btn.setFixedSize(60, 60)  # Збільшуємо розмір для кращого відображення зображення
             week_btn.setCheckable(True)
             week_btn.setChecked(week == self.current_week)
 
-            week_btn.setStyleSheet("""
-                QPushButton {
+            # Стиль з використанням зображення фрукта
+            week_btn.setStyleSheet(f"""
+                QPushButton {{
                     background-color: #333333;
-                    border-radius: 25px;
+                    border-radius: 30px;
                     font-weight: bold;
                     font-size: 14px;
-                    color: #DDDDDD;
-                }
-                QPushButton:checked {
+                    color: #FFFFFF;
+                    text-align: center;
+                }}
+                QPushButton:checked {{
                     background-color: #FF8C00;
                     color: white;
-                }
-                QPushButton:hover:!checked {
+                }}
+                QPushButton:hover:!checked {{
                     background-color: #444444;
-                }
+                }}
             """)
+
+            # Завантажуємо зображення фрукта для тижня
+            # При реальній імплементації тут буде завантаження зображення з файлу
+            from utils.image_utils import generate_fruit_image
+            pixmap = generate_fruit_image(week, size=40)
+
+            # Встановлюємо зображення як іконку
+            icon = QIcon(pixmap)
+            week_btn.setIcon(icon)
+            week_btn.setIconSize(QSize(40, 40))
 
             # Зберігаємо тиждень як властивість кнопки
             week_btn.week = week

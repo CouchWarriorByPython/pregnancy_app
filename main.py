@@ -182,13 +182,12 @@ class MainWindow(QMainWindow):
         nav_layout.setContentsMargins(5, 5, 5, 5)
         nav_layout.setSpacing(2)  # Зменшуємо відстань між кнопками
 
-        # Створюємо кнопки навігації
+        # Створюємо кнопки навігації (видалені непотрібні пункти)
         nav_items = [
             {"icon": "resources/images/icons/weeks.png", "text": "Тижні", "index": 1},
             {"icon": "resources/images/icons/calendar.png", "text": "Календар", "index": 2},
             {"icon": "resources/images/icons/tools.png", "text": "Інструменти", "index": 3},
             {"icon": "resources/images/icons/checklist.png", "text": "Чекліст", "index": 4},
-            {"icon": "resources/images/icons/settings.png", "text": "Налаштув.", "index": 5}
         ]
 
         self.nav_buttons = []

@@ -66,23 +66,14 @@ class SettingsScreen(QWidget):
         # Вкладки для різних категорій налаштувань
         profile_tab = QWidget()
         pregnancy_tab = QWidget()
-        appearance_tab = QWidget()
-        notifications_tab = QWidget()
-        backup_tab = QWidget()
 
         # Налаштовуємо кожну вкладку
         self.setup_profile_tab(profile_tab)
         self.setup_pregnancy_tab(pregnancy_tab)
-        self.setup_appearance_tab(appearance_tab)
-        self.setup_notifications_tab(notifications_tab)
-        self.setup_backup_tab(backup_tab)
 
         # Додаємо вкладки до таб-віджету
         tab_widget.addTab(profile_tab, "Профіль")
         tab_widget.addTab(pregnancy_tab, "Вагітність")
-        tab_widget.addTab(appearance_tab, "Зовнішній вигляд")
-        tab_widget.addTab(notifications_tab, "Сповіщення")
-        tab_widget.addTab(backup_tab, "Резервне копіювання")
 
         main_layout.addWidget(tab_widget)
 
@@ -92,10 +83,6 @@ class SettingsScreen(QWidget):
         # Встановлюємо політику розміру для всього віджета
         profile_tab.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         pregnancy_tab.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-        appearance_tab.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-        notifications_tab.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-        backup_tab.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-
     def setup_profile_tab(self, tab):
         """Налаштування вкладки профілю"""
         layout = QVBoxLayout(tab)

@@ -49,7 +49,7 @@ def generate_fruit_image(week, size=200):
         1: "#7CB342", 2: "#8BC34A", 3: "#9CCC65", 4: "#AED581",
         5: "#C5E1A5", 6: "#DCEDC8", 7: "#F1F8E9", 8: "#689F38",
         9: "#558B2F", 10: "#33691E", 11: "#CDDC39", 12: "#AFB42B",
-        # Другий триместр - відтінки помаранчевого
+        # Другий триместр - відтінки помаранчевого/жовтого
         13: "#FFB74D", 14: "#FFA726", 15: "#FF9800", 16: "#FB8C00",
         17: "#F57C00", 18: "#EF6C00", 19: "#E65100", 20: "#FFA000",
         21: "#FF8F00", 22: "#FF6F00", 23: "#FFEB3B", 24: "#FDD835",
@@ -64,5 +64,25 @@ def generate_fruit_image(week, size=200):
     # Вибираємо колір за тижнем або базовий, якщо тиждень поза діапазоном
     color = colors.get(week, "#FF8C00")
 
-    # Генеруємо коло відповідного кольору
-    return generate_circle_image(size=size, color=color)
+    # Створюємо pixmap з повністю заповненим кольором
+    pixmap = QPixmap(size, size)
+    pixmap.fill(Qt.GlobalColor.transparent)
+
+    painter = QPainter(pixmap)
+    painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+
+    # Заповнюємо колір і бордер
+    pen = QPen(QColor(color))
+    pen.setWidth(3)
+    painter.setPen(pen)
+
+    # Повністю заповнюємо колом з невеликою прозорістю
+    fill_color = QColor(color)
+    fill_color.setAlpha(200)  # 80% непрозорість
+    painter.setBrush(QBrush(fill_color))
+
+    # Малюємо коло
+    painter.drawEllipse(3, 3, size - 6, size - 6)
+
+    painter.end()
+    return pixmap
