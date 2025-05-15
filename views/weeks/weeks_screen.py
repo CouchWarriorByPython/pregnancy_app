@@ -3,8 +3,6 @@ from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QLabel,
                              QSizePolicy, QScrollArea, QFrame)
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QFont, QPixmap
-from PyQt6.QtGui import QIcon
-from PyQt6.QtCore import QSize
 from controllers.data_controller import DataController
 from controllers.baby_development_controller import BabyDevelopmentController
 from .fruit_comparison_view import FruitComparisonView
@@ -529,6 +527,12 @@ class WeeksScreen(QWidget):
         # Розділ з кнопками вибору тижня (верхня частина екрану)
         week_selector_section = QWidget()
         week_selector_section.setMaximumHeight(100)
+
+        # Розділ з кнопками вибору тижня (верхня частина екрану)
+        week_selector_section = QWidget()
+        week_selector_section.setObjectName("week_selector_section")  # Додаємо цей рядок
+        week_selector_section.setMaximumHeight(100)
+
         week_selector_layout = QHBoxLayout(week_selector_section)
         week_selector_layout.setContentsMargins(10, 10, 10, 10)
 
@@ -674,11 +678,12 @@ class WeeksScreen(QWidget):
         self.content_layout.setSpacing(15)
 
         # Заголовок з номером тижня
-        week_title = QLabel(f"Тиждень {self.current_week}")
-        week_title.setFont(QFont('Arial', 22, QFont.Weight.Bold))
-        week_title.setStyleSheet("color: #FF8C00;")
-        week_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.content_layout.addWidget(week_title)
+        self.week_title = QLabel(f"Тиждень {self.current_week}")
+        self.week_title.setObjectName("week_title_label")  # Додаємо ID для пошуку
+        self.week_title.setFont(QFont('Arial', 22, QFont.Weight.Bold))
+        self.week_title.setStyleSheet("color: #FF8C00;")
+        self.week_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.content_layout.addWidget(self.week_title)
 
         # Віджет для порівняння з фруктами (створюємо заглушку, буде оновлено в update_content)
         self.fruit_comparison_view = None  # Буде створено в update_content
@@ -714,6 +719,9 @@ class WeeksScreen(QWidget):
     def update_content(self, week):
         """Оновлює контент відповідно до вибраного тижня"""
         logger.info(f"Оновлення контенту для тижня {week}")
+
+        if hasattr(self, 'week_title'):
+            self.week_title.setText(f"Тиждень {week}")
 
         # Перевіряємо, чи змінився тиждень
         if self.current_displayed_week == week:
@@ -824,6 +832,105 @@ class WeeksScreen(QWidget):
             self.next_btn.setEnabled(False)
             logger.warning(f"Тиждень {self.current_week} не знайдено серед доступних")
 
+    def update_ui_for_week(self, week):
+        """Оновлює інтерфейс для показу нового діапазону тижнів"""
+        logger.info(f"Оновлення UI тижнів для тижня {week}")
+
+        # Очищаємо поточні кнопки
+        for btn in self.week_btns:
+            btn.deleteLater()
+        self.week_btns.clear()
+
+        # Отримуємо layout, де знаходяться кнопки
+        week_selector_layout = None
+        for i in range(self.layout().count()):
+            widget = self.layout().itemAt(i).widget()
+            if widget and widget.objectName() == "week_selector_section":
+                week_selector_layout = widget.layout()
+                break
+
+        if not week_selector_layout:
+            logger.error("Не знайдено layout селектора тижнів")
+            return
+
+        # Видаляємо всі елементи крім першого (prev_btn) і останнього (next_btn)
+        for i in reversed(range(1, week_selector_layout.count() - 1)):
+            item = week_selector_layout.itemAt(i)
+            if item and item.widget():
+                item.widget().deleteLater()
+                week_selector_layout.removeItem(item)
+
+        # Знаходимо індекс поточного тижня
+        if week in self.available_weeks:
+            current_index = self.available_weeks.index(week)
+        else:
+            # Якщо тиждень не знайдено, шукаємо найближчий
+            current_index = 0
+            min_diff = abs(self.available_weeks[0] - week)
+            for i, w in enumerate(self.available_weeks):
+                diff = abs(w - week)
+                if diff < min_diff:
+                    min_diff = diff
+                    current_index = i
+            week = self.available_weeks[current_index]
+
+        self.current_week = week
+
+        # Визначаємо діапазон тижнів для показу
+        total_buttons = 5
+        half_range = total_buttons // 2
+
+        start_idx = max(0, current_index - half_range)
+        end_idx = min(len(self.available_weeks), start_idx + total_buttons)
+
+        if end_idx - start_idx < total_buttons and start_idx > 0:
+            shift = total_buttons - (end_idx - start_idx)
+            start_idx = max(0, start_idx - shift)
+
+        visible_weeks = self.available_weeks[start_idx:end_idx]
+
+        # Створюємо нові кнопки
+        for i, week in enumerate(visible_weeks):
+            # Колір відповідно до триместру
+            color = self.get_week_color(week)
+
+            week_btn = QPushButton(str(week))
+            week_btn.setObjectName(f"week_btn_{week}")
+            week_btn.setFixedSize(60, 60)
+            week_btn.setCheckable(True)
+            week_btn.setChecked(week == self.current_week)
+
+            week_btn.setStyleSheet(f"""
+                QPushButton {{
+                    background-color: {color};
+                    border-radius: 30px;
+                    font-weight: bold;
+                    font-size: 18px;
+                    color: white;
+                    text-align: center;
+                    padding: 0px;
+                    qproperty-alignment: AlignCenter;
+                }}
+                QPushButton:checked {{
+                    background-color: #FF8C00;
+                    color: white;
+                }}
+            """)
+
+            # Зберігаємо тиждень як властивість кнопки
+            week_btn.week = week
+
+            # Створюємо локальну копію для замикання
+            current_btn = week_btn
+            current_btn.clicked.connect(lambda checked, b=current_btn: self.week_changed(b.week))
+
+            # Вставляємо кнопку після кнопки "назад" і перед кнопкою "вперед"
+            week_selector_layout.insertWidget(i + 1, week_btn)
+            self.week_btns.append(week_btn)
+
+        # Оновлюємо стан кнопок
+        self.update_buttons_state()
+
     def prev_week(self):
         """Перехід до попереднього тижня"""
         if self.current_week in self.available_weeks:
@@ -831,6 +938,13 @@ class WeeksScreen(QWidget):
             if current_index > 0:
                 new_week = self.available_weeks[current_index - 1]
                 logger.info(f"Перехід до попереднього тижня: {new_week}")
+
+                # Перевіряємо, чи потрібно оновити видимі кнопки
+                visible_weeks = [btn.week for btn in self.week_btns]
+                if new_week < min(visible_weeks):
+                    self.update_ui_for_week(new_week)
+
+                # Потім змінюємо тиждень і оновлюємо контент
                 self.week_changed(new_week)
 
     def next_week(self):
@@ -840,4 +954,11 @@ class WeeksScreen(QWidget):
             if current_index < len(self.available_weeks) - 1:
                 new_week = self.available_weeks[current_index + 1]
                 logger.info(f"Перехід до наступного тижня: {new_week}")
+
+                # Перевіряємо, чи потрібно оновити видимі кнопки
+                visible_weeks = [btn.week for btn in self.week_btns]
+                if new_week > max(visible_weeks):
+                    self.update_ui_for_week(new_week)
+
+                # Потім змінюємо тиждень і оновлюємо контент
                 self.week_changed(new_week)
