@@ -521,22 +521,28 @@ class WeeksScreen(QWidget):
 
     def setup_ui(self):
         """Налаштування інтерфейсу користувача"""
-        # Головний горизонтальний layout без відступів
-        layout = QHBoxLayout(self)
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(8)
+        # Головний вертикальний layout для всього екрану
+        main_layout = QVBoxLayout(self)
+        main_layout.setContentsMargins(0, 0, 0, 0)
+        main_layout.setSpacing(0)
+
+        # Розділ з кнопками вибору тижня (верхня частина екрану)
+        week_selector_section = QWidget()
+        week_selector_section.setMaximumHeight(100)
+        week_selector_layout = QHBoxLayout(week_selector_section)
+        week_selector_layout.setContentsMargins(10, 10, 10, 10)
 
         # Кнопка "назад"
         self.prev_btn = QPushButton("<")
         self.prev_btn.setObjectName("prev_week_btn")
-        self.prev_btn.setFixedSize(45, 45)  # Збільшуємо розмір для запобігання обрізанню
+        self.prev_btn.setFixedSize(45, 45)
         self.prev_btn.setStyleSheet("""
             QPushButton {
                 background-color: #333333;
                 border-radius: 22px;
                 font-weight: bold;
                 color: #DDDDDD;
-                font-size: 18px;  /* Збільшуємо шрифт для стрілки */
+                font-size: 18px;
             }
             QPushButton:disabled {
                 background-color: #222222;
@@ -550,7 +556,7 @@ class WeeksScreen(QWidget):
             }
         """)
         self.prev_btn.clicked.connect(self.prev_week)
-        layout.addWidget(self.prev_btn)
+        week_selector_layout.addWidget(self.prev_btn)
 
         # ДИНАМІЧНЕ СТВОРЕННЯ КНОПОК ТИЖНІВ
         self.week_btns = []
@@ -589,8 +595,6 @@ class WeeksScreen(QWidget):
         # Отримуємо тижні для показу
         visible_weeks = self.available_weeks[start_idx:end_idx]
 
-        logger.debug(f"Видимі тижні: {visible_weeks}, поточний: {self.current_week}")
-
         # Створюємо кнопки для кожного тижня з кольоровим фоном та цифрами
         for week in visible_weeks:
             # Встановлюємо колір фону залежно від тижня
@@ -602,7 +606,6 @@ class WeeksScreen(QWidget):
             week_btn.setCheckable(True)
             week_btn.setChecked(week == self.current_week)
 
-            # Встановлюємо стиль з кольоровим фоном
             week_btn.setStyleSheet(f"""
                 QPushButton {{
                     background-color: {color};
@@ -627,20 +630,20 @@ class WeeksScreen(QWidget):
             current_btn = week_btn
             current_btn.clicked.connect(lambda checked, b=current_btn: self.week_changed(b.week))
 
-            layout.addWidget(week_btn)
+            week_selector_layout.addWidget(week_btn)
             self.week_btns.append(week_btn)
 
         # Кнопка "вперед"
         self.next_btn = QPushButton(">")
         self.next_btn.setObjectName("next_week_btn")
-        self.next_btn.setFixedSize(45, 45)  # Збільшуємо розмір для запобігання обрізанню
+        self.next_btn.setFixedSize(45, 45)
         self.next_btn.setStyleSheet("""
             QPushButton {
                 background-color: #333333;
                 border-radius: 22px;
                 font-weight: bold;
                 color: #DDDDDD;
-                font-size: 18px;  /* Збільшуємо шрифт для стрілки */
+                font-size: 18px;
             }
             QPushButton:disabled {
                 background-color: #222222;
@@ -654,13 +657,50 @@ class WeeksScreen(QWidget):
             }
         """)
         self.next_btn.clicked.connect(self.next_week)
-        layout.addWidget(self.next_btn)
+        week_selector_layout.addWidget(self.next_btn)
+
+        # Додаємо вибір тижня до головного layout
+        main_layout.addWidget(week_selector_section)
+
+        # Створюємо скролований контейнер для основного контенту
+        scroll_area = QScrollArea()
+        scroll_area.setWidgetResizable(True)
+        scroll_area.setStyleSheet("border: none;")
+
+        # Основний контент
+        content_widget = QWidget()
+        self.content_layout = QVBoxLayout(content_widget)
+        self.content_layout.setContentsMargins(15, 15, 15, 15)
+        self.content_layout.setSpacing(15)
+
+        # Заголовок з номером тижня
+        week_title = QLabel(f"Тиждень {self.current_week}")
+        week_title.setFont(QFont('Arial', 22, QFont.Weight.Bold))
+        week_title.setStyleSheet("color: #FF8C00;")
+        week_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.content_layout.addWidget(week_title)
+
+        # Віджет для порівняння з фруктами (створюємо заглушку, буде оновлено в update_content)
+        self.fruit_comparison_view = None  # Буде створено в update_content
+
+        # Секція з картками інформації
+        cards_section = QWidget()
+        self.cards_layout = QVBoxLayout(cards_section)
+        self.cards_layout.setContentsMargins(0, 0, 0, 0)
+        self.cards_layout.setSpacing(10)
+
+        # Додаємо секцію з картками до контенту
+        self.content_layout.addWidget(cards_section)
+
+        # Додаємо контент до області прокрутки
+        scroll_area.setWidget(content_widget)
+        main_layout.addWidget(scroll_area)
 
         # Оновлюємо стан кнопок
         self.update_buttons_state()
 
-        # Налаштування розміру віджета
-        self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+        # Оновлюємо контент для поточного тижня
+        self.update_content(self.current_week)
 
     def get_week_color(self, week):
         """Повертає колір для тижня відповідно до триместру"""
