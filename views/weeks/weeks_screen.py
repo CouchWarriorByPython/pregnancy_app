@@ -320,9 +320,6 @@ class WeekSelector(QWidget):
         # Оновлюємо стан кнопок
         self.update_buttons_state()
 
-        # Налаштування розміру віджета
-        self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
-
     def get_week_color(self, week):
         """Повертає колір для тижня відповідно до триместру"""
         if week <= 13:  # Перший триместр
@@ -480,6 +477,13 @@ class WeekSelector(QWidget):
             if current_index > 0:
                 new_week = self.available_weeks[current_index - 1]
                 logger.info(f"Перехід до попереднього тижня: {new_week}")
+
+                # Перевіряємо, чи новий тиждень є серед видимих кнопок або на краю діапазону
+                visible_weeks = [btn.week for btn in self.week_btns]
+                if new_week not in visible_weeks or new_week == min(visible_weeks):
+                    self.update_ui_for_week(new_week)
+
+                # Потім змінюємо тиждень і оновлюємо контент
                 self.week_changed(new_week)
 
     def next_week(self):
@@ -489,6 +493,13 @@ class WeekSelector(QWidget):
             if current_index < len(self.available_weeks) - 1:
                 new_week = self.available_weeks[current_index + 1]
                 logger.info(f"Перехід до наступного тижня: {new_week}")
+
+                # Перевіряємо, чи новий тиждень є серед видимих кнопок або на краю діапазону
+                visible_weeks = [btn.week for btn in self.week_btns]
+                if new_week not in visible_weeks or new_week == max(visible_weeks):
+                    self.update_ui_for_week(new_week)
+
+                # Потім змінюємо тиждень і оновлюємо контент
                 self.week_changed(new_week)
 
 
@@ -814,7 +825,6 @@ class WeeksScreen(QWidget):
 
     def update_buttons_state(self):
         """Оновлення стану кнопок тижнів"""
-        # Оновлюємо стан кнопок тижнів
         for btn in self.week_btns:
             btn.setChecked(btn.week == self.current_week)
 
@@ -940,9 +950,9 @@ class WeeksScreen(QWidget):
                 new_week = self.available_weeks[current_index - 1]
                 logger.info(f"Перехід до попереднього тижня: {new_week}")
 
-                # Перевіряємо, чи потрібно оновити видимі кнопки
+                # Перевіряємо, чи новий тиждень є серед видимих кнопок або на краю діапазону
                 visible_weeks = [btn.week for btn in self.week_btns]
-                if new_week < min(visible_weeks):
+                if new_week not in visible_weeks or new_week == min(visible_weeks):
                     self.update_ui_for_week(new_week)
 
                 # Потім змінюємо тиждень і оновлюємо контент
@@ -956,9 +966,9 @@ class WeeksScreen(QWidget):
                 new_week = self.available_weeks[current_index + 1]
                 logger.info(f"Перехід до наступного тижня: {new_week}")
 
-                # Перевіряємо, чи потрібно оновити видимі кнопки
+                # Перевіряємо, чи новий тиждень є серед видимих кнопок або на краю діапазону
                 visible_weeks = [btn.week for btn in self.week_btns]
-                if new_week > max(visible_weeks):
+                if new_week not in visible_weeks or new_week == max(visible_weeks):
                     self.update_ui_for_week(new_week)
 
                 # Потім змінюємо тиждень і оновлюємо контент
