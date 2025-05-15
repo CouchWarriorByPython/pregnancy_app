@@ -1,7 +1,9 @@
 from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QLabel,
-                            QHBoxLayout, QScrollArea, QFrame, QCheckBox, QTabWidget)
-from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QFont
+                             QPushButton, QHBoxLayout, QSpacerItem,
+                             QSizePolicy, QScrollArea, QFrame, QCheckBox,
+                             QListWidget, QListWidgetItem, QStackedWidget)
+from PyQt6.QtCore import Qt, QSize
+from PyQt6.QtGui import QFont, QPixmap, QIcon, QColor
 
 
 class CheckItem(QWidget):
@@ -64,13 +66,14 @@ class CheckItem(QWidget):
 
         # Оновлюємо прогрес, якщо знайшли батьківський екран
         if parent and isinstance(parent, ChecklistScreen):
-            parent.update_progress(parent.tab_widget.currentIndex())
+            parent.update_progress(parent.current_trimester_index)
 
 
 class ChecklistScreen(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.parent = parent
+        self.current_trimester_index = 0
         self.setup_ui()
 
     def setup_ui(self):
@@ -94,38 +97,47 @@ class ChecklistScreen(QWidget):
         header_layout.addWidget(checklist_label)
         main_layout.addWidget(header)
 
-        # Табвіджет для різних категорій чекліста
-        self.tab_widget = QTabWidget()
-        self.tab_widget.setStyleSheet("""
-            QTabWidget::pane {
-                border: none;
-                background: transparent;
-            }
-            QTabWidget::tab-bar {
-                alignment: left;
-            }
-            QTabBar {
-                background-color: #121212;
-            }
-            QTabBar::tab {
-                background-color: #121212;
-                color: #AAAAAA;
-                padding: 12px 0px;
-                border-top-left-radius: 5px;
-                border-top-right-radius: 5px;
-                min-width: 0px;
-                width: 33.3%;
-                border: none;
-                margin: 0px;
-            }
-            QTabBar::tab:selected {
-                background-color: #222222;
-                color: #FF8C00;
-            }
-            QTabBar::tab:hover:!selected {
-                background-color: #1A1A1A;
-            }
-        """)
+        # Створюємо панель з кнопками для вибору триместру
+        trimester_selector = QWidget()
+        trimester_selector.setFixedHeight(50)
+        trimester_selector.setStyleSheet("background-color: #181818;")
+
+        trimester_layout = QHBoxLayout(trimester_selector)
+        trimester_layout.setContentsMargins(0, 0, 0, 0)
+        trimester_layout.setSpacing(0)
+
+        # Створення кнопок для триместрів
+        self.trimester_buttons = []
+        for i, name in enumerate(["I Триместр", "II Триместр", "III Триместр"]):
+            btn = QPushButton(name)
+            btn.setCheckable(True)
+            btn.setFixedHeight(50)
+            btn.setStyleSheet("""
+                QPushButton {
+                    background-color: #121212;
+                    color: #AAAAAA;
+                    border: none;
+                    font-size: 14px;
+                    padding: 10px;
+                    text-align: center;
+                }
+                QPushButton:checked {
+                    background-color: #222222;
+                    color: #FF8C00;
+                    font-weight: bold;
+                }
+                QPushButton:hover:!checked {
+                    background-color: #1A1A1A;
+                }
+            """)
+            btn.clicked.connect(lambda checked, idx=i: self.set_trimester(idx))
+            trimester_layout.addWidget(btn)
+            self.trimester_buttons.append(btn)
+
+        main_layout.addWidget(trimester_selector)
+
+        # Стек віджет для триместрів
+        self.trimester_stack = QStackedWidget()
 
         # Створюємо вкладки для кожного триместру
         first_tab = self.create_trimester_tab("I Триместр")
@@ -135,30 +147,34 @@ class ChecklistScreen(QWidget):
         third_tab = self.create_trimester_tab("III Триместр")
         third_tab.setObjectName("trimester_tab_3")
 
-        # Додаємо елементи чекліста для першого триместру
+        # Додаємо елементи чекліста для кожного триместру
         self.add_first_trimester_items(first_tab)
-
-        # Додаємо елементи чекліста для другого триместру
         self.add_second_trimester_items(second_tab)
-
-        # Додаємо елементи чекліста для третього триместру
         self.add_third_trimester_items(third_tab)
 
-        # Додаємо вкладки до табвіджету
-        self.tab_widget.addTab(first_tab, "I Триместр")
-        self.tab_widget.addTab(second_tab, "II Триместр")
-        self.tab_widget.addTab(third_tab, "III Триместр")
+        # Додаємо вкладки до стеку
+        self.trimester_stack.addWidget(first_tab)
+        self.trimester_stack.addWidget(second_tab)
+        self.trimester_stack.addWidget(third_tab)
 
-        # Встановлюємо однакову ширину для всіх вкладок
-        self.tab_widget.tabBar().setExpanding(True)
+        main_layout.addWidget(self.trimester_stack)
 
-        # Підключаємо обробку чекбоксів
-        self.tab_widget.currentChanged.connect(self.on_tab_changed)
+        # Встановлюємо початковий триместр
+        self.set_trimester(0)
 
-        main_layout.addWidget(self.tab_widget)
+    def set_trimester(self, index):
+        """Встановлює активний триместр"""
+        self.current_trimester_index = index
 
-        # Оновлюємо прогрес для першого триместру
-        self.update_progress(0)
+        # Оновлюємо стан кнопок
+        for i, btn in enumerate(self.trimester_buttons):
+            btn.setChecked(i == index)
+
+        # Змінюємо відображуваний триместр
+        self.trimester_stack.setCurrentIndex(index)
+
+        # Оновлюємо прогрес для поточного триместру
+        self.update_progress(index)
 
     def create_trimester_tab(self, title):
         """Створює вкладку для триместру з прокруткою та контентом"""
@@ -188,7 +204,6 @@ class ChecklistScreen(QWidget):
         progress_title = QLabel("Прогрес:")
         progress_title.setFont(QFont('Arial', 16))
 
-        # ВАЖЛИВО: Додаємо objectName для progress_bar та progress_text
         self.progress_bar = QLabel()
         self.progress_bar.setObjectName("progress_bar")
         self.progress_bar.setMinimumHeight(20)
@@ -392,7 +407,7 @@ class ChecklistScreen(QWidget):
 
     def update_progress(self, tab_index):
         """Оновлює стан прогрес-бару на основі відмічених пунктів"""
-        tab = self.tab_widget.widget(tab_index)
+        tab = self.trimester_stack.widget(tab_index)
         if not tab:
             return
 
@@ -414,7 +429,6 @@ class ChecklistScreen(QWidget):
         progress_percent = int((checked / total) * 100)
 
         # Знаходимо прогрес-бар
-        # ВАЖЛИВО: Оновлюємо пошук прогрес-бару та тексту
         progress_bar = tab.findChild(QLabel, "progress_bar")
         progress_text = tab.findChild(QLabel, "progress_text")
 
@@ -432,12 +446,7 @@ class ChecklistScreen(QWidget):
 
             progress_text.setText(f"{progress_percent}% виконано")
 
-    def on_tab_changed(self, index):
-        """Оновлює прогрес при зміні вкладки"""
-        self.update_progress(index)
-
     def resizeEvent(self, event):
         """Обробка зміни розміру вікна для коректного відображення прогрес-бару"""
         super().resizeEvent(event)
-        current_index = self.tab_widget.currentIndex()
-        self.update_progress(current_index)
+        self.update_progress(self.current_trimester_index)
