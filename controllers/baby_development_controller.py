@@ -1,11 +1,12 @@
 import json
 import os
 
+
 class BabyDevelopmentController:
     def __init__(self, data_file='resources/data/baby_development.json'):
         self.data_file = data_file
         self.development_data = self._load_development_data()
-        
+
     def _load_development_data(self):
         try:
             if os.path.exists(self.data_file):
@@ -14,19 +15,32 @@ class BabyDevelopmentController:
                 return data
         except Exception as e:
             print(f"Помилка при завантаженні даних про розвиток дитини: {e}")
-        
+
         return {"weeks": {}}
-    
+
     def get_week_data(self, week):
         week_str = str(week)
         if week_str in self.development_data.get("weeks", {}):
             return self.development_data["weeks"][week_str]
         return None
-    
+
     def get_fruit_comparison(self, week):
         week_data = self.get_week_data(week)
-        if week_data and "size" in week_data:
-            return week_data["size"]
+        if week_data:
+            fruit_data = {
+                "fruit": week_data["size"]["fruit"],
+                "description": week_data["size"]["description"]
+            }
+            # Додаємо шлях до зображення, якщо він є
+            if "image" in week_data:
+                fruit_data["image"] = week_data["image"]
+            else:
+                # Генеруємо шлях за замовчуванням і перевіряємо його наявність
+                default_image = f"resources/images/fruits/{week}.png"
+                if os.path.exists(default_image):
+                    fruit_data["image"] = default_image
+
+            return fruit_data
         return None
 
     def get_baby_development_info(self, week, gender=None):
@@ -43,19 +57,19 @@ class BabyDevelopmentController:
             # За замовчуванням показуємо загальну інформацію
             return week_data.get("baby_development", "Інформація відсутня")
         return "Інформація відсутня"
-    
+
     def get_mother_changes_info(self, week):
         week_data = self.get_week_data(week)
         if week_data:
             return week_data.get("mother_changes", "Інформація відсутня")
         return "Інформація відсутня"
-    
+
     def get_nutrition_tips(self, week):
         week_data = self.get_week_data(week)
         if week_data:
             return week_data.get("nutrition_tips", "Інформація відсутня")
         return "Інформація відсутня"
-    
+
     def get_baby_size(self, week):
         week_data = self.get_week_data(week)
         if week_data:
@@ -64,6 +78,6 @@ class BabyDevelopmentController:
                 "length": week_data.get("length", "невідомо")
             }
         return {"weight": "невідомо", "length": "невідомо"}
-    
+
     def get_available_weeks(self):
-        return sorted([int(week) for week in self.development_data.get("weeks", {}).keys()]) 
+        return sorted([int(week) for week in self.development_data.get("weeks", {}).keys()])

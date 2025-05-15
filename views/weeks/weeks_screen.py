@@ -381,27 +381,30 @@ class WeekSelector(QWidget):
 
         # Створюємо нові кнопки
         for i, week in enumerate(visible_weeks):
+            color = self.get_week_color(week)
+
             week_btn = QPushButton(str(week))
             week_btn.setObjectName(f"week_btn_{week}")
             week_btn.setFixedSize(50, 50)
             week_btn.setCheckable(True)
             week_btn.setChecked(week == self.current_week)
 
-            week_btn.setStyleSheet("""
-                QPushButton {
-                    background-color: #333333;
+            week_btn.setStyleSheet(f"""
+                QPushButton {{
+                    background-color: {color};
                     border-radius: 25px;
                     font-weight: bold;
                     font-size: 14px;
-                    color: #DDDDDD;
-                }
-                QPushButton:checked {
+                    color: white;
+                    text-align: center;
+                }}
+                QPushButton:checked {{
                     background-color: #FF8C00;
                     color: white;
-                }
-                QPushButton:hover:!checked {
+                }}
+                QPushButton:hover:!checked {{
                     background-color: #444444;
-                }
+                }}
             """)
 
             # Зберігаємо тиждень як властивість кнопки
@@ -618,8 +621,6 @@ class WeeksScreen(QWidget):
                     font-size: 18px;
                     color: white;
                     text-align: center;
-                    padding: 0px;
-                    qproperty-alignment: AlignCenter;
                 }}
                 QPushButton:checked {{
                     background-color: #FF8C00;
@@ -891,29 +892,29 @@ class WeeksScreen(QWidget):
 
         # Створюємо нові кнопки
         for i, week in enumerate(visible_weeks):
-            # Колір відповідно до триместру
             color = self.get_week_color(week)
 
             week_btn = QPushButton(str(week))
             week_btn.setObjectName(f"week_btn_{week}")
-            week_btn.setFixedSize(60, 60)
+            week_btn.setFixedSize(50, 50)
             week_btn.setCheckable(True)
             week_btn.setChecked(week == self.current_week)
 
             week_btn.setStyleSheet(f"""
                 QPushButton {{
                     background-color: {color};
-                    border-radius: 30px;
+                    border-radius: 25px;
                     font-weight: bold;
-                    font-size: 18px;
+                    font-size: 14px;
                     color: white;
                     text-align: center;
-                    padding: 0px;
-                    qproperty-alignment: AlignCenter;
                 }}
                 QPushButton:checked {{
                     background-color: #FF8C00;
                     color: white;
+                }}
+                QPushButton:hover:!checked {{
+                    background-color: #444444;
                 }}
             """)
 
@@ -924,7 +925,7 @@ class WeeksScreen(QWidget):
             current_btn = week_btn
             current_btn.clicked.connect(lambda checked, b=current_btn: self.week_changed(b.week))
 
-            # Вставляємо кнопку після кнопки "назад" і перед кнопкою "вперед"
+            # Вставляємо кнопку перед кнопкою "вперед"
             week_selector_layout.insertWidget(i + 1, week_btn)
             self.week_btns.append(week_btn)
 
