@@ -194,14 +194,14 @@ QSpinBox::down-button, QDoubleSpinBox::down-button {
 }
 
 QSpinBox::up-arrow, QDoubleSpinBox::up-arrow {
-    image: url(resources/images/icons/up_arrow.png);
+    image: url(resources/images/icons/plus.png);
     width: 10px;
     height: 10px;
     color: #000000;
 }
 
 QSpinBox::down-arrow, QDoubleSpinBox::down-arrow {
-    image: url(resources/images/icons/down_arrow.png);
+    image: url(resources/images/icons/minus.png);
     width: 10px;
     height: 10px;
     color: #000000;

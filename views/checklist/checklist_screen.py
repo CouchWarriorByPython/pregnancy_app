@@ -1,9 +1,7 @@
 from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QLabel,
-                             QPushButton, QHBoxLayout, QSpacerItem,
-                             QSizePolicy, QScrollArea, QFrame, QCheckBox,
-                             QListWidget, QListWidgetItem, QTabWidget)
-from PyQt6.QtCore import Qt, QSize
-from PyQt6.QtGui import QFont, QPixmap, QIcon, QColor
+                            QHBoxLayout, QScrollArea, QFrame, QCheckBox, QTabWidget)
+from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QFont
 
 
 class CheckItem(QWidget):
@@ -105,23 +103,27 @@ class ChecklistScreen(QWidget):
             }
             QTabWidget::tab-bar {
                 alignment: left;
-                width: 100%;
             }
             QTabBar {
-                width: 100%;
+                background-color: #121212;
             }
             QTabBar::tab {
                 background-color: #121212;
                 color: #AAAAAA;
-                padding: 10px 20px;
+                padding: 12px 0px;
                 border-top-left-radius: 5px;
                 border-top-right-radius: 5px;
-                width: 33.3%;
                 min-width: 0px;
+                width: 33.3%;
+                border: none;
+                margin: 0px;
             }
             QTabBar::tab:selected {
                 background-color: #222222;
                 color: #FF8C00;
+            }
+            QTabBar::tab:hover:!selected {
+                background-color: #1A1A1A;
             }
         """)
 
@@ -146,6 +148,9 @@ class ChecklistScreen(QWidget):
         self.tab_widget.addTab(first_tab, "I Триместр")
         self.tab_widget.addTab(second_tab, "II Триместр")
         self.tab_widget.addTab(third_tab, "III Триместр")
+
+        # Встановлюємо однакову ширину для всіх вкладок
+        self.tab_widget.tabBar().setExpanding(True)
 
         # Підключаємо обробку чекбоксів
         self.tab_widget.currentChanged.connect(self.on_tab_changed)
