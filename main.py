@@ -38,8 +38,8 @@ class MainWindow(QMainWindow):
 
         # Визначаємо розмір екрану (adaptive)
         screen_size = QApplication.primaryScreen().availableSize()
-        window_width = min(390, screen_size.width() - 40)  # Не більше 390px або розмір екрану - 40px
-        window_height = min(844, screen_size.height() - 60)  # Не більше 844px або розмір екрану - 60px
+        window_width = min(420, screen_size.width() - 40)  # Збільшено до 420px або розмір екрану - 40px
+        window_height = min(900, screen_size.height() - 60)  # Збільшено до 900px або розмір екрану - 60px
 
         # Встановлюємо розмір вікна з урахуванням екрану
         self.resize(window_width, window_height)
@@ -154,7 +154,7 @@ class MainWindow(QMainWindow):
             {"icon": "resources/images/icons/calendar.png", "text": "Календар", "index": 2},
             {"icon": "resources/images/icons/tools.png", "text": "Інструменти", "index": 3},
             {"icon": "resources/images/icons/checklist.png", "text": "Чекліст", "index": 4},
-            {"icon": "resources/images/icons/settings.png", "text": "Налаштув.", "index": 5}
+            {"icon": "resources/images/icons/settings.png", "text": "Налаштування", "index": 5}
         ]
 
         self.nav_buttons = []
@@ -165,7 +165,7 @@ class MainWindow(QMainWindow):
             button.setCheckable(True)
             button.setFixedHeight(60)
             # Адаптивна ширина - встановлюємо мінімальну ширину, але дозволяємо розширюватись
-            button.setMinimumWidth(60)
+            button.setMinimumWidth(65)
             button.setSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed)
 
             # Встановлюємо іконку, якщо файл існує
@@ -183,7 +183,7 @@ class MainWindow(QMainWindow):
                     border: none;
                     color: #888888;
                     padding-top: 5px;
-                    font-size: 10px;  /* Зменшений розмір шрифту */
+                    font-size: 9px;  /* Зменшений розмір шрифту */
                 }
                 QPushButton:checked {
                     color: #FF8C00;

@@ -160,7 +160,7 @@ class DataController:
         return None
 
     def save_child_info(self, child_data):
-        """Зберігає інформацію про дитину"""
+        """Зберігає інформацію про дитину та профіль користувача"""
         logger.info(f"Збереження інформації про дитину: {child_data}")
 
         # Оновлюємо дані про вагітність
@@ -170,6 +170,33 @@ class DataController:
         # Оновлюємо профіль користувача
         if 'first_labour' in child_data:
             self.user_profile.previous_pregnancies = 0 if child_data['first_labour'] else 1
+
+        # Якщо є дані користувача (з розширеного онбордингу), оновлюємо їх
+        if 'user_data' in child_data:
+            user_data = child_data['user_data']
+
+            # Оновлюємо основні поля профілю
+            if 'name' in user_data and user_data['name']:
+                self.user_profile.name = user_data['name']
+
+            if 'birth_date' in user_data and user_data['birth_date']:
+                try:
+                    self.user_profile.birth_date = date.fromisoformat(user_data['birth_date'])
+                except ValueError:
+                    logger.error(f"Неправильний формат дати: {user_data['birth_date']}")
+
+            if 'weight_before_pregnancy' in user_data:
+                self.user_profile.weight_before_pregnancy = user_data['weight_before_pregnancy']
+
+            if 'height' in user_data:
+                self.user_profile.height = user_data['height']
+
+            if 'cycle_length' in user_data:
+                self.user_profile.cycle_length = user_data['cycle_length']
+
+            # Оновлюємо дієтичні вподобання
+            if 'diet_preferences' in user_data:
+                self.user_profile.diet_preferences = user_data['diet_preferences']
 
         # Зберігаємо зміни
         self.save_pregnancy_data()
