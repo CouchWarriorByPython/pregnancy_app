@@ -3,10 +3,12 @@ from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QLabel,
                              QSpacerItem, QSizePolicy, QDateEdit,
                              QDoubleSpinBox, QSpinBox, QFormLayout, QScrollArea,
                              QFrame)
-from PyQt6.QtCore import pyqtSignal, QDate
+from PyQt6.QtCore import pyqtSignal, QDate, Qt
+from PyQt6.QtGui import QFont, QIcon
 from utils.logger import get_logger
 from datetime import datetime
 from controllers.data_controller import DataController
+import os
 
 logger = get_logger('user_info_screen')
 
@@ -95,13 +97,51 @@ class UserInfoScreen(QWidget):
         self.weight_spin.setDecimals(1)
         self.weight_spin.setValue(60.0)
         self.weight_spin.setSuffix(" кг")
+
+        # Перевіряємо наявність іконок і встановлюємо їх
+        plus_icon_path = "resources/images/icons/plus.png"
+        minus_icon_path = "resources/images/icons/minus.png"
+
+        if os.path.exists(plus_icon_path) and os.path.exists(minus_icon_path):
+            self.weight_spin.setButtonSymbols(QSpinBox.ButtonSymbols.UpDownArrows)
+            # Налаштування видимості кнопок
+            self.weight_spin.setProperty("showButtons", True)
+        else:
+            logger.warning(f"Іконки не знайдено за шляхами: {plus_icon_path}, {minus_icon_path}")
+            # Використовуємо стандартні стрілки, якщо іконки не знайдено
+            self.weight_spin.setButtonSymbols(QSpinBox.ButtonSymbols.UpDownArrows)
+
         self.weight_spin.setStyleSheet("""
-            background-color: #222222;
-            border: none;
-            border-radius: 8px;
-            padding: 5px 10px;
-            color: white;
+            QDoubleSpinBox {
+                background-color: #222222;
+                border: none;
+                border-radius: 8px;
+                padding: 5px 10px;
+                color: white;
+            }
+            QDoubleSpinBox::up-button, QDoubleSpinBox::down-button {
+                width: 25px;
+                height: 15px;
+                background-color: #333333;
+                border-radius: 3px;
+                margin: 3px;
+            }
+            QDoubleSpinBox::up-button:hover, QDoubleSpinBox::down-button:hover {
+                background-color: #444444;
+            }
+            QDoubleSpinBox::up-arrow {
+                width: 12px;
+                height: 12px;
+                image: url(resources/images/icons/plus.png);
+            }
+            QDoubleSpinBox::down-arrow {
+                width: 12px;
+                height: 12px;
+                image: url(resources/images/icons/minus.png);
+            }
         """)
+        # Правильно підключити сигнал valueChanged замість editingFinished
+        self.weight_spin.valueChanged.connect(self.on_weight_changed)
         profile_form.addRow("Вага до вагітності:", self.weight_spin)
 
         # Зріст
@@ -112,12 +152,36 @@ class UserInfoScreen(QWidget):
         self.height_spin.setValue(165)
         self.height_spin.setSuffix(" см")
         self.height_spin.setStyleSheet("""
-            background-color: #222222;
-            border: none;
-            border-radius: 8px;
-            padding: 5px 10px;
-            color: white;
+            QSpinBox {
+                background-color: #222222;
+                border: none;
+                border-radius: 8px;
+                padding: 5px 10px;
+                color: white;
+            }
+            QSpinBox::up-button, QSpinBox::down-button {
+                width: 25px;
+                height: 15px;
+                background-color: #333333;
+                border-radius: 3px;
+                margin: 3px;
+            }
+            QSpinBox::up-button:hover, QSpinBox::down-button:hover {
+                background-color: #444444;
+            }
+            QSpinBox::up-arrow {
+                width: 12px;
+                height: 12px;
+                image: url(resources/images/icons/plus.png);
+            }
+            QSpinBox::down-arrow {
+                width: 12px;
+                height: 12px;
+                image: url(resources/images/icons/minus.png);
+            }
         """)
+        # Підключити сигнал valueChanged
+        self.height_spin.valueChanged.connect(self.on_height_changed)
         profile_form.addRow("Зріст:", self.height_spin)
 
         # Тривалість циклу
@@ -128,12 +192,36 @@ class UserInfoScreen(QWidget):
         self.cycle_spin.setValue(28)
         self.cycle_spin.setSuffix(" днів")
         self.cycle_spin.setStyleSheet("""
-            background-color: #222222;
-            border: none;
-            border-radius: 8px;
-            padding: 5px 10px;
-            color: white;
+            QSpinBox {
+                background-color: #222222;
+                border: none;
+                border-radius: 8px;
+                padding: 5px 10px;
+                color: white;
+            }
+            QSpinBox::up-button, QSpinBox::down-button {
+                width: 25px;
+                height: 15px;
+                background-color: #333333;
+                border-radius: 3px;
+                margin: 3px;
+            }
+            QSpinBox::up-button:hover, QSpinBox::down-button:hover {
+                background-color: #444444;
+            }
+            QSpinBox::up-arrow {
+                width: 12px;
+                height: 12px;
+                image: url(resources/images/icons/plus.png);
+            }
+            QSpinBox::down-arrow {
+                width: 12px;
+                height: 12px;
+                image: url(resources/images/icons/minus.png);
+            }
         """)
+        # Підключити сигнал valueChanged
+        self.cycle_spin.valueChanged.connect(self.on_cycle_changed)
         profile_form.addRow("Середня тривалість циклу:", self.cycle_spin)
 
         # Дієтичні вподобання (чекбокси)
@@ -163,6 +251,8 @@ class UserInfoScreen(QWidget):
                     border: 2px solid #4CAF50;
                 }
             """)
+            # Додаємо сигнал для чекбоксів
+            box.stateChanged.connect(self.on_diet_changed)
             self.diet_checkboxes[option] = box
             form_layout.addWidget(box)
 
@@ -182,13 +272,56 @@ class UserInfoScreen(QWidget):
                 font-weight: bold;
                 font-size: 16px;
             }
+            QPushButton:hover {
+                background-color: #FFA500;
+            }
+            QPushButton:pressed {
+                background-color: #E07800;
+            }
         """)
+        # Перевірка, що сигнал правильно підключений
         finish_btn.clicked.connect(self.on_finish_clicked)
         form_layout.addWidget(finish_btn)
 
         # Додаємо форму до скролованої області
         scroll_area.setWidget(form_widget)
         main_layout.addWidget(scroll_area)
+
+    def on_weight_changed(self, value):
+        """Обробник зміни ваги"""
+        logger.debug(f"Вага змінилася на: {value}")
+        try:
+            if hasattr(self, 'data_controller') and hasattr(self.data_controller, 'user_profile'):
+                self.data_controller.user_profile.weight_before_pregnancy = value
+                logger.debug(f"Збережено нове значення ваги: {value}")
+        except Exception as e:
+            logger.error(f"Помилка при зміні ваги: {e}")
+
+    def on_height_changed(self, value):
+        """Обробник зміни зросту"""
+        logger.debug(f"Зріст змінився на: {value}")
+        try:
+            if hasattr(self, 'data_controller') and hasattr(self.data_controller, 'user_profile'):
+                self.data_controller.user_profile.height = value
+                logger.debug(f"Збережено нове значення зросту: {value}")
+        except Exception as e:
+            logger.error(f"Помилка при зміні зросту: {e}")
+
+    def on_cycle_changed(self, value):
+        """Обробник зміни тривалості циклу"""
+        logger.debug(f"Тривалість циклу змінилася на: {value}")
+        try:
+            if hasattr(self, 'data_controller') and hasattr(self.data_controller, 'user_profile'):
+                self.data_controller.user_profile.cycle_length = value
+                logger.debug(f"Збережено нове значення тривалості циклу: {value}")
+        except Exception as e:
+            logger.error(f"Помилка при зміні тривалості циклу: {e}")
+
+    def on_diet_changed(self, state):
+        """Обробник зміни дієтичних вподобань"""
+        sender = self.sender()
+        if sender:
+            logger.debug(f"Змінено стан чекбоксу: {sender.text()} на {state}")
 
     def load_user_data(self):
         """Завантажує дані користувача з контролера даних"""
@@ -218,6 +351,7 @@ class UserInfoScreen(QWidget):
 
     def on_finish_clicked(self):
         """Обробка натискання кнопки Завершити"""
+        logger.info("Натиснуто кнопку 'Завершити'")
         # Збираємо дані
         birth_date = self.birth_date_edit.date()
         birth_date_str = datetime(birth_date.year(), birth_date.month(), birth_date.day()).date().isoformat()
@@ -252,6 +386,15 @@ class UserInfoScreen(QWidget):
             logger.info("Профіль користувача збережено")
 
             # Відправляємо сигнал з даними
+            logger.info("Відправляємо сигнал proceed_signal")
             self.proceed_signal.emit(user_data)
+
+            # Додаткова перевірка для відладки
+            if self.parent and hasattr(self.parent, 'on_user_info_completed'):
+                logger.info("Батьківський об'єкт має метод on_user_info_completed")
+            else:
+                logger.warning(
+                    "Батьківський об'єкт не має методу on_user_info_completed або батьківський об'єкт відсутній")
+
         except Exception as e:
             logger.error(f"Помилка при збереженні даних користувача: {e}")

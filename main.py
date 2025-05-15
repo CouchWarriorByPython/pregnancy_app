@@ -63,7 +63,9 @@ class MainWindow(QMainWindow):
 
         # Додаємо екран інформації про користувача
         self.user_info_screen = UserInfoScreen(self)
+        # Просто підключаємо сигнал без перевірки наявності
         self.user_info_screen.proceed_signal.connect(self.on_user_info_completed)
+        logger.info("Сигнал UserInfoScreen підключено")
         self.stack_widget.addWidget(self.user_info_screen)
 
         # Завантажуємо основні екрани
@@ -121,10 +123,18 @@ class MainWindow(QMainWindow):
 
     def on_user_info_completed(self, user_data):
         """Обробляє завершення введення інформації про користувача"""
-        logger.info("Отримана інформація про користувача, переходимо до екрану інформації про вагітність")
+        logger.info(f"Отримана інформація про користувача: {user_data}")
 
         # Переходимо до екрану інформації про вагітність
-        self.stack_widget.setCurrentIndex(7)  # PregnancyInfoScreen - індекс змінився через додавання UserInfoScreen
+        stack_index = self.stack_widget.indexOf(self.pregnancy_info_screen)
+        if stack_index != -1:
+            logger.info(f"Переходимо на екран інформації про вагітність (індекс {stack_index})")
+            self.stack_widget.setCurrentIndex(stack_index)
+        else:
+            logger.error("Не вдалося знайти екран з інформацією про вагітність")
+            # Безпечний варіант - індекс 7, або можна використати константу
+            self.stack_widget.setCurrentIndex(7)
+
         logger.info("Успішно перейшли до екрану інформації про вагітність")
 
     def on_pregnancy_info_completed(self, pregnancy_data):
