@@ -161,17 +161,17 @@ class DataController:
 
     def save_child_info(self, child_data):
         """Зберігає інформацію про дитину та профіль користувача"""
-        logger.info(f"Збереження інформації про дитину: {child_data}")
+        logger.info(f"Збереження інформації про дитину та користувача: {child_data}")
 
         # Оновлюємо дані про вагітність
         self.pregnancy_data.baby_gender = child_data.get('gender', 'Невідомо')
         self.pregnancy_data.baby_name = child_data.get('name', '')
 
-        # Оновлюємо профіль користувача
+        # Оновлюємо профіль користувача на основі перших пологів
         if 'first_labour' in child_data:
             self.user_profile.previous_pregnancies = 0 if child_data['first_labour'] else 1
 
-        # Якщо є дані користувача (з розширеного онбордингу), оновлюємо їх
+        # Якщо є дані користувача, оновлюємо їх
         if 'user_data' in child_data:
             user_data = child_data['user_data']
 
@@ -202,6 +202,7 @@ class DataController:
         self.save_pregnancy_data()
         self.save_user_profile()
 
+        # Повертаємо статус успіху
         return True
 
     def is_first_launch(self):

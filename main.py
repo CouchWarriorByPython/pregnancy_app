@@ -10,7 +10,7 @@ from views.calendar.calendar_screen import CalendarScreen
 from views.tools.tools_screen import ToolsScreen
 from views.checklist.checklist_screen import ChecklistScreen
 from views.settings.settings_screen import SettingsScreen
-from views.onboarding.child_info_screen import ChildInfoScreen
+from views.onboarding.onboarding_manager import OnboardingManager
 
 from controllers.data_controller import DataController
 from utils.logger import get_logger
@@ -54,9 +54,9 @@ class MainWindow(QMainWindow):
         self.stack_widget = QStackedWidget()
 
         # Додаємо екран інформації про дитину як перший екран
-        self.child_info_screen = ChildInfoScreen(self)
-        self.child_info_screen.proceed_signal.connect(self.on_child_info_completed)
-        self.stack_widget.addWidget(self.child_info_screen)
+        self.onboarding_manager = OnboardingManager(self)
+        self.onboarding_manager.proceed_signal.connect(self.on_onboarding_completed)
+        self.stack_widget.addWidget(self.onboarding_manager)
 
         # Завантажуємо основні екрани
         self.load_screens()
@@ -95,12 +95,12 @@ class MainWindow(QMainWindow):
                 item.widget().setVisible(True)
                 logger.debug("Показано елемент нижньої навігації")
 
-    def on_child_info_completed(self, child_data):
-        """Обробляє завершення введення інформації про дитину"""
-        logger.info("Отримана інформація про дитину, переходимо до основного екрану")
+    def on_onboarding_completed(self, data):
+        """Обробляє завершення введення всіх даних онбордингу"""
+        logger.info("Отримана інформація про дитину та користувача, переходимо до основного екрану")
 
         # Зберігаємо дані
-        success = self.data_controller.save_child_info(child_data)
+        success = self.data_controller.save_child_info(data)
 
         if success:
             # Показуємо нижню навігацію
@@ -111,8 +111,8 @@ class MainWindow(QMainWindow):
             logger.info("Успішно перейшли до основного екрану")
         else:
             # Повідомляємо про помилку
-            QMessageBox.critical(self, "Помилка", "Не вдалося зберегти інформацію про дитину")
-            logger.error("Не вдалося зберегти інформацію про дитину")
+            QMessageBox.critical(self, "Помилка", "Не вдалося зберегти інформацію")
+            logger.error("Не вдалося зберегти інформацію")
 
     def load_screens(self):
         logger.info("Завантаження екранів")

@@ -53,10 +53,14 @@ class SettingsScreen(QWidget):
                 padding: 10px 20px;
                 border-top-left-radius: 5px;
                 border-top-right-radius: 5px;
+                min-width: 120px;
             }
             QTabBar::tab:selected {
                 background-color: #222222;
                 color: #FF8C00;
+            }
+            QTabBar {
+                alignment: center;
             }
         """)
 

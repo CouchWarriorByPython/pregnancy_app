@@ -29,7 +29,7 @@ QPushButton:disabled {
 }
 
 /* Стилі для полів вводу */
-QLineEdit, QDateEdit, QSpinBox, QDoubleSpinBox, QComboBox {
+QLineEdit, QDateEdit, QComboBox {
     background-color: #222222;
     color: #FFFFFF;
     border: none;
@@ -87,11 +87,16 @@ QTabBar::tab {
     padding: 10px 20px;
     border-top-left-radius: 5px;
     border-top-right-radius: 5px;
+    min-width: 120px;
 }
 
 QTabBar::tab:selected {
     background-color: #222222;
     color: #FF8C00;
+}
+
+QTabBar {
+    alignment: center;
 }
 
 /* Стилі для скроллингу */
@@ -170,6 +175,15 @@ QSlider::sub-page:horizontal {
 }
 
 /* Покращені стилі для спінбоксів */
+QSpinBox, QDoubleSpinBox {
+    background-color: #222222;
+    color: #FFFFFF;
+    border: none;
+    border-radius: 8px;
+    padding: 5px 10px;
+    min-height: 30px;
+}
+
 QSpinBox::up-button, QDoubleSpinBox::up-button {
     background-color: #333333;
     width: 20px;
@@ -214,11 +228,64 @@ QSpinBox::down-arrow, QDoubleSpinBox::down-arrow {
 QSpinBox::up-button:after, QDoubleSpinBox::up-button:after {
     content: "+";
     color: #FFFFFF;
+    font-size: 14px;
     font-weight: bold;
 }
 
 QSpinBox::down-button:after, QDoubleSpinBox::down-button:after {
     content: "-";
     color: #FFFFFF;
+    font-size: 14px;
     font-weight: bold;
+}
+
+/* Стилі для віджету календаря */
+QCalendarWidget {
+    background-color: #222222;
+    color: white;
+}
+
+QCalendarWidget QWidget {
+    alternate-background-color: #121212;
+}
+
+QCalendarWidget QAbstractItemView:enabled {
+    color: white;
+    background-color: #222222;
+    selection-background-color: #FF8C00;
+    selection-color: white;
+}
+
+QCalendarWidget QWidget#qt_calendar_navigationbar {
+    background-color: #333333;
+}
+
+QCalendarWidget QToolButton {
+    color: white;
+    background-color: #333333;
+    border: none;
+}
+
+QCalendarWidget QMenu {
+    background-color: #333333;
+    color: white;
+}
+
+QCalendarWidget QSpinBox {
+    background-color: #333333;
+    color: white;
+    border: none;
+}
+
+QDateEdit::drop-down {
+    subcontrol-origin: padding;
+    subcontrol-position: center right;
+    width: 25px;
+    border-left-width: 0px;
+}
+
+QDateEdit::down-arrow {
+    image: url(resources/images/icons/calendar.png);
+    width: 16px;
+    height: 16px;
 }
