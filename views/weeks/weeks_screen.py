@@ -662,6 +662,15 @@ class WeeksScreen(QWidget):
         # Налаштування розміру віджета
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
 
+    def get_week_color(self, week):
+        """Повертає колір для тижня відповідно до триместру"""
+        if week <= 13:  # Перший триместр
+            return "#E91E63"  # Рожевий
+        elif week <= 27:  # Другий триместр
+            return "#9C27B0"  # Фіолетовий
+        else:  # Третій триместр
+            return "#3F51B5"  # Синій
+
     def update_content(self, week):
         """Оновлює контент відповідно до вибраного тижня"""
         logger.info(f"Оновлення контенту для тижня {week}")
@@ -737,3 +746,58 @@ class WeeksScreen(QWidget):
             self.cards_layout.addWidget(card)
 
         logger.info(f"Контент для тижня {week} успішно оновлено")
+
+    # Нові методи для навігації між тижнями
+    def week_changed(self, week):
+        """Обробка зміни тижня"""
+        if week != self.current_week:
+            logger.info(f"Зміна тижня: з {self.current_week} на {week}")
+
+            # Зберігаємо новий поточний тиждень
+            old_week = self.current_week
+            self.current_week = week
+
+            # Оновлюємо стан кнопок
+            self.update_buttons_state()
+
+            # Оновлюємо контент
+            self.update_content(week)
+
+    def update_buttons_state(self):
+        """Оновлення стану кнопок тижнів"""
+        # Оновлюємо стан кнопок тижнів
+        for btn in self.week_btns:
+            btn.setChecked(btn.week == self.current_week)
+
+        # Знаходимо індекс поточного тижня для визначення стану кнопок навігації
+        if self.current_week in self.available_weeks:
+            current_index = self.available_weeks.index(self.current_week)
+
+            # Кнопка "назад" активна, якщо є попередні тижні
+            self.prev_btn.setEnabled(current_index > 0)
+
+            # Кнопка "вперед" активна, якщо є наступні тижні
+            self.next_btn.setEnabled(current_index < len(self.available_weeks) - 1)
+        else:
+            # Якщо тиждень не знайдено, вимикаємо обидві кнопки
+            self.prev_btn.setEnabled(False)
+            self.next_btn.setEnabled(False)
+            logger.warning(f"Тиждень {self.current_week} не знайдено серед доступних")
+
+    def prev_week(self):
+        """Перехід до попереднього тижня"""
+        if self.current_week in self.available_weeks:
+            current_index = self.available_weeks.index(self.current_week)
+            if current_index > 0:
+                new_week = self.available_weeks[current_index - 1]
+                logger.info(f"Перехід до попереднього тижня: {new_week}")
+                self.week_changed(new_week)
+
+    def next_week(self):
+        """Перехід до наступного тижня"""
+        if self.current_week in self.available_weeks:
+            current_index = self.available_weeks.index(self.current_week)
+            if current_index < len(self.available_weeks) - 1:
+                new_week = self.available_weeks[current_index + 1]
+                logger.info(f"Перехід до наступного тижня: {new_week}")
+                self.week_changed(new_week)
