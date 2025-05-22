@@ -1,10 +1,7 @@
 from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QLabel,
-                          QPushButton, QHBoxLayout, QSpacerItem,
-                          QSizePolicy, QScrollArea, QFrame, QCalendarWidget, 
-                          QComboBox, QDialog, QLineEdit, QTimeEdit, QStackedWidget)
-from PyQt6.QtCore import Qt, QSize, QDate, QDateTime
-from PyQt6.QtGui import QFont, QPixmap, QIcon, QColor
-from controllers.data_controller import DataController
+                          QPushButton, QHBoxLayout, QFrame, QCalendarWidget,
+                          QComboBox, QDialog, QLineEdit, QTimeEdit)
+from PyQt6.QtGui import QFont
 
 class EventDialog(QDialog):
     def __init__(self, parent=None, date=None):

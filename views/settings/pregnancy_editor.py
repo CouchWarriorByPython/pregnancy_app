@@ -1,5 +1,4 @@
-from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QLabel,
-                             QPushButton, QDateEdit, QFormLayout, QFrame)
+from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton, QDateEdit, QFormLayout, QFrame
 from PyQt6.QtCore import QDate
 from PyQt6.QtGui import QFont
 from controllers.data_controller import DataController

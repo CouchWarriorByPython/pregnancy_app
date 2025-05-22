@@ -1,7 +1,7 @@
 from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QLabel,
                              QPushButton, QHBoxLayout,
                              QSizePolicy, QScrollArea, QFrame)
-from PyQt6.QtCore import Qt, pyqtSignal
+from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont, QPixmap
 from controllers.data_controller import DataController
 from controllers.baby_development_controller import BabyDevelopmentController

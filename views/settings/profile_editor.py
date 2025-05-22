@@ -2,7 +2,7 @@ from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QLabel,
                              QPushButton, QLineEdit, QDateEdit, QSpinBox,
                              QDoubleSpinBox, QCheckBox, QFrame,
                              QScrollArea, QFormLayout, QSizePolicy)
-from PyQt6.QtCore import Qt, QDate
+from PyQt6.QtCore import QDate
 from PyQt6.QtGui import QFont
 from controllers.data_controller import DataController
 from datetime import datetime

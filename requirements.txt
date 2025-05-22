@@ -1,5 +1,10 @@
-PyQt6>=6.5.0
-PyQt6-Qt6>=6.5.0
-PyQt6-sip>=13.5.0
-reportlab>=3.6.12  # Для експорту PDF
-pillow>=9.4.0      # Для роботи з зображеннями
+chardet==5.2.0
+numpy==2.2.5
+opencv-python==4.11.0.86
+pillow==11.2.1
+PyQt6==6.9.0
+PyQt6-Qt6==6.9.0
+PyQt6_sip==13.10.0
+reportlab==4.4.0
+SQLAlchemy==2.0.41
+typing_extensions==4.13.2
