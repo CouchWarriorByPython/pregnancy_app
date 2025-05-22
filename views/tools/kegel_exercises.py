@@ -1,11 +1,10 @@
 import os
 import subprocess
 import platform
-from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QLabel, QPushButton,
-                             QMessageBox, QHBoxLayout, QSpacerItem, QSizePolicy)
-from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QFont
+from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QMessageBox, QHBoxLayout, QSpacerItem, QSizePolicy
 from utils.logger import get_logger
+from utils.base_widgets import TitleLabel, StyledButton
+from utils.styles import Styles
 
 logger = get_logger('kegel_exercises')
 
@@ -19,19 +18,14 @@ class KegelExercisesScreen(QWidget):
         self.setup_ui()
 
     def setup_ui(self):
-        # Головний layout
         main_layout = QVBoxLayout(self)
         main_layout.setContentsMargins(20, 20, 20, 20)
         main_layout.setSpacing(20)
 
-        # Заголовок
-        title = QLabel("Вправи Кегеля")
-        title.setFont(QFont('Arial', 22, QFont.Weight.Bold))
+        title = TitleLabel("Вправи Кегеля", 22)
         title.setStyleSheet("color: #9C27B0;")
-        title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         main_layout.addWidget(title)
 
-        # Інформація
         info_text = """
         <p>Вправи Кегеля - це спеціальні вправи для зміцнення м'язів тазового дна.</p>
         <p>Регулярне виконання вправ Кегеля під час вагітності може:</p>
@@ -46,34 +40,37 @@ class KegelExercisesScreen(QWidget):
 
         info_label = QLabel(info_text)
         info_label.setWordWrap(True)
-        info_label.setStyleSheet("color: white; background-color: #222222; padding: 15px; border-radius: 10px;")
+        info_label.setStyleSheet(f"""
+            color: {Styles.COLORS['text_primary']};
+            background-color: {Styles.COLORS['surface']};
+            padding: 15px;
+            border-radius: 10px;
+        """)
         main_layout.addWidget(info_label)
 
-        # Додаємо вертикальний простір
         main_layout.addItem(QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding))
 
-        # Кнопка для відкриття PDF
         button_layout = QHBoxLayout()
         button_layout.addStretch()
 
-        open_pdf_btn = QPushButton("Відкрити інструкцію з вправами")
+        open_pdf_btn = StyledButton("Відкрити інструкцію з вправами")
         open_pdf_btn.setMinimumHeight(50)
         open_pdf_btn.setMinimumWidth(250)
-        open_pdf_btn.setStyleSheet("""
-            QPushButton {
+        open_pdf_btn.setStyleSheet(f"""
+            QPushButton {{
                 background-color: #9C27B0;
                 color: white;
                 border-radius: 25px;
                 font-weight: bold;
                 font-size: 14px;
                 padding: 10px 20px;
-            }
-            QPushButton:hover {
+            }}
+            QPushButton:hover {{
                 background-color: #7B1FA2;
-            }
-            QPushButton:pressed {
+            }}
+            QPushButton:pressed {{
                 background-color: #6A1B9A;
-            }
+            }}
         """)
         open_pdf_btn.clicked.connect(self.open_pdf)
 
@@ -81,8 +78,6 @@ class KegelExercisesScreen(QWidget):
         button_layout.addStretch()
 
         main_layout.addLayout(button_layout)
-
-        # Додаємо вертикальний простір
         main_layout.addItem(QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding))
 
     def open_pdf(self):
@@ -90,21 +85,19 @@ class KegelExercisesScreen(QWidget):
         try:
             pdf_path = os.path.join("resources", "Вправи Кегеля.pdf")
 
-            # Перевіряємо, чи існує файл
             if not os.path.exists(pdf_path):
                 QMessageBox.warning(self, "Файл не знайдено",
                                     f"Файл {pdf_path} не знайдено.\nБудь ласка, перевірте наявність файлу в папці ресурсів.")
                 logger.error(f"Файл не знайдено: {pdf_path}")
                 return
 
-            # Відкриваємо PDF-файл у системному переглядачі
             system = platform.system()
 
             if system == "Windows":
                 os.startfile(pdf_path)
-            elif system == "Darwin":  # macOS
+            elif system == "Darwin":
                 subprocess.call(["open", pdf_path])
-            else:  # Linux
+            else:
                 subprocess.call(["xdg-open", pdf_path])
 
             logger.info(f"Відкрито PDF-файл: {pdf_path}")

@@ -51,12 +51,43 @@ class DataController:
             self.user_profile.previous_pregnancies = 0 if child_data['first_labour'] else 1
 
         self.db.commit()
+
+        # Оновлюємо локальні дані після збереження
+        self.pregnancy_data = self.db.get_pregnancy_data()
+        self.user_profile = self.db.get_user_profile()
+
+        logger.info(
+            f"Інформація про дитину збережена. Стать: {self.pregnancy_data.baby_gender}, Ім'я: {self.pregnancy_data.baby_name}")
         return True
 
     def is_first_launch(self):
         try:
-            return (not self.pregnancy_data.baby_gender or
-                    self.pregnancy_data.baby_gender == "Невідомо")
+            # Перевіряємо чи встановлені базові дані про дитину і користувача
+            has_child_info = (
+                    self.pregnancy_data.baby_gender and
+                    self.pregnancy_data.baby_gender != "Невідомо"
+            )
+
+            has_user_info = (
+                    self.user_profile.name and
+                    self.user_profile.name.strip() != "" and
+                    self.user_profile.name != "Користувач"
+            )
+
+            has_pregnancy_info = (
+                    self.pregnancy_data.last_period_date is not None
+            )
+
+            is_first = not (has_child_info and has_user_info and has_pregnancy_info)
+
+            logger.info(f"Перевірка першого запуску: "
+                        f"child_info={has_child_info} (gender={self.pregnancy_data.baby_gender}), "
+                        f"user_info={has_user_info} (name={self.user_profile.name}), "
+                        f"pregnancy_info={has_pregnancy_info}, "
+                        f"is_first={is_first}")
+
+            return is_first
+
         except Exception as e:
             logger.error(f"Помилка при перевірці першого запуску: {str(e)}")
             return True

@@ -16,11 +16,22 @@ class Database:
 
     def _init_default_data(self):
         if not self.session.query(UserProfile).first():
-            user = UserProfile(id=1)
+            user = UserProfile(
+                id=1,
+                name="",  # Порожнє ім'я для першого запуску
+                height=165,
+                weight_before_pregnancy=60.0,
+                previous_pregnancies=0,
+                cycle_length=28
+            )
             self.session.add(user)
 
         if not self.session.query(PregnancyData).first():
-            pregnancy = PregnancyData(id=1, last_period_date=date.today())
+            pregnancy = PregnancyData(
+                id=1,
+                baby_gender="Невідомо",  # Явно встановлюємо для першого запуску
+                baby_name=""
+            )
             self.session.add(pregnancy)
 
         if not self.session.query(MedicalCheck).first():
@@ -178,6 +189,33 @@ class Database:
             item.is_purchased = True
             item.purchase_date = purchase_date
             self.session.commit()
+
+    def update_wishlist_item(self, item_id, title, description, category, price, priority, is_purchased):
+        item = self.session.query(WishlistItem).filter_by(id=item_id).first()
+        if item:
+            item.title = title
+            item.description = description
+            item.category = category
+            item.price = price
+            item.priority = priority
+            item.is_purchased = is_purchased
+
+            if is_purchased and not item.purchase_date:
+                item.purchase_date = date.today()
+            elif not is_purchased:
+                item.purchase_date = None
+
+            self.session.commit()
+            return True
+        return False
+
+    def delete_wishlist_item(self, item_id):
+        item = self.session.query(WishlistItem).filter_by(id=item_id).first()
+        if item:
+            self.session.delete(item)
+            self.session.commit()
+            return True
+        return False
 
     def get_medical_checks_by_trimester(self, trimester):
         checks = self.session.query(MedicalCheck).filter_by(trimester=trimester).all()

@@ -1,8 +1,10 @@
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton, QDateEdit, QFormLayout, QFrame
+from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QFormLayout, QFrame
 from PyQt6.QtCore import QDate
 from PyQt6.QtGui import QFont
 from controllers.data_controller import DataController
 from datetime import datetime
+from utils.base_widgets import StyledDateEdit, StyledButton, TitleLabel
+from utils.styles import Styles
 
 class PregnancyEditor(QWidget):
     def __init__(self, parent=None):
@@ -16,80 +18,62 @@ class PregnancyEditor(QWidget):
         main_layout.setContentsMargins(15, 15, 15, 15)
         main_layout.setSpacing(15)
 
-        title = QLabel("Інформація про вагітність")
-        title.setFont(QFont('Arial', 18, QFont.Weight.Bold))
-        title.setStyleSheet("color: #FF8C00;")
+        title = TitleLabel("Інформація про вагітність", 18)
+        title.setStyleSheet(Styles.text_accent())
         main_layout.addWidget(title)
 
         form_frame = QFrame()
-        form_frame.setStyleSheet("background-color: #222222; border-radius: 15px; padding: 15px;")
+        form_frame.setStyleSheet(Styles.card_frame())
         form_layout = QFormLayout(form_frame)
         form_layout.setSpacing(15)
+        form_layout.setContentsMargins(15, 15, 15, 15)
 
-        self.last_period_edit = QDateEdit()
+        # Поля форми з лейблами
+        period_label = QLabel("Дата останньої менструації:")
+        period_label.setStyleSheet(Styles.text_primary())
+        self.last_period_edit = StyledDateEdit()
         self.last_period_edit.setMinimumHeight(40)
-        self.last_period_edit.setDisplayFormat("dd.MM.yyyy")
-        self.last_period_edit.setCalendarPopup(True)
-        self.last_period_edit.setStyleSheet("""
-            background-color: #333333;
-            border: none;
-            border-radius: 8px;
-            padding: 5px 10px;
-            color: white;
-        """)
-        form_layout.addRow("Дата останньої менструації:", self.last_period_edit)
+        form_layout.addRow(period_label, self.last_period_edit)
 
-        self.due_date_edit = QDateEdit()
+        due_label = QLabel("Очікувана дата пологів:")
+        due_label.setStyleSheet(Styles.text_primary())
+        self.due_date_edit = StyledDateEdit()
         self.due_date_edit.setMinimumHeight(40)
-        self.due_date_edit.setDisplayFormat("dd.MM.yyyy")
-        self.due_date_edit.setCalendarPopup(True)
-        self.due_date_edit.setStyleSheet("""
-            background-color: #333333;
-            border: none;
-            border-radius: 8px;
-            padding: 5px 10px;
-            color: white;
-        """)
-        form_layout.addRow("Очікувана дата пологів:", self.due_date_edit)
+        form_layout.addRow(due_label, self.due_date_edit)
 
-        self.conception_edit = QDateEdit()
+        conception_label = QLabel("Дата зачаття (якщо відома):")
+        conception_label.setStyleSheet(Styles.text_primary())
+        self.conception_edit = StyledDateEdit()
         self.conception_edit.setMinimumHeight(40)
-        self.conception_edit.setDisplayFormat("dd.MM.yyyy")
-        self.conception_edit.setCalendarPopup(True)
-        self.conception_edit.setStyleSheet("""
-            background-color: #333333;
-            border: none;
-            border-radius: 8px;
-            padding: 5px 10px;
-            color: white;
-        """)
-        form_layout.addRow("Дата зачаття (якщо відома):", self.conception_edit)
+        form_layout.addRow(conception_label, self.conception_edit)
 
         main_layout.addWidget(form_frame)
 
+        # Інформаційний блок
         info_frame = QFrame()
-        info_frame.setStyleSheet("background-color: #222222; border-radius: 15px; padding: 15px;")
+        info_frame.setStyleSheet(Styles.card_frame())
         info_layout = QVBoxLayout(info_frame)
+        info_layout.setContentsMargins(15, 15, 15, 15)
+        info_layout.setSpacing(10)
+
+        info_title = QLabel("Поточна інформація")
+        info_title.setFont(QFont('Arial', 16, QFont.Weight.Bold))
+        info_title.setStyleSheet(Styles.text_accent())
+        info_layout.addWidget(info_title)
 
         self.week_label = QLabel("Поточний термін: ? тижнів")
         self.week_label.setFont(QFont('Arial', 14))
+        self.week_label.setStyleSheet(Styles.text_primary())
         info_layout.addWidget(self.week_label)
 
         self.days_left_label = QLabel("До пологів залишилось: ? днів")
+        self.days_left_label.setStyleSheet(Styles.text_primary())
         info_layout.addWidget(self.days_left_label)
 
         main_layout.addWidget(info_frame)
 
-        save_btn = QPushButton("Зберегти зміни")
+        save_btn = StyledButton("Зберегти зміни")
         save_btn.setMinimumHeight(50)
-        save_btn.setStyleSheet("""
-            background-color: #FF8C00;
-            border: none;
-            border-radius: 15px;
-            color: white;
-            font-weight: bold;
-            font-size: 14px;
-        """)
         save_btn.clicked.connect(self.save_pregnancy_data)
         main_layout.addWidget(save_btn)
 

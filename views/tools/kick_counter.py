@@ -1,10 +1,10 @@
-from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QLabel, QPushButton,
-                             QDateEdit, QTimeEdit, QSpinBox, QHBoxLayout, QListWidget,
-                            QMessageBox, QSplitter, QFrame)
+from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QHBoxLayout,QMessageBox, QSplitter
 from PyQt6.QtCore import Qt, QDate, QTime
-from PyQt6.QtGui import QFont
 from controllers.data_controller import DataController
 from utils.logger import get_logger
+from utils.base_widgets import (StyledCard, StyledDateEdit, StyledTimeEdit, StyledSpinBox,
+                               StyledButton, StyledListWidget, TitleLabel)
+from utils.styles import Styles
 
 logger = get_logger('kick_counter')
 
@@ -20,19 +20,14 @@ class KickCounterScreen(QWidget):
         self.load_kicks()
 
     def setup_ui(self):
-        # Головний layout
         main_layout = QVBoxLayout(self)
         main_layout.setContentsMargins(20, 20, 20, 20)
         main_layout.setSpacing(15)
 
-        # Заголовок
-        title = QLabel("Лічильник поштовхів")
-        title.setFont(QFont('Arial', 22, QFont.Weight.Bold))
+        title = TitleLabel("Лічильник поштовхів", 22)
         title.setStyleSheet("color: #4CAF50;")
-        title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         main_layout.addWidget(title)
 
-        # Додаємо спліттер для розділення форми додавання і списку записів
         splitter = QSplitter(Qt.Orientation.Horizontal)
         splitter.setChildrenCollapsible(False)
 
@@ -41,16 +36,9 @@ class KickCounterScreen(QWidget):
         left_layout = QVBoxLayout(left_widget)
         left_layout.setContentsMargins(10, 10, 10, 10)
 
-        form_frame = QFrame()
-        form_frame.setStyleSheet("background-color: #222222; border-radius: 10px; padding: 10px;")
-        form_layout = QVBoxLayout(form_frame)
+        form_frame = StyledCard("Записати поштовхи")
+        form_frame.setStyleSheet(form_frame.styleSheet() + "QLabel { color: #4CAF50; }")
 
-        form_title = QLabel("Записати поштовхи")
-        form_title.setFont(QFont('Arial', 16, QFont.Weight.Bold))
-        form_title.setStyleSheet("color: #4CAF50;")
-        form_layout.addWidget(form_title)
-
-        # Інформація
         info_text = """
         <p>Підрахунок поштовхів дитини допомагає відстежувати її активність і здоров'я.</p>
         <p>Рекомендується рахувати поштовхи щодня в один і той самий час, наприклад, після їжі, 
@@ -59,84 +47,40 @@ class KickCounterScreen(QWidget):
         """
         info_label = QLabel(info_text)
         info_label.setWordWrap(True)
-        info_label.setStyleSheet("color: #AAAAAA;")
-        form_layout.addWidget(info_label)
+        info_label.setStyleSheet(Styles.text_secondary())
+        form_frame.layout.addWidget(info_label)
 
-        # Дата
         date_layout = QHBoxLayout()
         date_label = QLabel("Дата:")
-        date_label.setStyleSheet("color: white;")
-        self.date_edit = QDateEdit()
+        date_label.setStyleSheet(Styles.text_primary())
+        self.date_edit = StyledDateEdit()
         self.date_edit.setDate(QDate.currentDate())
-        self.date_edit.setCalendarPopup(True)
-        self.date_edit.setStyleSheet("""
-            QDateEdit {
-                background-color: #333333;
-                border: none;
-                border-radius: 5px;
-                color: white;
-                padding: 5px;
-            }
-        """)
         date_layout.addWidget(date_label)
         date_layout.addWidget(self.date_edit)
-        form_layout.addLayout(date_layout)
+        form_frame.layout.addLayout(date_layout)
 
-        # Час
         time_layout = QHBoxLayout()
         time_label = QLabel("Час:")
-        time_label.setStyleSheet("color: white;")
-        self.time_edit = QTimeEdit()
+        time_label.setStyleSheet(Styles.text_primary())
+        self.time_edit = StyledTimeEdit()
         self.time_edit.setTime(QTime.currentTime())
-        self.time_edit.setStyleSheet("""
-            QTimeEdit {
-                background-color: #333333;
-                border: none;
-                border-radius: 5px;
-                color: white;
-                padding: 5px;
-            }
-        """)
         time_layout.addWidget(time_label)
         time_layout.addWidget(self.time_edit)
-        form_layout.addLayout(time_layout)
+        form_frame.layout.addLayout(time_layout)
 
-        # Кількість поштовхів
         kicks_layout = QHBoxLayout()
         kicks_label = QLabel("Кількість поштовхів:")
-        kicks_label.setStyleSheet("color: white;")
-        self.kicks_spin = QSpinBox()
-        self.kicks_spin.setRange(1, 100)
+        kicks_label.setStyleSheet(Styles.text_primary())
+        self.kicks_spin = StyledSpinBox(1, 100)
         self.kicks_spin.setValue(10)
-        self.kicks_spin.setStyleSheet("""
-            QSpinBox {
-                background-color: #333333;
-                border: none;
-                border-radius: 5px;
-                color: white;
-                padding: 5px;
-            }
-        """)
         kicks_layout.addWidget(kicks_label)
         kicks_layout.addWidget(self.kicks_spin)
-        form_layout.addLayout(kicks_layout)
+        form_frame.layout.addLayout(kicks_layout)
 
-        # Кнопка збереження
-        save_btn = QPushButton("Зберегти запис")
-        save_btn.setStyleSheet("""
-            QPushButton {
-                background-color: #4CAF50;
-                color: white;
-                border-radius: 5px;
-                padding: 8px;
-                font-weight: bold;
-            }
-            QPushButton:hover {
-                background-color: #388E3C;
-            }
-        """)
+        save_btn = StyledButton("Зберегти запис")
+        save_btn.setStyleSheet("background-color: #4CAF50; QPushButton:hover { background-color: #388E3C; }")
         save_btn.clicked.connect(self.save_kicks)
-        form_layout.addWidget(save_btn)
+        form_frame.layout.addWidget(save_btn)
 
         left_layout.addWidget(form_frame)
         splitter.addWidget(left_widget)
@@ -146,50 +90,15 @@ class KickCounterScreen(QWidget):
         right_layout = QVBoxLayout(right_widget)
         right_layout.setContentsMargins(10, 10, 10, 10)
 
-        list_frame = QFrame()
-        list_frame.setStyleSheet("background-color: #222222; border-radius: 10px; padding: 10px;")
-        list_layout = QVBoxLayout(list_frame)
+        list_frame = StyledCard("Історія поштовхів")
+        list_frame.setStyleSheet(list_frame.styleSheet() + "QLabel { color: #4CAF50; }")
 
-        list_title = QLabel("Історія поштовхів")
-        list_title.setFont(QFont('Arial', 16, QFont.Weight.Bold))
-        list_title.setStyleSheet("color: #4CAF50;")
-        list_layout.addWidget(list_title)
+        self.kicks_list = StyledListWidget()
+        list_frame.layout.addWidget(self.kicks_list)
 
-        # Список записів
-        self.kicks_list = QListWidget()
-        self.kicks_list.setStyleSheet("""
-            QListWidget {
-                background-color: #333333;
-                border: none;
-                border-radius: 5px;
-                color: white;
-                padding: 5px;
-            }
-            QListWidget::item {
-                padding: 5px;
-                border-bottom: 1px solid #444444;
-            }
-            QListWidget::item:selected {
-                background-color: #4CAF50;
-            }
-        """)
-        list_layout.addWidget(self.kicks_list)
-
-        # Кнопка оновлення
-        refresh_btn = QPushButton("Оновити історію")
-        refresh_btn.setStyleSheet("""
-            QPushButton {
-                background-color: #333333;
-                color: white;
-                border-radius: 5px;
-                padding: 8px;
-            }
-            QPushButton:hover {
-                background-color: #444444;
-            }
-        """)
+        refresh_btn = StyledButton("Оновити історію", "secondary")
         refresh_btn.clicked.connect(self.load_kicks)
-        list_layout.addWidget(refresh_btn)
+        list_frame.layout.addWidget(refresh_btn)
 
         right_layout.addWidget(list_frame)
         splitter.addWidget(right_widget)
@@ -200,7 +109,6 @@ class KickCounterScreen(QWidget):
         """Завантажує історію поштовхів з бази даних"""
         try:
             kicks = self.data_controller.db.get_baby_kicks()
-
             self.kicks_list.clear()
 
             for kick in kicks:
@@ -220,10 +128,7 @@ class KickCounterScreen(QWidget):
             time_str = self.time_edit.time().toString("HH:mm")
             count = self.kicks_spin.value()
 
-            # Зберігаємо запис у базу
             self.data_controller.db.add_baby_kick(date_str, time_str, count)
-
-            # Оновлюємо список
             self.load_kicks()
 
             QMessageBox.information(self, "Успіх", "Запис поштовхів успішно збережено")

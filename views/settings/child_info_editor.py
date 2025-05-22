@@ -1,8 +1,8 @@
-from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QLabel, QLineEdit,
-                             QComboBox, QPushButton, QFormLayout, QFrame)
-from PyQt6.QtGui import QFont
+from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QFormLayout, QFrame
 from controllers.data_controller import DataController
 from utils.logger import get_logger
+from utils.base_widgets import StyledInput, StyledComboBox, StyledButton, TitleLabel
+from utils.styles import Styles
 
 logger = get_logger('child_info_editor')
 
@@ -18,42 +18,35 @@ class ChildInfoEditor(QWidget):
         main_layout.setContentsMargins(15, 15, 15, 15)
         main_layout.setSpacing(15)
 
-        title = QLabel("Інформація про дитину")
-        title.setFont(QFont('Arial', 18, QFont.Weight.Bold))
-        title.setStyleSheet("color: #FF8C00;")
+        title = TitleLabel("Інформація про дитину", 18)
+        title.setStyleSheet(Styles.text_accent())
         main_layout.addWidget(title)
 
         form_frame = QFrame()
-        form_frame.setStyleSheet("background-color: #222222; border-radius: 15px; padding: 15px;")
+        form_frame.setStyleSheet(Styles.card_frame())
         form_layout = QFormLayout(form_frame)
         form_layout.setSpacing(15)
+        form_layout.setContentsMargins(15, 15, 15, 15)
 
-        self.name_edit = QLineEdit()
+        # Поля форми з лейблами
+        name_label = QLabel("Ім'я дитини:")
+        name_label.setStyleSheet(Styles.text_primary())
+        self.name_edit = StyledInput()
         self.name_edit.setMinimumHeight(40)
-        self.name_edit.setStyleSheet(
-            "background-color: #333333; color: white; padding: 8px; border: none; border-radius: 5px;")
-        form_layout.addRow("Ім'я дитини:", self.name_edit)
+        form_layout.addRow(name_label, self.name_edit)
 
-        self.gender_combo = QComboBox()
-        self.gender_combo.addItems(["Невідомо", "Хлопчик", "Дівчинка"])
+        gender_label = QLabel("Стать дитини:")
+        gender_label.setStyleSheet(Styles.text_primary())
+        gender_items = ["Невідомо", "Хлопчик", "Дівчинка"]
+        self.gender_combo = StyledComboBox(gender_items)
         self.gender_combo.setMinimumHeight(40)
-        self.gender_combo.setStyleSheet(
-            "background-color: #333333; color: white; padding: 8px; border: none; border-radius: 5px;")
-        form_layout.addRow("Стать дитини:", self.gender_combo)
+        form_layout.addRow(gender_label, self.gender_combo)
 
         main_layout.addWidget(form_frame)
         main_layout.addStretch(1)
 
-        save_btn = QPushButton("Зберегти зміни")
+        save_btn = StyledButton("Зберегти зміни")
         save_btn.setMinimumHeight(50)
-        save_btn.setStyleSheet("""
-            background-color: #FF8C00;
-            border: none;
-            border-radius: 15px;
-            color: white;
-            font-weight: bold;
-            font-size: 14px;
-        """)
         save_btn.clicked.connect(self.save_child_data)
         main_layout.addWidget(save_btn)
 

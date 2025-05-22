@@ -146,7 +146,6 @@ class MainWindow(QMainWindow):
 
     def create_bottom_nav(self):
         bottom_nav = QWidget()
-        bottom_nav.setObjectName("bottom_nav")
         bottom_nav.setMinimumHeight(70)
         bottom_nav.setStyleSheet(Styles.nav_bottom())
 
@@ -166,7 +165,6 @@ class MainWindow(QMainWindow):
 
         for item in nav_items:
             button = QPushButton()
-            button.setObjectName(f"nav_{item['text'].lower()}")
             button.setCheckable(True)
             button.setFixedHeight(60)
             button.setMinimumWidth(60)

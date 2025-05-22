@@ -423,3 +423,18 @@ class Styles:
         g = min(int(g + (255 - g) * factor), 255)
         b = min(int(b + (255 - b) * factor), 255)
         return f"#{r:02x}{g:02x}{b:02x}"
+
+    @staticmethod
+    def accent_title(color):
+        return f"""
+            color: {color};
+            font-weight: bold;
+        """
+
+    @staticmethod
+    def form_section():
+        return f"""
+            background-color: {Styles.COLORS['surface']};
+            border-radius: 15px;
+            padding: 15px;
+        """
