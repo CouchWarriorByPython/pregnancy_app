@@ -102,6 +102,48 @@ class Styles:
         """
 
     @staticmethod
+    def button_circular(color, size=60):
+        return f"""
+            QPushButton {{
+                background-color: {color};
+                border-radius: {size//2}px;
+                font-weight: bold;
+                font-size: 18px;
+                color: white;
+                text-align: center;
+            }}
+            QPushButton:checked {{
+                background-color: {Styles.COLORS['primary']};
+                color: white;
+            }}
+            QPushButton:hover:!checked {{
+                background-color: {Styles._lighten_color(color)};
+            }}
+        """
+
+    @staticmethod
+    def button_nav_arrow():
+        return f"""
+            QPushButton {{
+                background-color: {Styles.COLORS['surface_variant']};
+                border-radius: 22px;
+                font-weight: bold;
+                color: #DDDDDD;
+                font-size: 18px;
+            }}
+            QPushButton:disabled {{
+                background-color: {Styles.COLORS['surface']};
+                color: {Styles.COLORS['border']};
+            }}
+            QPushButton:hover:enabled {{
+                background-color: {Styles.COLORS['border']};
+            }}
+            QPushButton:pressed {{
+                background-color: {Styles.COLORS['border_hover']};
+            }}
+        """
+
+    @staticmethod
     def date_time_edit():
         return f"""
             QDateEdit, QTimeEdit {{
@@ -207,6 +249,19 @@ class Styles:
         """
 
     @staticmethod
+    def tool_card():
+        return f"""
+            QFrame {{
+                background-color: {Styles.COLORS['surface']};
+                border-radius: 15px;
+                min-height: 150px;
+            }}
+            QLabel#titleLabel {{
+                font-weight: bold;
+            }}
+        """
+
+    @staticmethod
     def header():
         return f"""
             background-color: {Styles.COLORS['background']};
@@ -235,8 +290,117 @@ class Styles:
         """
 
     @staticmethod
+    def progress_bar():
+        return f"""
+            background-color: {Styles.COLORS['surface_variant']};
+            border-radius: 10px;
+            padding: 0px;
+            text-align: left;
+        """
+
+    @staticmethod
+    def splitter():
+        return f"""
+            QSplitter::handle {{
+                background-color: {Styles.COLORS['border']};
+            }}
+        """
+
+    @staticmethod
     def scroll_area():
         return "border: none;"
+
+    @staticmethod
+    def nav_bottom():
+        return f"""
+            background-color: {Styles.COLORS['background']};
+        """
+
+    @staticmethod
+    def nav_button():
+        return f"""
+            QPushButton {{
+                background-color: transparent;
+                border: none;
+                color: #888888;
+                padding-top: 5px;
+                font-size: 10px;
+            }}
+            QPushButton:checked {{
+                color: {Styles.COLORS['primary']};
+            }}
+            QPushButton:hover {{
+                color: #AAAAAA;
+            }}
+        """
+
+    @staticmethod
+    def form_container():
+        return f"""
+            background-color: {Styles.COLORS['surface']};
+            border-radius: 10px;
+            padding: 10px;
+        """
+
+    @staticmethod
+    def slider():
+        return f"""
+            QSlider::groove:horizontal {{
+                height: 8px;
+                background: {Styles.COLORS['border']};
+                border-radius: 4px;
+            }}
+            QSlider::handle:horizontal {{
+                background: {Styles.COLORS['primary']};
+                border: 1px solid {Styles.COLORS['primary']};
+                width: 18px;
+                height: 18px;
+                margin: -5px 0;
+                border-radius: 9px;
+            }}
+            QSlider::sub-page:horizontal {{
+                background: {Styles.COLORS['primary']};
+                border-radius: 4px;
+            }}
+        """
+
+    @staticmethod
+    def calendar():
+        return f"""
+            QCalendarWidget {{
+                background-color: {Styles.COLORS['background']};
+            }}
+            QCalendarWidget QToolButton {{
+                color: {Styles.COLORS['text_primary']};
+                background-color: {Styles.COLORS['surface_variant']};
+                border-radius: 5px;
+            }}
+            QCalendarWidget QAbstractItemView:enabled {{
+                color: {Styles.COLORS['text_primary']};
+                background-color: {Styles.COLORS['background']};
+                selection-background-color: {Styles.COLORS['primary']};
+                selection-color: white;
+            }}
+        """
+
+    @staticmethod
+    def radio_button():
+        return f"""
+            QRadioButton {{
+                color: {Styles.COLORS['text_primary']};
+                font-size: 14px;
+            }}
+            QRadioButton::indicator {{
+                width: 20px;
+                height: 20px;
+                border-radius: 10px;
+                border: 2px solid {Styles.COLORS['border']};
+            }}
+            QRadioButton::indicator:checked {{
+                background-color: {Styles.COLORS['primary']};
+                border: 2px solid {Styles.COLORS['primary']};
+            }}
+        """
 
     @staticmethod
     def text_primary():
@@ -249,3 +413,13 @@ class Styles:
     @staticmethod
     def text_accent():
         return f"color: {Styles.COLORS['text_accent']};"
+
+    @staticmethod
+    def _lighten_color(hex_color, factor=0.2):
+        """Освітлює RGB колір на заданий фактор"""
+        hex_color = hex_color.lstrip('#')
+        r, g, b = int(hex_color[0:2], 16), int(hex_color[2:4], 16), int(hex_color[4:6], 16)
+        r = min(int(r + (255 - r) * factor), 255)
+        g = min(int(g + (255 - g) * factor), 255)
+        b = min(int(b + (255 - b) * factor), 255)
+        return f"#{r:02x}{g:02x}{b:02x}"

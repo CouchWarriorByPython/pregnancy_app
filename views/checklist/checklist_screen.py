@@ -2,11 +2,10 @@ from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QLabel,
                              QPushButton, QHBoxLayout, QScrollArea, QFrame, QCheckBox, QStackedWidget)
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont
+from utils.styles import Styles
 
 
 class CheckItem(QWidget):
-    """Елемент чекліста з прапорцем та текстом"""
-
     def __init__(self, text, description=None, parent=None):
         super().__init__(parent)
         self.setup_ui(text, description)
@@ -15,54 +14,46 @@ class CheckItem(QWidget):
         layout = QHBoxLayout(self)
         layout.setContentsMargins(0, 5, 0, 5)
 
-        # Чекбокс
         self.checkbox = QCheckBox()
         self.checkbox.setMinimumSize(30, 30)
-        self.checkbox.setStyleSheet("""
-            QCheckBox {
+        self.checkbox.setStyleSheet(f"""
+            QCheckBox {{
                 spacing: 5px;
-            }
-            QCheckBox::indicator {
+            }}
+            QCheckBox::indicator {{
                 width: 25px;
                 height: 25px;
                 border-radius: 5px;
-                border: 2px solid #555555;
-            }
-            QCheckBox::indicator:checked {
-                background-color: #4CAF50;
-                border: 2px solid #4CAF50;
-            }
+                border: 2px solid {Styles.COLORS['border']};
+            }}
+            QCheckBox::indicator:checked {{
+                background-color: {Styles.COLORS['success']};
+                border: 2px solid {Styles.COLORS['success']};
+            }}
         """)
-        # Підключаємо сигнал toggled для оновлення прогресу при зміні стану чекбоксу
         self.checkbox.toggled.connect(self.on_checkbox_toggled)
         layout.addWidget(self.checkbox)
 
-        # Текстова інформація
         text_layout = QVBoxLayout()
 
-        # Основний текст
         title = QLabel(text)
         title.setFont(QFont('Arial', 14))
         text_layout.addWidget(title)
 
-        # Опис (якщо заданий)
         if description:
             desc = QLabel(description)
             desc.setFont(QFont('Arial', 10))
-            desc.setStyleSheet("color: #AAAAAA;")
+            desc.setStyleSheet(Styles.text_secondary())
             text_layout.addWidget(desc)
 
         layout.addLayout(text_layout)
-        layout.setStretch(1, 1)  # Розтягуємо текст на всю доступну ширину
+        layout.setStretch(1, 1)
 
     def on_checkbox_toggled(self, checked):
-        """Обробка зміни стану чекбоксу"""
-        # Знаходимо батьківський екран чекліста
         parent = self.parent()
         while parent and not isinstance(parent, ChecklistScreen):
             parent = parent.parent()
 
-        # Оновлюємо прогрес, якщо знайшли батьківський екран
         if parent and isinstance(parent, ChecklistScreen):
             parent.update_progress(parent.current_trimester_index)
 
@@ -75,27 +66,24 @@ class ChecklistScreen(QWidget):
         self.setup_ui()
 
     def setup_ui(self):
-        # Головний layout
         main_layout = QVBoxLayout(self)
         main_layout.setContentsMargins(0, 0, 0, 0)
         main_layout.setSpacing(0)
 
-        # Верхній заголовок
         header = QWidget()
         header.setMinimumHeight(60)
-        header.setStyleSheet("background-color: #121212;")
+        header.setStyleSheet(Styles.header())
 
         header_layout = QHBoxLayout(header)
         header_layout.setContentsMargins(15, 5, 15, 5)
 
         checklist_label = QLabel("Чекліст")
         checklist_label.setFont(QFont('Arial', 18, QFont.Weight.Bold))
-        checklist_label.setStyleSheet("color: #FF8C00;")
+        checklist_label.setStyleSheet(Styles.text_accent())
 
         header_layout.addWidget(checklist_label)
         main_layout.addWidget(header)
 
-        # Створюємо панель з кнопками для вибору триместру
         trimester_selector = QWidget()
         trimester_selector.setFixedHeight(50)
         trimester_selector.setStyleSheet("background-color: #181818;")
@@ -104,40 +92,20 @@ class ChecklistScreen(QWidget):
         trimester_layout.setContentsMargins(0, 0, 0, 0)
         trimester_layout.setSpacing(0)
 
-        # Створення кнопок для триместрів
         self.trimester_buttons = []
         for i, name in enumerate(["I Триместр", "II Триместр", "III Триместр"]):
             btn = QPushButton(name)
             btn.setCheckable(True)
             btn.setFixedHeight(50)
-            btn.setStyleSheet("""
-                QPushButton {
-                    background-color: #121212;
-                    color: #AAAAAA;
-                    border: none;
-                    font-size: 14px;
-                    padding: 10px;
-                    text-align: center;
-                }
-                QPushButton:checked {
-                    background-color: #222222;
-                    color: #FF8C00;
-                    font-weight: bold;
-                }
-                QPushButton:hover:!checked {
-                    background-color: #1A1A1A;
-                }
-            """)
+            btn.setStyleSheet(Styles.tab_button())
             btn.clicked.connect(lambda checked, idx=i: self.set_trimester(idx))
             trimester_layout.addWidget(btn)
             self.trimester_buttons.append(btn)
 
         main_layout.addWidget(trimester_selector)
 
-        # Стек віджет для триместрів
         self.trimester_stack = QStackedWidget()
 
-        # Створюємо вкладки для кожного триместру
         first_tab = self.create_trimester_tab("I Триместр")
         first_tab.setObjectName("trimester_tab_1")
         second_tab = self.create_trimester_tab("II Триместр")
@@ -145,58 +113,46 @@ class ChecklistScreen(QWidget):
         third_tab = self.create_trimester_tab("III Триместр")
         third_tab.setObjectName("trimester_tab_3")
 
-        # Додаємо елементи чекліста для кожного триместру
         self.add_first_trimester_items(first_tab)
         self.add_second_trimester_items(second_tab)
         self.add_third_trimester_items(third_tab)
 
-        # Додаємо вкладки до стеку
         self.trimester_stack.addWidget(first_tab)
         self.trimester_stack.addWidget(second_tab)
         self.trimester_stack.addWidget(third_tab)
 
         main_layout.addWidget(self.trimester_stack)
-
-        # Встановлюємо початковий триместр
         self.set_trimester(0)
 
     def set_trimester(self, index):
-        """Встановлює активний триместр"""
         self.current_trimester_index = index
 
-        # Оновлюємо стан кнопок
         for i, btn in enumerate(self.trimester_buttons):
             btn.setChecked(i == index)
 
-        # Змінюємо відображуваний триместр
         self.trimester_stack.setCurrentIndex(index)
-
-        # Оновлюємо прогрес для поточного триместру
         self.update_progress(index)
 
     def create_trimester_tab(self, title):
-        """Створює вкладку для триместру з прокруткою та контентом"""
         tab = QWidget()
         layout = QVBoxLayout(tab)
         layout.setContentsMargins(0, 0, 0, 0)
 
         scroll_area = QScrollArea()
         scroll_area.setWidgetResizable(True)
-        scroll_area.setStyleSheet("border: none;")
+        scroll_area.setStyleSheet(Styles.scroll_area())
 
         content_widget = QWidget()
         self.content_layout = QVBoxLayout(content_widget)
         self.content_layout.setContentsMargins(15, 15, 15, 15)
         self.content_layout.setSpacing(15)
 
-        # Заголовок
         title_label = QLabel(title)
         title_label.setFont(QFont('Arial', 20, QFont.Weight.Bold))
         self.content_layout.addWidget(title_label)
 
-        # Прогрес
         progress_frame = QFrame()
-        progress_frame.setStyleSheet("background-color: #121212; border-radius: 15px;")
+        progress_frame.setStyleSheet(Styles.frame())
         progress_layout = QVBoxLayout(progress_frame)
 
         progress_title = QLabel("Прогрес:")
@@ -205,7 +161,7 @@ class ChecklistScreen(QWidget):
         self.progress_bar = QLabel()
         self.progress_bar.setObjectName("progress_bar")
         self.progress_bar.setMinimumHeight(20)
-        self.progress_bar.setStyleSheet("background-color: #333333; border-radius: 10px;")
+        self.progress_bar.setStyleSheet(Styles.progress_bar())
 
         self.progress_text = QLabel("0% виконано")
         self.progress_text.setObjectName("progress_text")
@@ -217,12 +173,9 @@ class ChecklistScreen(QWidget):
 
         self.content_layout.addWidget(progress_frame)
 
-        # Секція з чекбоксами
         self.checklist_section = QFrame()
         self.checklist_section.setObjectName("checklist_section")
-        self.checklist_section.setStyleSheet("background-color: #121212; border-radius: 15px;")
-
-        # Встановлюємо фіксовану ширину секції для уніфікації вигляду між триместрами
+        self.checklist_section.setStyleSheet(Styles.frame())
         self.checklist_section.setMaximumWidth(600)
 
         self.checklist_layout = QVBoxLayout(self.checklist_section)
@@ -235,10 +188,8 @@ class ChecklistScreen(QWidget):
         return tab
 
     def add_first_trimester_items(self, tab):
-        """Додає елементи чекліста для першого триместру"""
         checklist_layout = tab.findChild(QFrame, "checklist_section").layout()
 
-        # Аналізи
         analyses_label = QLabel("Аналізи")
         analyses_label.setFont(QFont('Arial', 16, QFont.Weight.Bold))
         checklist_layout.addWidget(analyses_label)
@@ -256,7 +207,6 @@ class ChecklistScreen(QWidget):
             item = CheckItem(text, desc)
             checklist_layout.addWidget(item)
 
-        # УЗД
         ultrasound_label = QLabel("УЗД")
         ultrasound_label.setFont(QFont('Arial', 16, QFont.Weight.Bold))
         checklist_layout.addWidget(ultrasound_label)
@@ -269,7 +219,6 @@ class ChecklistScreen(QWidget):
             item = CheckItem(text, desc)
             checklist_layout.addWidget(item)
 
-        # Консультації
         consult_label = QLabel("Консультації")
         consult_label.setFont(QFont('Arial', 16, QFont.Weight.Bold))
         checklist_layout.addWidget(consult_label)
@@ -285,13 +234,9 @@ class ChecklistScreen(QWidget):
             checklist_layout.addWidget(item)
 
     def add_second_trimester_items(self, tab):
-        """Додає елементи чекліста для другого триместру"""
         checklist_layout = tab.findChild(QFrame, "checklist_section").layout()
-
-        # Змінюємо ширину блоку
         tab.findChild(QFrame, "checklist_section").setMaximumWidth(600)
 
-        # Аналізи
         analyses_label = QLabel("Аналізи")
         analyses_label.setFont(QFont('Arial', 16, QFont.Weight.Bold))
         checklist_layout.addWidget(analyses_label)
@@ -309,7 +254,6 @@ class ChecklistScreen(QWidget):
             item = CheckItem(text, desc)
             checklist_layout.addWidget(item)
 
-        # УЗД
         ultrasound_label = QLabel("УЗД")
         ultrasound_label.setFont(QFont('Arial', 16, QFont.Weight.Bold))
         checklist_layout.addWidget(ultrasound_label)
@@ -323,7 +267,6 @@ class ChecklistScreen(QWidget):
             item = CheckItem(text, desc)
             checklist_layout.addWidget(item)
 
-        # Консультації
         consult_label = QLabel("Консультації")
         consult_label.setFont(QFont('Arial', 16, QFont.Weight.Bold))
         checklist_layout.addWidget(consult_label)
@@ -339,7 +282,6 @@ class ChecklistScreen(QWidget):
             item = CheckItem(text, desc)
             checklist_layout.addWidget(item)
 
-        # Інше
         other_label = QLabel("Інше")
         other_label.setFont(QFont('Arial', 16, QFont.Weight.Bold))
         checklist_layout.addWidget(other_label)
@@ -355,10 +297,8 @@ class ChecklistScreen(QWidget):
             checklist_layout.addWidget(item)
 
     def add_third_trimester_items(self, tab):
-        """Додає елементи чекліста для третього триместру"""
         checklist_layout = tab.findChild(QFrame, "checklist_section").layout()
 
-        # Аналізи
         analyses_label = QLabel("Аналізи")
         analyses_label.setFont(QFont('Arial', 16, QFont.Weight.Bold))
         checklist_layout.addWidget(analyses_label)
@@ -375,7 +315,6 @@ class ChecklistScreen(QWidget):
             item = CheckItem(text, desc)
             checklist_layout.addWidget(item)
 
-        # УЗД
         ultrasound_label = QLabel("УЗД")
         ultrasound_label.setFont(QFont('Arial', 16, QFont.Weight.Bold))
         checklist_layout.addWidget(ultrasound_label)
@@ -389,7 +328,6 @@ class ChecklistScreen(QWidget):
             item = CheckItem(text, desc)
             checklist_layout.addWidget(item)
 
-        # Консультації
         consult_label = QLabel("Консультації")
         consult_label.setFont(QFont('Arial', 16, QFont.Weight.Bold))
         checklist_layout.addWidget(consult_label)
@@ -404,7 +342,6 @@ class ChecklistScreen(QWidget):
             checklist_layout.addWidget(item)
 
     def update_progress(self, tab_index):
-        """Оновлює стан прогрес-бару на основі відмічених пунктів"""
         tab = self.trimester_stack.widget(tab_index)
         if not tab:
             return
@@ -413,12 +350,10 @@ class ChecklistScreen(QWidget):
         if not checklist_section:
             return
 
-        # Знаходимо всі чекбокси у цьому розділі
         checkboxes = []
         for item in checklist_section.findChildren(CheckItem):
             checkboxes.append(item.checkbox)
 
-        # Рахуємо прогрес
         total = len(checkboxes)
         if total == 0:
             return
@@ -426,25 +361,22 @@ class ChecklistScreen(QWidget):
         checked = sum(1 for cb in checkboxes if cb.isChecked())
         progress_percent = int((checked / total) * 100)
 
-        # Знаходимо прогрес-бар
         progress_bar = tab.findChild(QLabel, "progress_bar")
         progress_text = tab.findChild(QLabel, "progress_text")
 
         if progress_bar and progress_text:
-            # Встановлюємо стиль для прогрес-бару з фіксованими розмірами
             progress_bar.setStyleSheet(f"""
-                background-color: #333333;
+                background-color: {Styles.COLORS['surface_variant']};
                 border-radius: 10px;
                 padding: 0px;
                 text-align: left;
                 background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
-                                          stop:0 #FF8C00, stop:{progress_percent / 100} #FF8C00,
-                                          stop:{progress_percent / 100} #333333, stop:1 #333333);
+                                          stop:0 {Styles.COLORS['primary']}, stop:{progress_percent / 100} {Styles.COLORS['primary']},
+                                          stop:{progress_percent / 100} {Styles.COLORS['surface_variant']}, stop:1 {Styles.COLORS['surface_variant']});
             """)
 
             progress_text.setText(f"{progress_percent}% виконано")
 
     def resizeEvent(self, event):
-        """Обробка зміни розміру вікна для коректного відображення прогрес-бару"""
         super().resizeEvent(event)
         self.update_progress(self.current_trimester_index)

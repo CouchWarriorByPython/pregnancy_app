@@ -62,22 +62,7 @@ class ChildInfoScreen(QWidget):
 
         for i, (text, value) in enumerate(gender_options):
             radio = QRadioButton(text)
-            radio.setStyleSheet(f"""
-                QRadioButton {{
-                    color: {Styles.COLORS['text_primary']};
-                    font-size: 14px;
-                }}
-                QRadioButton::indicator {{
-                    width: 20px;
-                    height: 20px;
-                    border-radius: 10px;
-                    border: 2px solid {Styles.COLORS['border']};
-                }}
-                QRadioButton::indicator:checked {{
-                    background-color: {Styles.COLORS['primary']};
-                    border: 2px solid {Styles.COLORS['primary']};
-                }}
-            """)
+            radio.setStyleSheet(Styles.radio_button())
             radio.gender_value = value
             self.gender_group.addButton(radio, i)
             gender_layout.addWidget(radio)
