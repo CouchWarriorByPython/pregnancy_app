@@ -16,50 +16,63 @@ class InfoCard(QFrame):
         super().__init__(parent)
         self.is_hover = False
         self.setFixedWidth(760)
-        self._setup_ui(title, content)
+        self.title = title
+        self.content = content
+        self._setup_ui()
         self.setMouseTracking(True)
 
-    def _setup_ui(self, title, content):
-        self.setStyleSheet(WeeksStyles.info_card_base())
-        layout = QVBoxLayout(self)
-        layout.setContentsMargins(30, 30, 30, 30)
-        layout.setSpacing(20)
+    def _setup_ui(self):
+        # Головний контейнер
+        main_layout = QVBoxLayout(self)
+        main_layout.setContentsMargins(0, 0, 0, 0)
+        main_layout.setSpacing(8)
 
-        title_label = QLabel(title)
+        # Заголовок зовні блоку
+        title_label = QLabel(self.title)
         title_label.setFont(QFont('Arial', 18, QFont.Weight.Bold))
-        title_label.setStyleSheet(f"color: {Colors.TEXT_ACCENT}; font-weight: 700;")
+        title_label.setStyleSheet(f"color: {Colors.TEXT_ACCENT}; font-weight: 700; padding: 0px; background: transparent;")
         title_label.setAlignment(Qt.AlignmentFlag.AlignLeft)
+        main_layout.addWidget(title_label)
 
-        content_label = QLabel(content)
+        # Контентний блок
+        content_frame = QFrame()
+        content_frame.setStyleSheet(WeeksStyles.info_card_base())
+        content_layout = QVBoxLayout(content_frame)
+        content_layout.setContentsMargins(30, 30, 30, 30)
+        content_layout.setSpacing(0)
+
+        content_label = QLabel(self.content)
         content_label.setWordWrap(True)
         content_label.setFont(QFont('Arial', 14))
         content_label.setStyleSheet(f"color: {Colors.TEXT_PRIMARY}; font-weight: 500; line-height: 1.6;")
         content_label.setAlignment(Qt.AlignmentFlag.AlignLeft)
         content_label.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
 
-        layout.addWidget(title_label)
-        layout.addWidget(content_label)
+        content_layout.addWidget(content_label)
+        main_layout.addWidget(content_frame)
+
+        self.content_frame = content_frame
         self.setMinimumHeight(120)
 
     def enterEvent(self, event):
         self.is_hover = True
-        self.setStyleSheet(WeeksStyles.info_card_hover())
+        self.content_frame.setStyleSheet(WeeksStyles.info_card_hover())
         super().enterEvent(event)
 
     def leaveEvent(self, event):
         self.is_hover = False
-        self.setStyleSheet(WeeksStyles.info_card_base())
+        self.content_frame.setStyleSheet(WeeksStyles.info_card_base())
         super().leaveEvent(event)
 
     def mousePressEvent(self, event):
         if event.button() == Qt.MouseButton.LeftButton:
-            self.setStyleSheet(WeeksStyles.info_card_pressed())
+            self.content_frame.setStyleSheet(WeeksStyles.info_card_pressed())
         super().mousePressEvent(event)
 
     def mouseReleaseEvent(self, event):
         if event.button() == Qt.MouseButton.LeftButton:
             style = WeeksStyles.info_card_hover() if self.is_hover else WeeksStyles.info_card_base()
-            self.setStyleSheet(style)
+            self.content_frame.setStyleSheet(style)
         super().mouseReleaseEvent(event)
 
 
@@ -266,6 +279,7 @@ class WeeksScreen(QWidget):
 
         for card_data in cards_data:
             card = InfoCard(card_data["title"], card_data["content"])
+            card.setStyleSheet("background: transparent; border: none;")  # Прибираємо стилі з основного контейнера
             self.cards_layout.addWidget(card)
 
     def week_changed(self, week):
