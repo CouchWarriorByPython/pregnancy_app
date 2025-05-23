@@ -2,7 +2,7 @@ import os
 import sys
 from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QStackedWidget, \
     QMessageBox, QSizePolicy
-from PyQt6.QtCore import QSize, QTimer
+from PyQt6.QtCore import QSize
 from PyQt6.QtGui import QIcon
 
 from views.weeks.weeks_screen import WeeksScreen
@@ -22,7 +22,7 @@ from controllers.auth_controller import AuthController
 from utils.logger import get_logger
 from utils.styles import Styles
 from utils.reminder_service import ReminderService
-from datetime import datetime, timedelta
+from datetime import datetime
 
 logger = get_logger('main')
 
@@ -139,8 +139,27 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(main_widget)
 
     def _handle_authentication(self):
-        self.bottom_nav.setVisible(False)
-        self.show_screen('login')
+        # Спробуємо відновити сесію
+        session_data = self.auth_controller.load_session()
+        if session_data:
+            logger.info(f"Відновлена сесія для користувача {session_data['email']}")
+            self.current_user_id = session_data['user_id']
+            self.current_user_email = session_data['email']
+            self.data_controller = DataController(self.current_user_id)
+            self._init_reminder_service()
+
+            if self.data_controller.is_first_launch():
+                logger.info("Перший запуск для користувача. Показуємо онбординг.")
+                self.show_screen('child_info')
+                self.bottom_nav.setVisible(False)
+            else:
+                logger.info("Користувач авторизований. Показуємо головний екран.")
+                self._update_screens_with_user_data()
+                self.bottom_nav.setVisible(True)
+                self.show_screen('weeks')
+        else:
+            self.bottom_nav.setVisible(False)
+            self.show_screen('login')
 
     def show_screen(self, screen_name):
         if screen_name in self.auth_screens:
@@ -186,7 +205,7 @@ class MainWindow(QMainWindow):
             self.reminder_service = ReminderService(
                 self.data_controller.db,
                 self.current_user_id,
-                self.current_user_email  # Додаємо email
+                self.current_user_email
             )
             self.reminder_service.start()
 

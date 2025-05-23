@@ -41,6 +41,11 @@ class LoginScreen(QWidget):
         self.email_input.setMinimumHeight(50)
         main_layout.addWidget(self.email_input)
 
+        self.password_input = StyledInput("Пароль")
+        self.password_input.setMinimumHeight(50)
+        self.password_input.setEchoMode(self.password_input.EchoMode.Password)
+        main_layout.addWidget(self.password_input)
+
         main_layout.addItem(QSpacerItem(20, 30, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed))
 
         login_btn = StyledButton("Увійти")
@@ -68,9 +73,10 @@ class LoginScreen(QWidget):
 
     def login(self):
         email = self.email_input.text().strip()
+        password = self.password_input.text()
 
-        if not email:
-            QMessageBox.warning(self, "Помилка", "Введіть електронну пошту")
+        if not email or not password:
+            QMessageBox.warning(self, "Помилка", "Заповніть всі поля")
             return
 
         if not self.is_valid_email(email):
@@ -78,16 +84,12 @@ class LoginScreen(QWidget):
             return
 
         try:
-            user = self.auth_controller.login(email)
+            user = self.auth_controller.login(email, password)
             if user:
-                if user.is_verified:
-                    self.login_success.emit({"user_id": user.id, "email": user.email})
-                    logger.info(f"Успішний вхід користувача {email}")
-                else:
-                    QMessageBox.information(self, "Увага",
-                                            "Акаунт не підтверджено. Перейдіть до реєстрації для підтвердження.")
+                self.login_success.emit({"user_id": user.id, "email": user.email})
+                logger.info(f"Успішний вхід користувача {email}")
             else:
-                QMessageBox.warning(self, "Помилка", "Користувача з такою поштою не знайдено")
+                QMessageBox.warning(self, "Помилка", "Невірна пошта або пароль")
         except Exception as e:
             QMessageBox.critical(self, "Помилка", f"Помилка входу: {str(e)}")
             logger.error(f"Помилка входу: {str(e)}")

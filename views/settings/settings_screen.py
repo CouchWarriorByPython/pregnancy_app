@@ -5,6 +5,7 @@ from utils.styles import Styles
 from .profile_editor import ProfileEditor
 from .pregnancy_editor import PregnancyEditor
 from .child_info_editor import ChildInfoEditor
+from .password_editor import PasswordEditor
 
 
 class SettingsScreen(QWidget):
@@ -19,7 +20,8 @@ class SettingsScreen(QWidget):
         self.editors = [
             ("Профіль", ProfileEditor(self)),
             ("Вагітність", PregnancyEditor(self)),
-            ("Дитина", ChildInfoEditor(self))
+            ("Дитина", ChildInfoEditor(self)),
+            ("Пароль", PasswordEditor(self))
         ]
         for _, editor in self.editors:
             editor.hide()
@@ -117,5 +119,6 @@ class SettingsScreen(QWidget):
         for i, (_, editor) in enumerate(self.editors):
             editor.setVisible(i == index)
 
+    @property
     def current_user_id(self):
         return getattr(self.parent, 'current_user_id', None)

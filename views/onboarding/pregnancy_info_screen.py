@@ -58,8 +58,11 @@ class PregnancyInfoScreen(QWidget):
 
     def _get_current_user_id(self):
         """Отримуємо ID поточного користувача"""
-        if hasattr(self.parent, 'current_user_id') and self.parent.current_user_id:
-            return self.parent.current_user_id
+        if hasattr(self.parent, 'current_user_id'):
+            if callable(self.parent.current_user_id):
+                return self.parent.current_user_id()
+            else:
+                return self.parent.current_user_id
         return None
 
     def on_next_clicked(self):

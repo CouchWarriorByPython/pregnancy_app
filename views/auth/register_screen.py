@@ -21,7 +21,7 @@ class RegisterScreen(QWidget):
     def setup_ui(self):
         main_layout = QVBoxLayout(self)
         main_layout.setContentsMargins(40, 40, 40, 40)
-        main_layout.setSpacing(30)
+        main_layout.setSpacing(25)
 
         main_layout.addItem(QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding))
 
@@ -35,7 +35,7 @@ class RegisterScreen(QWidget):
         subtitle.setFont(QFont('Arial', 14))
         main_layout.addWidget(subtitle)
 
-        main_layout.addItem(QSpacerItem(20, 20, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed))
+        main_layout.addItem(QSpacerItem(20, 15, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed))
 
         self.email_input = StyledInput("Електронна пошта")
         self.email_input.setMinimumHeight(50)
@@ -45,14 +45,24 @@ class RegisterScreen(QWidget):
         self.name_input.setMinimumHeight(50)
         main_layout.addWidget(self.name_input)
 
-        main_layout.addItem(QSpacerItem(20, 30, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed))
+        self.password_input = StyledInput("Пароль")
+        self.password_input.setMinimumHeight(50)
+        self.password_input.setEchoMode(self.password_input.EchoMode.Password)
+        main_layout.addWidget(self.password_input)
+
+        self.password_confirm_input = StyledInput("Підтвердіть пароль")
+        self.password_confirm_input.setMinimumHeight(50)
+        self.password_confirm_input.setEchoMode(self.password_confirm_input.EchoMode.Password)
+        main_layout.addWidget(self.password_confirm_input)
+
+        main_layout.addItem(QSpacerItem(20, 20, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed))
 
         register_btn = StyledButton("Зареєструватись")
         register_btn.setMinimumHeight(55)
         register_btn.clicked.connect(self.register)
         main_layout.addWidget(register_btn)
 
-        main_layout.addItem(QSpacerItem(20, 20, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed))
+        main_layout.addItem(QSpacerItem(20, 15, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed))
 
         switch_layout = QHBoxLayout()
         switch_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -73,8 +83,10 @@ class RegisterScreen(QWidget):
     def register(self):
         email = self.email_input.text().strip()
         name = self.name_input.text().strip()
+        password = self.password_input.text()
+        password_confirm = self.password_confirm_input.text()
 
-        if not email or not name:
+        if not email or not name or not password:
             QMessageBox.warning(self, "Помилка", "Заповніть всі поля")
             return
 
@@ -82,8 +94,16 @@ class RegisterScreen(QWidget):
             QMessageBox.warning(self, "Помилка", "Введіть коректну електронну пошту")
             return
 
+        if len(password) < 6:
+            QMessageBox.warning(self, "Помилка", "Пароль повинен містити мінімум 6 символів")
+            return
+
+        if password != password_confirm:
+            QMessageBox.warning(self, "Помилка", "Паролі не співпадають")
+            return
+
         try:
-            success = self.auth_controller.register(email, name)
+            success = self.auth_controller.register(email, name, password)
             if success:
                 self.registration_success.emit(email)
                 logger.info(f"Успішна реєстрація користувача {email}")

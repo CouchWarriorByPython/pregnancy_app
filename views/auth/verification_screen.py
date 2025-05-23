@@ -30,11 +30,11 @@ class VerificationScreen(QWidget):
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         main_layout.addWidget(title)
 
-        subtitle = QLabel(f"Код підтвердження надіслано на\n{self.email or 'вашу пошту'}")
-        subtitle.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        subtitle.setStyleSheet(Styles.text_secondary())
-        subtitle.setFont(QFont('Arial', 14))
-        main_layout.addWidget(subtitle)
+        self.subtitle = QLabel(f"Код підтвердження надіслано на\n{self.email or 'вашу пошту'}")
+        self.subtitle.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.subtitle.setStyleSheet(Styles.text_secondary())
+        self.subtitle.setFont(QFont('Arial', 14))
+        main_layout.addWidget(self.subtitle)
 
         main_layout.addItem(QSpacerItem(20, 20, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed))
 
@@ -66,9 +66,7 @@ class VerificationScreen(QWidget):
 
     def set_email(self, email):
         self.email = email
-        subtitle = self.findChild(QLabel)
-        if subtitle:
-            subtitle.setText(f"Код підтвердження надіслано на\n{email}")
+        self.subtitle.setText(f"Код підтвердження надіслано на\n{email}")
 
     def verify(self):
         code = self.code_input.text().strip()
@@ -94,9 +92,12 @@ class VerificationScreen(QWidget):
 
     def resend_code(self):
         try:
-            self.auth_controller.resend_verification_code(self.email)
-            QMessageBox.information(self, "Успіх", "Код підтвердження надіслано повторно")
-            logger.info(f"Повторне надсилання коду для {self.email}")
+            success = self.auth_controller.resend_verification_code(self.email)
+            if success:
+                QMessageBox.information(self, "Успіх", "Код підтвердження надіслано повторно")
+                logger.info(f"Повторне надсилання коду для {self.email}")
+            else:
+                QMessageBox.warning(self, "Помилка", "Не вдалося надіслати код повторно")
         except Exception as e:
             QMessageBox.critical(self, "Помилка", f"Помилка відправки коду: {str(e)}")
             logger.error(f"Помилка відправки коду: {str(e)}")

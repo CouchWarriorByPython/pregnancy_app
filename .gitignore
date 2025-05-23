@@ -174,3 +174,4 @@ cython_debug/
 .pypirc
 .DS_Store
 pregnancy_diary.db
+session.json

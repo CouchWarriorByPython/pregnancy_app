@@ -1,10 +1,11 @@
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QFormLayout, QFrame
+from PyQt6.QtWidgets import QWidget, QVBoxLayout, QFormLayout, QFrame, QMessageBox
 from PyQt6.QtCore import QDate
 from controllers.data_controller import DataController
 from datetime import datetime
 from utils.logger import get_logger
 from utils.base_widgets import (StyledInput, StyledDateEdit, StyledSpinBox, StyledDoubleSpinBox,
                                 StyledButton, StyledScrollArea, TitleLabel)
+from utils.styles import Styles
 
 logger = get_logger('profile_editor')
 
@@ -13,15 +14,15 @@ class ProfileEditor(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         logger.info("Ініціалізація редактора профілю")
-        self.data_controller = DataController()
+        self.parent = parent
+        self.data_controller = None
         self._init_controls()
         self._setup_ui()
-        self.load_profile_data()
 
     def _init_controls(self):
         self.name_edit = StyledInput()
         self.email_edit = StyledInput()
-        self.email_edit.setEnabled(False)  # Email не можна редагувати
+        self.email_edit.setEnabled(False)
         self.birth_date_edit = StyledDateEdit()
         self.weight_spin = StyledDoubleSpinBox(30.0, 150.0, 1, " кг")
         self.height_spin = StyledSpinBox(100, 220, " см")
@@ -67,8 +68,25 @@ class ProfileEditor(QWidget):
             widget.setMinimumHeight(40)
             self.form_layout.addRow(label, widget)
 
+    def _get_current_user_id(self):
+        if hasattr(self.parent, 'current_user_id'):
+            if callable(self.parent.current_user_id):
+                return self.parent.current_user_id()
+            else:
+                return self.parent.current_user_id
+        # Якщо parent має parent (MainWindow)
+        if hasattr(self.parent, 'parent') and hasattr(self.parent.parent, 'current_user_id'):
+            return self.parent.parent.current_user_id
+        return None
+
     def load_profile_data(self):
         logger.info("Завантаження даних профілю")
+        user_id = self._get_current_user_id()
+        if not user_id:
+            logger.warning("Користувач не авторизований")
+            return
+
+        self.data_controller = DataController(user_id)
         profile = self.data_controller.user_profile
 
         if not profile:
@@ -97,8 +115,8 @@ class ProfileEditor(QWidget):
         self.cycle_spin.setValue(profile.cycle_length or 28)
 
     def save_profile(self):
-        if not self.data_controller.user_profile:
-            logger.warning("Неможливо зберегти профіль - користувач не авторизований")
+        if not self.data_controller or not self.data_controller.user_profile:
+            QMessageBox.warning(self, "Помилка", "Неможливо зберегти профіль - користувач не авторизований")
             return
 
         logger.info("Зберігання змін у профілі")
@@ -112,11 +130,13 @@ class ProfileEditor(QWidget):
         profile.previous_pregnancies = self.prev_pregnancies_spin.value()
         profile.cycle_length = self.cycle_spin.value()
 
-        self.data_controller.save_user_profile()
+        try:
+            self.data_controller.save_user_profile()
+            QMessageBox.information(self, "Успіх", "Профіль успішно збережено")
+        except Exception as e:
+            QMessageBox.critical(self, "Помилка", f"Помилка збереження: {str(e)}")
+            logger.error(f"Помилка збереження профілю: {str(e)}")
 
     def showEvent(self, event):
         super().showEvent(event)
-        # Оновлюємо DataController при показі екрану
-        if hasattr(self.parent(), 'current_user_id') and self.parent().current_user_id:
-            self.data_controller = DataController(self.parent().current_user_id)
         self.load_profile_data()

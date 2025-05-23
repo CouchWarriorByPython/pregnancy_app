@@ -10,6 +10,7 @@ class UserProfile(Base):
 
     id = Column(Integer, primary_key=True)
     email = Column(String(255), unique=True, nullable=False)
+    password_hash = Column(String(255), nullable=False)
     name = Column(String(100), default='Користувач')
     birth_date = Column(Date)
     height = Column(Integer, default=165)
