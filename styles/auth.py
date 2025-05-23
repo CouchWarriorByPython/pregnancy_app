@@ -23,7 +23,6 @@ class AuthStyles:
                 font-size: 28px;
                 font-weight: 700;
                 text-align: center;
-                text-shadow: 0 2px 8px rgba(139, 92, 246, 0.5);
             }}
         """
 
@@ -51,7 +50,6 @@ class AuthStyles:
                 font-size: 16px;
                 font-weight: 500;
                 min-height: 20px;
-                backdrop-filter: blur(15px);
             }}
             QLineEdit:focus {{
                 border: 2px solid {Colors.PRIMARY};
@@ -80,12 +78,9 @@ class AuthStyles:
             }}
             QPushButton:hover {{
                 background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #7C3AED, stop:1 #DB2777);
-                transform: translateY(-2px);
-                box-shadow: 0 8px 24px rgba(139, 92, 246, 0.4);
             }}
             QPushButton:pressed {{
                 background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #6D28D9, stop:1 #BE185D);
-                transform: translateY(0px);
             }}
         """
 
@@ -100,7 +95,6 @@ class AuthStyles:
                 padding: 12px 24px;
                 font-weight: 600;
                 font-size: 14px;
-                backdrop-filter: blur(10px);
             }}
             QPushButton:hover {{
                 background: rgba(139, 92, 246, 0.1);
@@ -123,12 +117,10 @@ class AuthStyles:
                 letter-spacing: 8px;
                 text-align: center;
                 min-height: 20px;
-                backdrop-filter: blur(15px);
             }}
             QLineEdit:focus {{
                 border: 3px solid {Colors.PRIMARY};
                 background: rgba(255, 255, 255, 0.15);
-                box-shadow: 0 0 20px rgba(139, 92, 246, 0.3);
             }}
         """
 
@@ -143,7 +135,6 @@ class AuthStyles:
                 padding: 14px 24px;
                 font-weight: 600;
                 font-size: 14px;
-                backdrop-filter: blur(10px);
             }}
             QPushButton:hover {{
                 background: {Colors.SURFACE_HOVER};
@@ -180,7 +171,6 @@ class LoginStyles(AuthStyles):
                 border: 1px solid {Colors.GLASS_BORDER};
                 border-radius: 24px;
                 padding: 32px;
-                backdrop-filter: blur(20px);
             }}
         """
 
@@ -207,7 +197,6 @@ class RegisterStyles(AuthStyles):
                 border: 1px solid {Colors.GLASS_BORDER};
                 border-radius: 24px;
                 padding: 32px;
-                backdrop-filter: blur(20px);
             }}
         """
 
@@ -235,7 +224,6 @@ class VerificationStyles(AuthStyles):
                 border: 1px solid {Colors.GLASS_BORDER};
                 border-radius: 24px;
                 padding: 32px;
-                backdrop-filter: blur(20px);
             }}
         """
 

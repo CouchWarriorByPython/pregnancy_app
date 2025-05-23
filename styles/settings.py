@@ -24,7 +24,6 @@ class SettingsStyles:
                 background: {Colors.PRIMARY_GRADIENT};
                 color: white;
                 font-weight: 700;
-                transform: scale(1.02);
                 border: 2px solid rgba(255, 255, 255, 0.2);
             }}
             QPushButton:hover:!checked {{
@@ -41,7 +40,6 @@ class SettingsStyles:
                 border-top: 1px solid rgba(239, 68, 68, 0.3);
                 border-radius: 16px;
                 margin: 8px;
-                backdrop-filter: blur(10px);
             }}
         """
 
@@ -54,7 +52,6 @@ class SettingsStyles:
                 border-radius: 20px;
                 padding: 24px;
                 margin: 12px;
-                backdrop-filter: blur(15px);
             }}
         """
 
@@ -67,7 +64,6 @@ class SettingsStyles:
                 border-radius: 20px;
                 padding: 20px;
                 margin: 12px;
-                backdrop-filter: blur(15px);
             }}
         """
 

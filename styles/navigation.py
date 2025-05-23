@@ -12,7 +12,6 @@ class NavigationStyles:
             QWidget {{
                 background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 rgba(255, 255, 255, 0.05), stop:1 rgba(255, 255, 255, 0.02));
                 border-top: 1px solid {Colors.GLASS_BORDER};
-                backdrop-filter: blur(20px);
             }}
         """
 
@@ -34,12 +33,10 @@ class NavigationStyles:
                 color: white;
                 background: {Colors.PRIMARY_GRADIENT};
                 font-weight: 700;
-                transform: scale(1.05);
             }}
             QPushButton:hover:!checked {{
                 color: {Colors.TEXT_PRIMARY};
                 background: rgba(255, 255, 255, 0.1);
-                transform: scale(1.02);
             }}
         """
 

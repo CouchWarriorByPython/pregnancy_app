@@ -16,12 +16,10 @@ class ToolsStyles:
                 min-height: 180px;
                 padding: 20px;
                 margin: 8px;
-                backdrop-filter: blur(15px);
             }}
             QFrame:hover {{
                 background: {Colors.SURFACE_HOVER};
                 border: 2px solid {Colors.PRIMARY};
-                transform: translateY(-6px);
             }}
         """
 
@@ -31,7 +29,6 @@ class ToolsStyles:
             color: {accent_color}; 
             font-weight: 700;
             font-size: 16px;
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
         """
 
     @staticmethod
@@ -49,7 +46,6 @@ class ToolsStyles:
         return f"""
             font-size: 28px; 
             color: {accent_color};
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
         """
 
     @staticmethod
@@ -68,11 +64,9 @@ class ToolsStyles:
             }}
             QPushButton:hover {{
                 background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 {hover}, stop:1 {BaseStyles.darken_color(hover.replace('#', ''))});
-                transform: translateY(-2px);
             }}
             QPushButton:pressed {{
                 background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 {BaseStyles.darken_color(hover.replace('#', ''))}, stop:1 {BaseStyles.darken_color(BaseStyles.darken_color(hover.replace('#', '')))});
-                transform: translateY(0px);
             }}
         """
 
@@ -84,7 +78,6 @@ class ToolsStyles:
                 border: 1px solid {Colors.GLASS_BORDER};
                 border-radius: 20px;
                 padding: 20px;
-                backdrop-filter: blur(15px);
             }}
             QLabel {{
                 color: {Colors.TEXT_PRIMARY};
@@ -106,7 +99,6 @@ class HealthReportStyles:
                 border: 1px solid rgba(239, 68, 68, 0.3);
                 border-radius: 20px;
                 padding: 20px;
-                backdrop-filter: blur(15px);
             }}
             QLabel {{
                 color: {Colors.TEXT_PRIMARY};
@@ -128,7 +120,6 @@ class WeightMonitorStyles:
                 border: 1px solid rgba(100, 116, 139, 0.3);
                 border-radius: 20px;
                 padding: 20px;
-                backdrop-filter: blur(15px);
             }}
             QLabel {{
                 color: {Colors.TEXT_PRIMARY};
@@ -150,7 +141,6 @@ class KickCounterStyles:
                 border: 1px solid rgba(16, 185, 129, 0.3);
                 border-radius: 20px;
                 padding: 20px;
-                backdrop-filter: blur(15px);
             }}
             QLabel {{
                 color: {Colors.TEXT_PRIMARY};
@@ -182,7 +172,6 @@ class ContractionCounterStyles:
             font-family: 'Segoe UI', Arial; 
             font-size: 48px; 
             font-weight: 700;
-            text-shadow: 0 2px 8px rgba(59, 130, 246, 0.5);
         """
 
     @staticmethod
@@ -210,7 +199,6 @@ class ContractionCounterStyles:
                 border: 1px solid {Colors.GLASS_BORDER};
                 background: {Colors.GLASS_SURFACE};
                 border-radius: 16px;
-                backdrop-filter: blur(15px);
             }}
             QTabBar::tab {{
                 background: rgba(255, 255, 255, 0.05);
@@ -249,7 +237,6 @@ class BloodPressureStyles:
                 border: 1px solid rgba(236, 72, 153, 0.3);
                 border-radius: 20px;
                 padding: 20px;
-                backdrop-filter: blur(15px);
             }}
             QLabel {{
                 color: {Colors.TEXT_PRIMARY};
@@ -271,7 +258,6 @@ class BellyTrackerStyles:
                 border: 1px solid rgba(249, 115, 22, 0.3);
                 border-radius: 20px;
                 padding: 20px;
-                backdrop-filter: blur(15px);
             }}
             QLabel {{
                 color: {Colors.TEXT_PRIMARY};
@@ -293,7 +279,6 @@ class WishlistStyles:
                 border: 1px solid rgba(139, 92, 246, 0.3);
                 border-radius: 20px;
                 padding: 20px;
-                backdrop-filter: blur(15px);
             }}
             QLabel {{
                 color: {Colors.TEXT_PRIMARY};
@@ -323,7 +308,6 @@ class KegelExercisesStyles:
                 border: 1px solid rgba(168, 85, 247, 0.3);
                 border-radius: 20px;
                 padding: 20px;
-                backdrop-filter: blur(15px);
             }}
             QLabel {{
                 color: {Colors.TEXT_PRIMARY};
@@ -340,7 +324,6 @@ class KegelExercisesStyles:
                 padding: 20px;
                 border-radius: 16px;
                 border: 1px solid {Colors.GLASS_BORDER};
-                backdrop-filter: blur(15px);
                 font-size: 14px;
                 font-weight: 500;
                 line-height: 1.6;
@@ -365,11 +348,9 @@ class SliderStyles:
                 height: 24px;
                 margin: -8px 0;
                 border-radius: 12px;
-                box-shadow: 0 2px 8px rgba(139, 92, 246, 0.3);
             }}
             QSlider::handle:horizontal:hover {{
                 background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #7C3AED, stop:1 #DB2777);
-                transform: scale(1.1);
             }}
             QSlider::sub-page:horizontal {{
                 background: {Colors.PRIMARY_GRADIENT};

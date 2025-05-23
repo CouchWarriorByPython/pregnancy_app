@@ -1,4 +1,4 @@
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QSizePolicy
+from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QSizePolicy, QHBoxLayout
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont, QPixmap
 from utils.image_utils import generate_fruit_image
@@ -24,45 +24,64 @@ class FruitComparisonView(QWidget):
         self.setStyleSheet(WeeksStyles.fruit_comparison_card())
 
         self._create_title(layout)
-        self._create_image(layout)
+        self._create_image_and_size_section(layout)
         self._create_description(layout)
-        self._create_size_info(layout)
 
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
 
     def _create_title(self, layout):
         title = QLabel(f"Ваша дитина зараз як {self.fruit_data['fruit']}")
         title.setObjectName("fruit_title")
-        title.setFont(QFont('Arial', 16, QFont.Weight.Bold))
+        title.setFont(QFont('Arial', 18, QFont.Weight.Bold))
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        title.setStyleSheet(f"color: {Colors.TEXT_ACCENT};")
+        title.setStyleSheet(f"color: {Colors.TEXT_ACCENT}; font-weight: 700;")
         layout.addWidget(title)
 
-    def _create_image(self, layout):
+    def _create_image_and_size_section(self, layout):
+        # Контейнер для картинки та інформації про розмір
+        image_size_container = QWidget()
+        container_layout = QHBoxLayout(image_size_container)
+        container_layout.setContentsMargins(0, 0, 0, 0)
+        container_layout.setSpacing(20)
+
+        # Картинка
         self.image_label = QLabel()
         self.image_label.setObjectName("fruit_image")
         self.image_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.image_label.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
+        self.image_label.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
         self.image_label.setPixmap(self._load_image_for_week(self.week))
-        layout.addWidget(self.image_label)
+        container_layout.addWidget(self.image_label)
+
+        # Інформація про розмір
+        size_info_widget = QWidget()
+        size_layout = QVBoxLayout(size_info_widget)
+        size_layout.setContentsMargins(0, 0, 0, 0)
+        size_layout.setSpacing(8)
+
+        weight_label = QLabel(f"Вага: {self.fruit_data.get('weight', 'невідомо')}")
+        weight_label.setFont(QFont('Arial', 14, QFont.Weight.Bold))
+        weight_label.setStyleSheet(f"color: {Colors.TEXT_PRIMARY}; font-weight: 600;")
+        size_layout.addWidget(weight_label)
+
+        length_label = QLabel(f"Довжина: {self.fruit_data.get('length', 'невідомо')}")
+        length_label.setFont(QFont('Arial', 14, QFont.Weight.Bold))
+        length_label.setStyleSheet(f"color: {Colors.TEXT_PRIMARY}; font-weight: 600;")
+        size_layout.addWidget(length_label)
+
+        size_layout.addStretch()
+        container_layout.addWidget(size_info_widget)
+        container_layout.addStretch()
+
+        layout.addWidget(image_size_container)
 
     def _create_description(self, layout):
         description = QLabel(self.fruit_data.get('description', 'Тіло дитини наповнюється і формуються пропорції'))
         description.setObjectName("fruit_description")
-        description.setFont(QFont('Arial', 12))
+        description.setFont(QFont('Arial', 14))
         description.setAlignment(Qt.AlignmentFlag.AlignCenter)
         description.setWordWrap(True)
-        description.setStyleSheet(f"color: {Colors.TEXT_PRIMARY};")
+        description.setStyleSheet(f"color: {Colors.TEXT_SECONDARY}; font-weight: 500; line-height: 1.4;")
         layout.addWidget(description)
-
-    def _create_size_info(self, layout):
-        size_info = QLabel(f"Вага: {self.fruit_data.get('weight', 'невідомо')}; "
-                           f"Довжина: {self.fruit_data.get('length', 'невідомо')}")
-        size_info.setObjectName("fruit_size_info")
-        size_info.setFont(QFont('Arial', 12))
-        size_info.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        size_info.setStyleSheet(f"color: {Colors.TEXT_SECONDARY};")
-        layout.addWidget(size_info)
 
     def _load_image_for_week(self, week):
         possible_paths = self._get_possible_image_paths(week)
@@ -74,13 +93,13 @@ class FruitComparisonView(QWidget):
                     pixmap = QPixmap(image_path)
                     if not pixmap.isNull():
                         logger.info(f"Зображення успішно завантажено: {image_path}")
-                        return pixmap.scaled(200, 200, Qt.AspectRatioMode.KeepAspectRatio,
+                        return pixmap.scaled(180, 180, Qt.AspectRatioMode.KeepAspectRatio,
                                              Qt.TransformationMode.SmoothTransformation)
                 except Exception as e:
                     logger.error(f"Помилка завантаження зображення {image_path}: {e}")
 
         logger.warning(f"Не вдалося знайти зображення для тижня {week}, використовуємо запасний варіант")
-        return generate_fruit_image(week, size=200)
+        return generate_fruit_image(week, size=180)
 
     def _get_possible_image_paths(self, week):
         base_path = "resources/images/fruits"
@@ -106,18 +125,20 @@ class FruitComparisonView(QWidget):
         self.week = week
         self.fruit_data = fruit_data
 
-        updates = [
-            ("fruit_title", f"Ваша дитина зараз як {fruit_data['fruit']}"),
-            ("fruit_description", fruit_data.get('description', 'Інформація відсутня')),
-            ("fruit_size_info",
-             f"Вага: {fruit_data.get('weight', 'невідомо')}; Довжина: {fruit_data.get('length', 'невідомо')}")
-        ]
+        # Оновлюємо заголовок
+        title_widget = self.findChild(QLabel, "fruit_title")
+        if title_widget:
+            title_widget.setText(f"Ваша дитина зараз як {fruit_data['fruit']}")
 
-        for object_name, text in updates:
-            widget = self.findChild(QLabel, object_name)
-            if widget:
-                widget.setText(text)
+        # Оновлюємо опис
+        description_widget = self.findChild(QLabel, "fruit_description")
+        if description_widget:
+            description_widget.setText(fruit_data.get('description', 'Інформація відсутня'))
 
-        image = self.findChild(QLabel, "fruit_image")
-        if image:
-            image.setPixmap(self._load_image_for_week(week))
+        # Оновлюємо картинку
+        image_widget = self.findChild(QLabel, "fruit_image")
+        if image_widget:
+            image_widget.setPixmap(self._load_image_for_week(week))
+
+        # Оновлюємо інформацію про розмір (треба перебудувати весь віджет)
+        self._setup_ui()

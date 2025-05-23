@@ -24,7 +24,6 @@ class ChecklistStyles:
                 background: {Colors.PRIMARY_GRADIENT};
                 color: white;
                 font-weight: 700;
-                transform: scale(1.02);
                 border: 2px solid rgba(255, 255, 255, 0.2);
             }}
             QPushButton:hover:!checked {{
@@ -74,7 +73,6 @@ class ChecklistStyles:
             font-size: 18px; 
             font-weight: 700;
             color: {Colors.TEXT_ACCENT};
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
             margin: 16px 0 12px 0;
         """
 
@@ -87,7 +85,6 @@ class ChecklistStyles:
                 border-radius: 20px;
                 padding: 20px;
                 margin: 12px;
-                backdrop-filter: blur(15px);
             }}
         """
 
@@ -112,16 +109,9 @@ class ChecklistStyles:
                 border-radius: 8px;
                 border: 2px solid {Colors.GLASS_BORDER};
                 background: {Colors.GLASS_SURFACE};
-                backdrop-filter: blur(10px);
             }}
             QCheckBox::indicator:checked {{
                 background: {Colors.PRIMARY_GRADIENT};
                 border: 2px solid {Colors.PRIMARY};
-            }}
-            QCheckBox::indicator:checked::after {{
-                content: "✓";
-                color: white;
-                font-weight: bold;
-                font-size: 16px;
             }}
         """

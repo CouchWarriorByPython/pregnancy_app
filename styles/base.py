@@ -73,11 +73,9 @@ class BaseStyles:
             }}
             QPushButton:hover {{
                 background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #7C3AED, stop:1 #DB2777);
-                transform: translateY(-2px);
             }}
             QPushButton:pressed {{
                 background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #6D28D9, stop:1 #BE185D);
-                transform: translateY(0px);
             }}
             QPushButton:disabled {{
                 background: rgba(255, 255, 255, 0.1);
@@ -97,7 +95,6 @@ class BaseStyles:
                 font-weight: 500;
                 font-size: 14px;
                 min-height: 20px;
-                backdrop-filter: blur(10px);
             }}
             QPushButton:hover {{
                 background: {Colors.SURFACE_HOVER};
@@ -155,7 +152,6 @@ class BaseStyles:
                 color: {Colors.TEXT_PRIMARY};
                 font-size: 14px;
                 min-height: 20px;
-                backdrop-filter: blur(10px);
             }}
             QLineEdit:focus, QTextEdit:focus {{
                 border: 2px solid {Colors.PRIMARY};
@@ -177,7 +173,6 @@ class BaseStyles:
                 color: {Colors.TEXT_PRIMARY};
                 font-size: 14px;
                 min-height: 20px;
-                backdrop-filter: blur(10px);
             }}
             QDateEdit:focus, QTimeEdit:focus, QSpinBox:focus, QDoubleSpinBox:focus, QComboBox:focus {{
                 border: 2px solid {Colors.PRIMARY};
@@ -201,7 +196,6 @@ class BaseStyles:
                 color: {Colors.TEXT_PRIMARY};
                 selection-background-color: {Colors.PRIMARY};
                 padding: 8px;
-                backdrop-filter: blur(15px);
             }}
             QSpinBox::up-button, QSpinBox::down-button,
             QDoubleSpinBox::up-button, QDoubleSpinBox::down-button {{
@@ -236,16 +230,10 @@ class BaseStyles:
                 border-radius: 8px;
                 border: 2px solid {Colors.GLASS_BORDER};
                 background: {Colors.GLASS_SURFACE};
-                backdrop-filter: blur(10px);
             }}
             QCheckBox::indicator:checked {{
                 background: {Colors.PRIMARY_GRADIENT};
                 border: 2px solid {Colors.PRIMARY};
-            }}
-            QCheckBox::indicator:checked::after {{
-                content: "✓";
-                color: white;
-                font-weight: bold;
             }}
         """
 
@@ -264,7 +252,6 @@ class BaseStyles:
                 border-radius: 12px;
                 border: 2px solid {Colors.GLASS_BORDER};
                 background: {Colors.GLASS_SURFACE};
-                backdrop-filter: blur(10px);
             }}
             QRadioButton::indicator:checked {{
                 background: {Colors.PRIMARY_GRADIENT};
@@ -280,7 +267,6 @@ class BaseStyles:
                 border: 1px solid {Colors.GLASS_BORDER};
                 border-radius: 24px;
                 padding: 24px;
-                backdrop-filter: blur(15px);
             }}
         """
 
@@ -292,7 +278,6 @@ class BaseStyles:
                 border: 1px solid {Colors.GLASS_BORDER};
                 border-radius: 20px;
                 padding: 20px;
-                backdrop-filter: blur(20px);
             }}
         """
 
@@ -305,7 +290,6 @@ class BaseStyles:
                 border-radius: 16px;
                 color: {Colors.TEXT_PRIMARY};
                 padding: 8px;
-                backdrop-filter: blur(10px);
             }}
             QListWidget::item {{
                 padding: 16px;
@@ -404,7 +388,6 @@ class BaseStyles:
                 border: 1px solid {Colors.GLASS_BORDER};
                 background: {Colors.GLASS_SURFACE};
                 border-radius: 16px;
-                backdrop-filter: blur(15px);
             }}
             QTabBar::tab {{
                 background: rgba(255, 255, 255, 0.05);

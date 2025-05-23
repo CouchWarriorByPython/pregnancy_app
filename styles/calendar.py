@@ -13,7 +13,6 @@ class CalendarStyles:
                 background: {Colors.GLASS_SURFACE};
                 border: 1px solid {Colors.GLASS_BORDER};
                 border-radius: 20px;
-                backdrop-filter: blur(15px);
                 color: {Colors.TEXT_PRIMARY};
                 font-weight: 500;
                 padding: 16px;
@@ -85,7 +84,6 @@ class CalendarStyles:
                 border-radius: 20px;
                 padding: 20px;
                 margin: 12px;
-                backdrop-filter: blur(15px);
             }}
             QLabel {{
                 color: {Colors.TEXT_PRIMARY};
