@@ -15,6 +15,7 @@ class InfoCard(QFrame):
     def __init__(self, title, content, parent=None):
         super().__init__(parent)
         self.is_hover = False
+        self.setFixedWidth(760)
         self._setup_ui(title, content)
         self.setMouseTracking(True)
 
@@ -147,7 +148,7 @@ class WeeksScreen(QWidget):
         self.content_layout.setSpacing(16)
 
         content_container = QWidget()
-        content_container.setMaximumWidth(800)
+        content_container.setFixedWidth(760)
         self.inner_layout = QVBoxLayout(content_container)
         self.inner_layout.setContentsMargins(0, 0, 0, 0)
         self.inner_layout.setSpacing(16)
@@ -176,6 +177,7 @@ class WeeksScreen(QWidget):
     def _create_week_title_card(self):
         title_card = QFrame()
         title_card.setStyleSheet(WeeksStyles.week_title_card())
+        title_card.setFixedWidth(760)
         title_layout = QVBoxLayout(title_card)
         title_layout.setContentsMargins(30, 30, 30, 30)
 

@@ -47,7 +47,7 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("Щоденник вагітності")
         self.setStyleSheet(f"QMainWindow {{ background-color: {Colors.BACKGROUND}; }}")
         screen_size = QApplication.primaryScreen().availableSize()
-        self.resize(min(390, screen_size.width() - 40), min(844, screen_size.height() - 60))
+        self.resize(min(820, screen_size.width() - 40), min(900, screen_size.height() - 60))
 
     def _create_screens(self):
         self.stack_widget = QStackedWidget()

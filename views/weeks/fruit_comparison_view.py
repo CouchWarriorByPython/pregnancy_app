@@ -15,82 +15,82 @@ class FruitComparisonView(QFrame):
         super().__init__(parent)
         self.week = week
         self.fruit_data = fruit_data
+        self.setFixedWidth(760)
         self._setup_ui()
 
     def _setup_ui(self):
         self.setStyleSheet(WeeksStyles.fruit_comparison_card())
 
-        main_layout = QVBoxLayout(self)
-        main_layout.setContentsMargins(30, 30, 30, 30)
-        main_layout.setSpacing(20)
-        main_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.main_layout = QVBoxLayout(self)
+        self.main_layout.setContentsMargins(30, 30, 30, 30)
+        self.main_layout.setSpacing(20)
+        self.main_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        self._create_title(main_layout)
+        self.title_label = QLabel()
+        self.title_label.setObjectName("fruit_title")
+        self.title_label.setFont(QFont('Arial', 20, QFont.Weight.Bold))
+        self.title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.title_label.setStyleSheet(f"color: {Colors.TEXT_ACCENT}; font-weight: 700;")
+        self.main_layout.addWidget(self.title_label)
 
-        content_layout = QHBoxLayout()
-        content_layout.setSpacing(40)
-        content_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.content_layout = QHBoxLayout()
+        self.content_layout.setSpacing(40)
+        self.content_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        self._create_image(content_layout)
-        self._create_size_section(content_layout)
-
-        main_layout.addLayout(content_layout)
-        self._create_description(main_layout)
-
-        self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
-
-    def _create_title(self, layout):
-        title = QLabel(f"Ваша дитина зараз як {self.fruit_data['fruit']}")
-        title.setObjectName("fruit_title")
-        title.setFont(QFont('Arial', 20, QFont.Weight.Bold))
-        title.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        title.setStyleSheet(f"color: {Colors.TEXT_ACCENT}; font-weight: 700;")
-        layout.addWidget(title)
-
-    def _create_image(self, layout):
         self.image_label = QLabel()
         self.image_label.setObjectName("fruit_image")
         self.image_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.image_label.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
+        self.image_label.setFixedSize(200, 200)
+        self.content_layout.addWidget(self.image_label)
+
+        self.size_container = QFrame()
+        self.size_container.setStyleSheet(WeeksStyles.size_info_container())
+        self.size_container.setFixedWidth(250)
+        self.size_layout = QVBoxLayout(self.size_container)
+        self.size_layout.setContentsMargins(20, 20, 20, 20)
+        self.size_layout.setSpacing(12)
+
+        self.weight_label = QLabel()
+        self.weight_label.setFont(QFont('Arial', 16, QFont.Weight.Bold))
+        self.weight_label.setStyleSheet(f"color: {Colors.TEXT_PRIMARY}; font-weight: 700;")
+        self.weight_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.size_layout.addWidget(self.weight_label)
+
+        self.length_label = QLabel()
+        self.length_label.setFont(QFont('Arial', 16, QFont.Weight.Bold))
+        self.length_label.setStyleSheet(f"color: {Colors.TEXT_PRIMARY}; font-weight: 700;")
+        self.length_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.size_layout.addWidget(self.length_label)
+
+        self.content_layout.addWidget(self.size_container)
+
+        self.main_layout.addLayout(self.content_layout)
+
+        self.description_container = QFrame()
+        self.description_container.setStyleSheet(WeeksStyles.description_container())
+        self.desc_layout = QVBoxLayout(self.description_container)
+        self.desc_layout.setContentsMargins(20, 20, 20, 20)
+
+        self.description_label = QLabel()
+        self.description_label.setObjectName("fruit_description")
+        self.description_label.setFont(QFont('Arial', 14))
+        self.description_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.description_label.setWordWrap(True)
+        self.description_label.setStyleSheet(f"color: {Colors.TEXT_PRIMARY}; font-weight: 500; line-height: 1.4;")
+        self.desc_layout.addWidget(self.description_label)
+
+        self.main_layout.addWidget(self.description_container)
+
+        self.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Preferred)
+
+        self._update_content()
+
+    def _update_content(self):
+        self.title_label.setText(f"Ваша дитина зараз як {self.fruit_data['fruit']}")
+        self.weight_label.setText(f"Вага: {self.fruit_data.get('weight', 'невідомо')}")
+        self.length_label.setText(f"Довжина: {self.fruit_data.get('length', 'невідомо')}")
+        self.description_label.setText(self.fruit_data.get('description', 'Дитина продовжує набирати вагу'))
         self.image_label.setPixmap(self._load_image_for_week(self.week))
-        layout.addWidget(self.image_label)
-
-    def _create_size_section(self, layout):
-        size_container = QFrame()
-        size_container.setStyleSheet(WeeksStyles.size_info_container())
-        size_layout = QVBoxLayout(size_container)
-        size_layout.setContentsMargins(20, 20, 20, 20)
-        size_layout.setSpacing(12)
-
-        weight_label = QLabel(f"Вага: {self.fruit_data.get('weight', 'невідомо')}")
-        weight_label.setFont(QFont('Arial', 16, QFont.Weight.Bold))
-        weight_label.setStyleSheet(f"color: {Colors.TEXT_PRIMARY}; font-weight: 700;")
-        weight_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        size_layout.addWidget(weight_label)
-
-        length_label = QLabel(f"Довжина: {self.fruit_data.get('length', 'невідомо')}")
-        length_label.setFont(QFont('Arial', 16, QFont.Weight.Bold))
-        length_label.setStyleSheet(f"color: {Colors.TEXT_PRIMARY}; font-weight: 700;")
-        length_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        size_layout.addWidget(length_label)
-
-        layout.addWidget(size_container)
-
-    def _create_description(self, layout):
-        description_container = QFrame()
-        description_container.setStyleSheet(WeeksStyles.description_container())
-        desc_layout = QVBoxLayout(description_container)
-        desc_layout.setContentsMargins(20, 20, 20, 20)
-
-        description = QLabel(self.fruit_data.get('description', 'Дитина продовжує набирати вагу'))
-        description.setObjectName("fruit_description")
-        description.setFont(QFont('Arial', 14))
-        description.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        description.setWordWrap(True)
-        description.setStyleSheet(f"color: {Colors.TEXT_PRIMARY}; font-weight: 500; line-height: 1.4;")
-        desc_layout.addWidget(description)
-
-        layout.addWidget(description_container)
 
     def _load_image_for_week(self, week):
         possible_paths = self._get_possible_image_paths(week)
@@ -133,14 +133,4 @@ class FruitComparisonView(QFrame):
         logger.info(f"Оновлення даних порівняння для тижня {week}")
         self.week = week
         self.fruit_data = fruit_data
-
-        self._clear_layout(self.layout())
-        self._setup_ui()
-
-    def _clear_layout(self, layout):
-        while layout.count():
-            item = layout.takeAt(0)
-            if item.widget():
-                item.widget().deleteLater()
-            elif item.layout():
-                self._clear_layout(item.layout())
+        self._update_content()
