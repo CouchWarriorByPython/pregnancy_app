@@ -4,7 +4,8 @@ from controllers.data_controller import DataController
 from utils.logger import get_logger
 from utils.base_widgets import (StyledCard, StyledDateEdit, StyledDoubleSpinBox,
                                StyledInput, StyledButton, StyledListWidget, TitleLabel)
-from utils.styles import Styles
+from styles.tools import BellyTrackerStyles
+from styles.base import BaseStyles
 
 logger = get_logger('belly_tracker')
 
@@ -23,7 +24,7 @@ class BellyTrackerScreen(QWidget):
         main_layout.setSpacing(15)
 
         title = TitleLabel("Відстеження розміру живота", 22)
-        title.setStyleSheet(Styles.title_colored("#FF9800"))
+        title.setStyleSheet("color: #FF9800; font-size: 22px; font-weight: bold;")
         main_layout.addWidget(title)
 
         splitter = QSplitter(Qt.Orientation.Horizontal)
@@ -34,7 +35,7 @@ class BellyTrackerScreen(QWidget):
         left_layout.setContentsMargins(10, 10, 10, 10)
 
         form_frame = StyledCard("Додати новий запис")
-        form_frame.setStyleSheet(Styles.card_colored("#FF9800"))
+        form_frame.setStyleSheet(BellyTrackerStyles.tracker_card())
 
         info_text = """
         <p>Відстеження розміру живота допомагає контролювати ріст дитини протягом вагітності.</p>
@@ -43,7 +44,7 @@ class BellyTrackerScreen(QWidget):
         """
         info_label = QLabel(info_text)
         info_label.setWordWrap(True)
-        info_label.setStyleSheet(Styles.text_secondary())
+        info_label.setStyleSheet(BaseStyles.text_secondary())
         form_frame.layout.addWidget(info_label)
 
         input_form = QFormLayout()
@@ -62,7 +63,7 @@ class BellyTrackerScreen(QWidget):
         form_frame.layout.addLayout(input_form)
 
         save_btn = StyledButton("Зберегти запис")
-        save_btn.setStyleSheet(Styles.button_colored("#FF9800", "#F57C00"))
+        save_btn.setStyleSheet(BellyTrackerStyles.tracker_button())
         save_btn.clicked.connect(self.save_measurement)
         form_frame.layout.addWidget(save_btn)
 
@@ -74,7 +75,7 @@ class BellyTrackerScreen(QWidget):
         right_layout.setContentsMargins(10, 10, 10, 10)
 
         list_frame = StyledCard("Історія вимірювань")
-        list_frame.setStyleSheet(Styles.card_colored("#FF9800"))
+        list_frame.setStyleSheet(BellyTrackerStyles.tracker_card())
 
         self.measurement_list = StyledListWidget()
         list_frame.layout.addWidget(self.measurement_list)

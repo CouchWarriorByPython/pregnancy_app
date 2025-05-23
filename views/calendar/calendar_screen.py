@@ -1,7 +1,8 @@
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QHBoxLayout, QCalendarWidget, QDialog
 from PyQt6.QtGui import QFont
 from utils.base_widgets import HeaderWidget, StyledButton, StyledInput, StyledComboBox, StyledTimeEdit, StyledCard
-from utils.styles import Styles
+from styles.calendar import CalendarStyles
+from styles.base import BaseStyles
 
 
 class EventDialog(QDialog):
@@ -13,14 +14,14 @@ class EventDialog(QDialog):
     def _setup_ui(self):
         self.setWindowTitle("Додати подію")
         self.setFixedSize(350, 280)
-        self.setStyleSheet(Styles.dialog_base())
+        self.setStyleSheet(CalendarStyles.event_dialog())
 
         layout = QVBoxLayout(self)
         layout.setSpacing(15)
 
         title_label = QLabel(f"Нова подія на {self.date.toString('dd.MM.yyyy')}")
         title_label.setFont(QFont('Arial', 14, QFont.Weight.Bold))
-        title_label.setStyleSheet(Styles.text_primary())
+        title_label.setStyleSheet(BaseStyles.text_primary())
         layout.addWidget(title_label)
 
         self._add_form_fields(layout)
@@ -35,7 +36,7 @@ class EventDialog(QDialog):
 
         for label_text, widget in fields:
             label = QLabel(label_text)
-            label.setStyleSheet(Styles.text_primary())
+            label.setStyleSheet(BaseStyles.text_primary())
             layout.addWidget(label)
             layout.addWidget(widget)
             setattr(self, f"{widget.__class__.__name__.lower().replace('styled', '')}_edit", widget)
@@ -74,7 +75,7 @@ class CalendarScreen(QWidget):
         content_layout.setContentsMargins(10, 10, 10, 10)
 
         self.calendar = QCalendarWidget()
-        self.calendar.setStyleSheet(Styles.calendar())
+        self.calendar.setStyleSheet(CalendarStyles.calendar_widget())
         self.calendar.setGridVisible(True)
         self.calendar.clicked.connect(self.date_clicked)
         content_layout.addWidget(self.calendar)
@@ -84,9 +85,10 @@ class CalendarScreen(QWidget):
         content_layout.addWidget(add_event_btn)
 
         events_frame = StyledCard("Події на вибраний день:")
+        events_frame.setStyleSheet(CalendarStyles.events_card())
         self.events_list = QLabel("Виберіть день, щоб побачити заплановані події")
         self.events_list.setWordWrap(True)
-        self.events_list.setStyleSheet(Styles.text_primary())
+        self.events_list.setStyleSheet(BaseStyles.text_primary())
         events_frame.layout.addWidget(self.events_list)
         content_layout.addWidget(events_frame)
 

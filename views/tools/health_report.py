@@ -7,7 +7,8 @@ from PyQt6.QtCore import QDate
 from controllers.data_controller import DataController
 from utils.logger import get_logger
 from utils.base_widgets import StyledCard, StyledInput, StyledDateEdit, StyledButton, StyledListWidget, TitleLabel
-from utils.styles import Styles
+from styles.tools import HealthReportStyles
+from styles.base import BaseStyles
 
 logger = get_logger('health_report')
 
@@ -25,7 +26,7 @@ class HealthReportScreen(QWidget):
         main_layout.setSpacing(15)
 
         title = TitleLabel("Звіт про здоров'я", 22)
-        title.setStyleSheet(Styles.title_colored("#FF5252"))
+        title.setStyleSheet("color: #FF5252; font-size: 22px; font-weight: bold;")
         main_layout.addWidget(title)
 
         splitter = QSplitter()
@@ -36,10 +37,11 @@ class HealthReportScreen(QWidget):
         left_layout.setContentsMargins(10, 10, 10, 10)
 
         form_frame = StyledCard("Додати нову нотатку")
+        form_frame.setStyleSheet(HealthReportStyles.report_card())
 
         date_layout = QHBoxLayout()
         date_label = QLabel("Дата:")
-        date_label.setStyleSheet(Styles.text_primary())
+        date_label.setStyleSheet(BaseStyles.text_primary())
         self.date_edit = StyledDateEdit()
         self.date_edit.setDate(QDate.currentDate())
         date_layout.addWidget(date_label)
@@ -47,19 +49,20 @@ class HealthReportScreen(QWidget):
         form_frame.layout.addLayout(date_layout)
 
         title_label = QLabel("Заголовок:")
-        title_label.setStyleSheet(Styles.text_primary())
+        title_label.setStyleSheet(BaseStyles.text_primary())
         self.title_edit = StyledInput()
         form_frame.layout.addWidget(title_label)
         form_frame.layout.addWidget(self.title_edit)
 
         content_label = QLabel("Текст нотатки:")
-        content_label.setStyleSheet(Styles.text_primary())
+        content_label.setStyleSheet(BaseStyles.text_primary())
         self.content_edit = QTextEdit()
-        self.content_edit.setStyleSheet(Styles.input_field())
+        self.content_edit.setStyleSheet(BaseStyles.input_field())
         form_frame.layout.addWidget(content_label)
         form_frame.layout.addWidget(self.content_edit)
 
         save_btn = StyledButton("Зберегти нотатку")
+        save_btn.setStyleSheet(HealthReportStyles.export_button())
         save_btn.clicked.connect(self.save_note)
         form_frame.layout.addWidget(save_btn)
 
@@ -71,6 +74,7 @@ class HealthReportScreen(QWidget):
         right_layout.setContentsMargins(10, 10, 10, 10)
 
         list_frame = StyledCard("Ваші нотатки")
+        list_frame.setStyleSheet(HealthReportStyles.report_card())
 
         self.notes_list = StyledListWidget()
         list_frame.layout.addWidget(self.notes_list)
@@ -81,6 +85,7 @@ class HealthReportScreen(QWidget):
         refresh_btn.clicked.connect(self.load_notes)
 
         export_btn = StyledButton("Експортувати в PDF")
+        export_btn.setStyleSheet(HealthReportStyles.export_button())
         export_btn.clicked.connect(self.export_to_pdf)
 
         buttons_layout.addWidget(refresh_btn)

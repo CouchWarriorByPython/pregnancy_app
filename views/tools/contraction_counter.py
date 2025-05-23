@@ -6,7 +6,8 @@ from PyQt6.QtCore import Qt, QDate, QTime, QTimer
 from PyQt6.QtGui import QFont
 from controllers.data_controller import DataController
 from utils.logger import get_logger
-from utils.styles import Styles
+from styles.tools import ContractionCounterStyles, SliderStyles
+from styles.base import BaseStyles
 
 logger = get_logger('contraction_counter')
 
@@ -34,12 +35,12 @@ class ContractionCounterScreen(QWidget):
 
         title = QLabel("Лічильник переймів")
         title.setFont(QFont('Arial', 22, QFont.Weight.Bold))
-        title.setStyleSheet(Styles.title_colored("#2196F3"))
+        title.setStyleSheet("color: #2196F3; font-size: 22px; font-weight: bold;")
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         main_layout.addWidget(title)
 
         tab_widget = QTabWidget()
-        tab_widget.setStyleSheet(Styles.tab_widget_contraction())
+        tab_widget.setStyleSheet(ContractionCounterStyles.tab_widget())
 
         timer_tab = QWidget()
         self.setup_timer_tab(timer_tab)
@@ -68,15 +69,22 @@ class ContractionCounterScreen(QWidget):
         """
         info_label = QLabel(info_text)
         info_label.setWordWrap(True)
-        info_label.setStyleSheet(Styles.info_text_box())
+        info_label.setStyleSheet(f"""
+            QLabel {{
+                color: white;
+                background-color: #333333;
+                padding: 10px;
+                border-radius: 5px;
+            }}
+        """)
         layout.addWidget(info_label)
 
         timer_frame = QFrame()
-        timer_frame.setStyleSheet(Styles.form_container())
+        timer_frame.setStyleSheet(BaseStyles.card_frame())
         timer_layout = QVBoxLayout(timer_frame)
 
         self.timer_label = QLabel("00:00")
-        self.timer_label.setStyleSheet(Styles.timer_display())
+        self.timer_label.setStyleSheet(ContractionCounterStyles.timer_display())
         self.timer_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         timer_layout.addWidget(self.timer_label)
 
@@ -84,19 +92,19 @@ class ContractionCounterScreen(QWidget):
         self.progress_bar.setRange(0, 180)
         self.progress_bar.setValue(0)
         self.progress_bar.setTextVisible(False)
-        self.progress_bar.setStyleSheet(Styles.progress_bar_contraction())
+        self.progress_bar.setStyleSheet(ContractionCounterStyles.progress_bar())
         timer_layout.addWidget(self.progress_bar)
 
         buttons_layout = QHBoxLayout()
 
         self.start_btn = QPushButton("Почати перейму")
-        self.start_btn.setStyleSheet(Styles.button_success())
+        self.start_btn.setStyleSheet(BaseStyles.button_success())
         self.start_btn.clicked.connect(self.start_contraction)
 
         self.stop_btn = QPushButton("Зупинити перейму")
         self.stop_btn.setEnabled(False)
         self.stop_btn.setStyleSheet(f"""
-            {Styles.button_error()}
+            {BaseStyles.button_error()}
             QPushButton:disabled {{
                 background-color: #777777;
                 color: #AAAAAA;
@@ -110,17 +118,17 @@ class ContractionCounterScreen(QWidget):
 
         intensity_layout = QHBoxLayout()
         intensity_label = QLabel("Інтенсивність:")
-        intensity_label.setStyleSheet(Styles.text_primary())
+        intensity_label.setStyleSheet(BaseStyles.text_primary())
 
         self.intensity_slider = QSlider(Qt.Orientation.Horizontal)
         self.intensity_slider.setRange(1, 10)
         self.intensity_slider.setValue(5)
         self.intensity_slider.setTickPosition(QSlider.TickPosition.TicksBelow)
         self.intensity_slider.setTickInterval(1)
-        self.intensity_slider.setStyleSheet(Styles.slider())
+        self.intensity_slider.setStyleSheet(SliderStyles.horizontal_slider())
 
         self.intensity_value = QLabel("5")
-        self.intensity_value.setStyleSheet(f"color: {Styles.COLORS['text_primary']}; font-weight: bold;")
+        self.intensity_value.setStyleSheet(f"color: #FFFFFF; font-weight: bold;")
         self.intensity_slider.valueChanged.connect(lambda v: self.intensity_value.setText(str(v)))
 
         intensity_layout.addWidget(intensity_label)
@@ -129,7 +137,7 @@ class ContractionCounterScreen(QWidget):
         timer_layout.addLayout(intensity_layout)
 
         save_btn = QPushButton("Зберегти результат")
-        save_btn.setStyleSheet(Styles.button_colored("#2196F3", "#1976D2"))
+        save_btn.setStyleSheet(ContractionCounterStyles.contraction_button())
         save_btn.clicked.connect(self.save_timed_contraction)
         timer_layout.addWidget(save_btn)
 
@@ -142,55 +150,55 @@ class ContractionCounterScreen(QWidget):
         layout.setSpacing(15)
 
         form_frame = QFrame()
-        form_frame.setStyleSheet(Styles.form_container())
+        form_frame.setStyleSheet(BaseStyles.card_frame())
         form_layout = QGridLayout(form_frame)
         form_layout.setColumnStretch(1, 1)
 
         date_label = QLabel("Дата:")
-        date_label.setStyleSheet(Styles.text_primary())
+        date_label.setStyleSheet(BaseStyles.text_primary())
         self.date_edit = QDateEdit()
         self.date_edit.setDate(QDate.currentDate())
         self.date_edit.setCalendarPopup(True)
-        self.date_edit.setStyleSheet(Styles.date_time_edit())
+        self.date_edit.setStyleSheet(BaseStyles.form_controls())
         form_layout.addWidget(date_label, 0, 0)
         form_layout.addWidget(self.date_edit, 0, 1)
 
         start_time_label = QLabel("Час початку:")
-        start_time_label.setStyleSheet(Styles.text_primary())
+        start_time_label.setStyleSheet(BaseStyles.text_primary())
         self.start_time_edit = QTimeEdit()
         self.start_time_edit.setTime(QTime.currentTime())
-        self.start_time_edit.setStyleSheet(Styles.date_time_edit())
+        self.start_time_edit.setStyleSheet(BaseStyles.form_controls())
         form_layout.addWidget(start_time_label, 1, 0)
         form_layout.addWidget(self.start_time_edit, 1, 1)
 
         end_time_label = QLabel("Час закінчення:")
-        end_time_label.setStyleSheet(Styles.text_primary())
+        end_time_label.setStyleSheet(BaseStyles.text_primary())
         self.end_time_edit = QTimeEdit()
         self.end_time_edit.setTime(QTime.currentTime().addSecs(60))
-        self.end_time_edit.setStyleSheet(Styles.date_time_edit())
+        self.end_time_edit.setStyleSheet(BaseStyles.form_controls())
         form_layout.addWidget(end_time_label, 2, 0)
         form_layout.addWidget(self.end_time_edit, 2, 1)
 
         duration_label = QLabel("Тривалість (сек):")
-        duration_label.setStyleSheet(Styles.text_primary())
+        duration_label.setStyleSheet(BaseStyles.text_primary())
         self.duration_spin = QSpinBox()
         self.duration_spin.setRange(1, 600)
         self.duration_spin.setValue(60)
-        self.duration_spin.setStyleSheet(Styles.spinbox())
+        self.duration_spin.setStyleSheet(BaseStyles.form_controls())
         form_layout.addWidget(duration_label, 3, 0)
         form_layout.addWidget(self.duration_spin, 3, 1)
 
         intensity_label = QLabel("Інтенсивність (1-10):")
-        intensity_label.setStyleSheet(Styles.text_primary())
+        intensity_label.setStyleSheet(BaseStyles.text_primary())
         self.manual_intensity_spin = QSpinBox()
         self.manual_intensity_spin.setRange(1, 10)
         self.manual_intensity_spin.setValue(5)
-        self.manual_intensity_spin.setStyleSheet(Styles.spinbox())
+        self.manual_intensity_spin.setStyleSheet(BaseStyles.form_controls())
         form_layout.addWidget(intensity_label, 4, 0)
         form_layout.addWidget(self.manual_intensity_spin, 4, 1)
 
         save_btn = QPushButton("Зберегти запис")
-        save_btn.setStyleSheet(Styles.button_colored("#2196F3", "#1976D2"))
+        save_btn.setStyleSheet(ContractionCounterStyles.contraction_button())
         save_btn.clicked.connect(self.save_manual_contraction)
         form_layout.addWidget(save_btn, 5, 0, 1, 2)
 
@@ -203,23 +211,23 @@ class ContractionCounterScreen(QWidget):
         layout.setSpacing(15)
 
         self.contractions_list = QListWidget()
-        self.contractions_list.setStyleSheet(Styles.list_widget())
+        self.contractions_list.setStyleSheet(BaseStyles.list_widget())
         layout.addWidget(self.contractions_list)
 
         buttons_layout = QHBoxLayout()
 
         refresh_btn = QPushButton("Оновити історію")
-        refresh_btn.setStyleSheet(Styles.button_secondary())
+        refresh_btn.setStyleSheet(BaseStyles.button_secondary())
         refresh_btn.clicked.connect(self.load_contractions)
 
         period_label = QLabel("Показати за:")
-        period_label.setStyleSheet(Styles.text_primary())
+        period_label.setStyleSheet(BaseStyles.text_primary())
 
         self.period_spin = QSpinBox()
         self.period_spin.setRange(1, 7)
         self.period_spin.setValue(1)
         self.period_spin.setSuffix(" день")
-        self.period_spin.setStyleSheet(Styles.spinbox())
+        self.period_spin.setStyleSheet(BaseStyles.form_controls())
         self.period_spin.valueChanged.connect(self.load_contractions)
 
         buttons_layout.addWidget(refresh_btn)

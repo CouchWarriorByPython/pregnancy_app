@@ -4,7 +4,8 @@ from controllers.data_controller import DataController
 from utils.logger import get_logger
 from utils.base_widgets import (StyledCard, StyledDateEdit, StyledTimeEdit, StyledSpinBox,
                                StyledButton, StyledListWidget, TitleLabel)
-from utils.styles import Styles
+from styles.tools import KickCounterStyles
+from styles.base import BaseStyles
 
 logger = get_logger('kick_counter')
 
@@ -23,7 +24,7 @@ class KickCounterScreen(QWidget):
         main_layout.setSpacing(15)
 
         title = TitleLabel("Лічильник поштовхів", 22)
-        title.setStyleSheet(Styles.title_colored("#4CAF50"))
+        title.setStyleSheet("color: #4CAF50; font-size: 22px; font-weight: bold;")
         main_layout.addWidget(title)
 
         splitter = QSplitter(Qt.Orientation.Horizontal)
@@ -34,7 +35,7 @@ class KickCounterScreen(QWidget):
         left_layout.setContentsMargins(10, 10, 10, 10)
 
         form_frame = StyledCard("Записати поштовхи")
-        form_frame.setStyleSheet(Styles.card_colored("#4CAF50"))
+        form_frame.setStyleSheet(KickCounterStyles.counter_card())
 
         info_text = """
         <p>Підрахунок поштовхів дитини допомагає відстежувати її активність і здоров'я.</p>
@@ -44,12 +45,12 @@ class KickCounterScreen(QWidget):
         """
         info_label = QLabel(info_text)
         info_label.setWordWrap(True)
-        info_label.setStyleSheet(Styles.text_secondary())
+        info_label.setStyleSheet(KickCounterStyles.info_text())
         form_frame.layout.addWidget(info_label)
 
         date_layout = QHBoxLayout()
         date_label = QLabel("Дата:")
-        date_label.setStyleSheet(Styles.text_primary())
+        date_label.setStyleSheet(BaseStyles.text_primary())
         self.date_edit = StyledDateEdit()
         self.date_edit.setDate(QDate.currentDate())
         date_layout.addWidget(date_label)
@@ -58,7 +59,7 @@ class KickCounterScreen(QWidget):
 
         time_layout = QHBoxLayout()
         time_label = QLabel("Час:")
-        time_label.setStyleSheet(Styles.text_primary())
+        time_label.setStyleSheet(BaseStyles.text_primary())
         self.time_edit = StyledTimeEdit()
         self.time_edit.setTime(QTime.currentTime())
         time_layout.addWidget(time_label)
@@ -67,7 +68,7 @@ class KickCounterScreen(QWidget):
 
         kicks_layout = QHBoxLayout()
         kicks_label = QLabel("Кількість поштовхів:")
-        kicks_label.setStyleSheet(Styles.text_primary())
+        kicks_label.setStyleSheet(BaseStyles.text_primary())
         self.kicks_spin = StyledSpinBox(1, 100)
         self.kicks_spin.setValue(10)
         kicks_layout.addWidget(kicks_label)
@@ -75,7 +76,7 @@ class KickCounterScreen(QWidget):
         form_frame.layout.addLayout(kicks_layout)
 
         save_btn = StyledButton("Зберегти запис")
-        save_btn.setStyleSheet(Styles.button_colored("#4CAF50", "#388E3C"))
+        save_btn.setStyleSheet(KickCounterStyles.counter_button())
         save_btn.clicked.connect(self.save_kicks)
         form_frame.layout.addWidget(save_btn)
 
@@ -87,7 +88,7 @@ class KickCounterScreen(QWidget):
         right_layout.setContentsMargins(10, 10, 10, 10)
 
         list_frame = StyledCard("Історія поштовхів")
-        list_frame.setStyleSheet(Styles.card_colored("#4CAF50"))
+        list_frame.setStyleSheet(KickCounterStyles.counter_card())
 
         self.kicks_list = StyledListWidget()
         list_frame.layout.addWidget(self.kicks_list)

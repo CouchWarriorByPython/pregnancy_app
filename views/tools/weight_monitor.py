@@ -4,7 +4,8 @@ from controllers.data_controller import DataController
 from utils.logger import get_logger
 from utils.base_widgets import (StyledCard, StyledDateEdit, StyledDoubleSpinBox,
                                StyledButton, StyledListWidget, TitleLabel)
-from utils.styles import Styles
+from styles.tools import WeightMonitorStyles
+from styles.base import BaseStyles
 
 logger = get_logger('weight_monitor')
 
@@ -23,7 +24,7 @@ class WeightMonitorScreen(QWidget):
         main_layout.setSpacing(15)
 
         title = TitleLabel("Моніторинг ваги", 22)
-        title.setStyleSheet(Styles.title_colored("#757575"))
+        title.setStyleSheet("color: #757575; font-size: 22px; font-weight: bold;")
         main_layout.addWidget(title)
 
         splitter = QSplitter(Qt.Orientation.Horizontal)
@@ -34,11 +35,11 @@ class WeightMonitorScreen(QWidget):
         left_layout.setContentsMargins(10, 10, 10, 10)
 
         form_frame = StyledCard("Додати новий запис")
-        form_frame.setStyleSheet(Styles.card_colored("#757575"))
+        form_frame.setStyleSheet(WeightMonitorStyles.monitor_card())
 
         date_layout = QHBoxLayout()
         date_label = QLabel("Дата:")
-        date_label.setStyleSheet(Styles.text_primary())
+        date_label.setStyleSheet(BaseStyles.text_primary())
         self.date_edit = StyledDateEdit()
         self.date_edit.setDate(QDate.currentDate())
         date_layout.addWidget(date_label)
@@ -47,7 +48,7 @@ class WeightMonitorScreen(QWidget):
 
         weight_layout = QHBoxLayout()
         weight_label = QLabel("Вага (кг):")
-        weight_label.setStyleSheet(Styles.text_primary())
+        weight_label.setStyleSheet(BaseStyles.text_primary())
         self.weight_spin = StyledDoubleSpinBox(30.0, 150.0, 1, " кг")
         self.weight_spin.setValue(60.0)
         weight_layout.addWidget(weight_label)
@@ -56,11 +57,11 @@ class WeightMonitorScreen(QWidget):
 
         initial_weight = self.data_controller.user_profile.weight_before_pregnancy
         initial_weight_label = QLabel(f"Вага до вагітності: {initial_weight} кг")
-        initial_weight_label.setStyleSheet(Styles.text_secondary())
+        initial_weight_label.setStyleSheet(BaseStyles.text_secondary())
         form_frame.layout.addWidget(initial_weight_label)
 
         save_btn = StyledButton("Зберегти запис")
-        save_btn.setStyleSheet(Styles.button_colored("#757575", "#616161"))
+        save_btn.setStyleSheet(WeightMonitorStyles.monitor_button())
         save_btn.clicked.connect(self.save_weight)
         form_frame.layout.addWidget(save_btn)
 
@@ -72,7 +73,7 @@ class WeightMonitorScreen(QWidget):
         right_layout.setContentsMargins(10, 10, 10, 10)
 
         list_frame = StyledCard("Історія ваги")
-        list_frame.setStyleSheet(Styles.card_colored("#757575"))
+        list_frame.setStyleSheet(WeightMonitorStyles.monitor_card())
 
         self.weight_list = StyledListWidget()
         list_frame.layout.addWidget(self.weight_list)

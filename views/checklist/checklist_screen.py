@@ -2,7 +2,8 @@ from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QLabel, QPushButton, QHBoxLay
                              QScrollArea, QFrame, QCheckBox, QStackedWidget)
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont
-from utils.styles import Styles
+from styles.checklist import ChecklistStyles
+from styles.base import BaseStyles, Colors
 from models.data import CHECKLIST_DATA
 
 
@@ -17,19 +18,20 @@ class CheckItem(QWidget):
 
         self.checkbox = QCheckBox()
         self.checkbox.setMinimumSize(30, 30)
-        self.checkbox.setStyleSheet(Styles.checkbox_custom(Styles.COLORS['border'], Styles.COLORS['success']))
+        self.checkbox.setStyleSheet(ChecklistStyles.check_item())
         self.checkbox.toggled.connect(self._on_checkbox_toggled)
         layout.addWidget(self.checkbox)
 
         text_layout = QVBoxLayout()
         title = QLabel(text)
         title.setFont(QFont('Arial', 14))
+        title.setStyleSheet(BaseStyles.text_primary())
         text_layout.addWidget(title)
 
         if description:
             desc = QLabel(description)
             desc.setFont(QFont('Arial', 10))
-            desc.setStyleSheet(Styles.text_secondary())
+            desc.setStyleSheet(BaseStyles.text_secondary())
             text_layout.addWidget(desc)
 
         layout.addLayout(text_layout)
@@ -68,14 +70,14 @@ class ChecklistScreen(QWidget):
     def _create_header(self):
         header = QWidget()
         header.setMinimumHeight(60)
-        header.setStyleSheet(Styles.header())
+        header.setStyleSheet(BaseStyles.header())
 
         header_layout = QHBoxLayout(header)
         header_layout.setContentsMargins(15, 5, 15, 5)
 
         checklist_label = QLabel("Чекліст")
         checklist_label.setFont(QFont('Arial', 18, QFont.Weight.Bold))
-        checklist_label.setStyleSheet(Styles.text_accent())
+        checklist_label.setStyleSheet(BaseStyles.text_accent())
         header_layout.addWidget(checklist_label)
 
         return header
@@ -95,7 +97,7 @@ class ChecklistScreen(QWidget):
             btn = QPushButton(trimester_data["title"])
             btn.setCheckable(True)
             btn.setFixedHeight(50)
-            btn.setStyleSheet(Styles.tab_button())
+            btn.setStyleSheet(ChecklistStyles.tab_button())
             btn.clicked.connect(lambda checked, idx=i - 1: self.set_trimester(idx))
             trimester_layout.addWidget(btn)
             self.trimester_buttons.append(btn)
@@ -110,7 +112,7 @@ class ChecklistScreen(QWidget):
 
         scroll_area = QScrollArea()
         scroll_area.setWidgetResizable(True)
-        scroll_area.setStyleSheet(Styles.scroll_area())
+        scroll_area.setStyleSheet(BaseStyles.scroll_area())
 
         content_widget = QWidget()
         content_layout = QVBoxLayout(content_widget)
@@ -119,6 +121,7 @@ class ChecklistScreen(QWidget):
 
         title_label = QLabel(trimester_data["title"])
         title_label.setFont(QFont('Arial', 20, QFont.Weight.Bold))
+        title_label.setStyleSheet(BaseStyles.text_accent())
         content_layout.addWidget(title_label)
 
         content_layout.addWidget(self._create_progress_frame())
@@ -130,22 +133,24 @@ class ChecklistScreen(QWidget):
 
     def _create_progress_frame(self):
         progress_frame = QFrame()
-        progress_frame.setStyleSheet(Styles.frame())
+        progress_frame.setStyleSheet(ChecklistStyles.checklist_frame())
         progress_layout = QVBoxLayout(progress_frame)
 
         progress_title = QLabel("Прогрес:")
         progress_title.setFont(QFont('Arial', 16))
+        progress_title.setStyleSheet(BaseStyles.text_primary())
         progress_layout.addWidget(progress_title)
 
         progress_bar = QLabel()
         progress_bar.setObjectName("progress_bar")
         progress_bar.setMinimumHeight(20)
-        progress_bar.setStyleSheet(Styles.progress_bar())
+        progress_bar.setStyleSheet(ChecklistStyles.progress_bar())
         progress_layout.addWidget(progress_bar)
 
         progress_text = QLabel("0% виконано")
         progress_text.setObjectName("progress_text")
         progress_text.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        progress_text.setStyleSheet(BaseStyles.text_primary())
         progress_layout.addWidget(progress_text)
 
         return progress_frame
@@ -153,14 +158,14 @@ class ChecklistScreen(QWidget):
     def _create_checklist_section(self, trimester_data):
         checklist_section = QFrame()
         checklist_section.setObjectName("checklist_section")
-        checklist_section.setStyleSheet(Styles.frame())
+        checklist_section.setStyleSheet(ChecklistStyles.checklist_frame())
         checklist_section.setMaximumWidth(600)
 
         checklist_layout = QVBoxLayout(checklist_section)
 
         for section in trimester_data["sections"]:
             section_label = QLabel(section["name"])
-            section_label.setStyleSheet(Styles.section_title())
+            section_label.setStyleSheet(ChecklistStyles.section_title() + f" color: {Colors.TEXT_ACCENT};")
             checklist_layout.addWidget(section_label)
 
             for text, desc in section["items"]:
@@ -195,7 +200,7 @@ class ChecklistScreen(QWidget):
         progress_text = tab.findChild(QLabel, "progress_text")
 
         if progress_bar and progress_text:
-            progress_bar.setStyleSheet(Styles.progress_bar_dynamic(progress_percent))
+            progress_bar.setStyleSheet(ChecklistStyles.progress_bar_dynamic(progress_percent))
             progress_text.setText(f"{progress_percent}% виконано")
 
     def resizeEvent(self, event):

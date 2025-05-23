@@ -3,6 +3,8 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont, QPixmap
 from utils.image_utils import generate_fruit_image
 from utils.logger import get_logger
+from styles.weeks import WeeksStyles
+from styles.base import Colors
 import os
 
 logger = get_logger('fruit_comparison_view')
@@ -19,12 +21,7 @@ class FruitComparisonView(QWidget):
         layout = QVBoxLayout(self)
         layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        self.setStyleSheet("""
-            background-color: #222222;
-            border-radius: 15px;
-            padding: 20px;
-            margin: 10px;
-        """)
+        self.setStyleSheet(WeeksStyles.fruit_comparison_card())
 
         self._create_title(layout)
         self._create_image(layout)
@@ -38,7 +35,7 @@ class FruitComparisonView(QWidget):
         title.setObjectName("fruit_title")
         title.setFont(QFont('Arial', 16, QFont.Weight.Bold))
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        title.setStyleSheet("color: #FF8C00;")
+        title.setStyleSheet(f"color: {Colors.TEXT_ACCENT};")
         layout.addWidget(title)
 
     def _create_image(self, layout):
@@ -55,7 +52,7 @@ class FruitComparisonView(QWidget):
         description.setFont(QFont('Arial', 12))
         description.setAlignment(Qt.AlignmentFlag.AlignCenter)
         description.setWordWrap(True)
-        description.setStyleSheet("color: #FFFFFF;")
+        description.setStyleSheet(f"color: {Colors.TEXT_PRIMARY};")
         layout.addWidget(description)
 
     def _create_size_info(self, layout):
@@ -64,7 +61,7 @@ class FruitComparisonView(QWidget):
         size_info.setObjectName("fruit_size_info")
         size_info.setFont(QFont('Arial', 12))
         size_info.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        size_info.setStyleSheet("color: #DDDDDD;")
+        size_info.setStyleSheet(f"color: {Colors.TEXT_SECONDARY};")
         layout.addWidget(size_info)
 
     def _load_image_for_week(self, week):

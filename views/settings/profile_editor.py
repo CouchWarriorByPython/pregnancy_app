@@ -1,11 +1,12 @@
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QFormLayout, QFrame, QMessageBox
+from PyQt6.QtWidgets import QWidget, QVBoxLayout, QFormLayout, QLabel, QMessageBox
 from PyQt6.QtCore import QDate
 from controllers.data_controller import DataController
 from datetime import datetime
 from utils.logger import get_logger
 from utils.base_widgets import (StyledInput, StyledDateEdit, StyledSpinBox, StyledDoubleSpinBox,
                                 StyledButton, StyledScrollArea, TitleLabel)
-from utils.styles import Styles
+from styles.settings import SettingsStyles
+from styles.base import BaseStyles
 
 logger = get_logger('profile_editor')
 
@@ -47,6 +48,7 @@ class ProfileEditor(QWidget):
 
         save_btn = StyledButton("Зберегти зміни")
         save_btn.setMinimumHeight(50)
+        save_btn.setStyleSheet(SettingsStyles.save_button())
         save_btn.clicked.connect(self.save_profile)
 
         scroll_area.setWidget(form_widget)
@@ -66,7 +68,9 @@ class ProfileEditor(QWidget):
 
         for label, widget in fields:
             widget.setMinimumHeight(40)
-            self.form_layout.addRow(label, widget)
+            label_widget = QLabel(label)
+            label_widget.setStyleSheet(BaseStyles.text_primary())
+            self.form_layout.addRow(label_widget, widget)
 
     def _get_current_user_id(self):
         if hasattr(self.parent, 'current_user_id'):
@@ -74,7 +78,6 @@ class ProfileEditor(QWidget):
                 return self.parent.current_user_id()
             else:
                 return self.parent.current_user_id
-        # Якщо parent має parent (MainWindow)
         if hasattr(self.parent, 'parent') and hasattr(self.parent.parent, 'current_user_id'):
             return self.parent.parent.current_user_id
         return None

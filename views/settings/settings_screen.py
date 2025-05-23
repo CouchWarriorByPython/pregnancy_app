@@ -1,7 +1,8 @@
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QMessageBox
 from PyQt6.QtGui import QFont
 from controllers.data_controller import DataController
-from utils.styles import Styles
+from styles.settings import SettingsStyles
+from styles.base import BaseStyles
 from .profile_editor import ProfileEditor
 from .pregnancy_editor import PregnancyEditor
 from .child_info_editor import ChildInfoEditor
@@ -41,14 +42,14 @@ class SettingsScreen(QWidget):
     def _create_header(self):
         header = QWidget()
         header.setMinimumHeight(60)
-        header.setStyleSheet(Styles.header())
+        header.setStyleSheet(BaseStyles.header())
 
         layout = QHBoxLayout(header)
         layout.setContentsMargins(15, 5, 15, 5)
 
         label = QLabel("Налаштування")
         label.setFont(QFont('Arial', 18, QFont.Weight.Bold))
-        label.setStyleSheet(Styles.text_accent())
+        label.setStyleSheet(BaseStyles.text_accent())
         layout.addWidget(label)
 
         return header
@@ -67,7 +68,7 @@ class SettingsScreen(QWidget):
             btn = QPushButton(name)
             btn.setCheckable(True)
             btn.setFixedHeight(50)
-            btn.setStyleSheet(Styles.settings_tab_button())
+            btn.setStyleSheet(SettingsStyles.tab_button())
             btn.clicked.connect(lambda checked, idx=i: self.set_tab(idx))
             layout.addWidget(btn)
             self.tab_buttons.append(btn)
@@ -87,14 +88,14 @@ class SettingsScreen(QWidget):
     def _create_logout_section(self):
         logout_section = QWidget()
         logout_section.setMinimumHeight(80)
-        logout_section.setStyleSheet("background-color: #1a1a1a; border-top: 1px solid #333;")
+        logout_section.setStyleSheet(SettingsStyles.logout_section())
 
         layout = QVBoxLayout(logout_section)
         layout.setContentsMargins(20, 15, 20, 15)
 
         logout_btn = QPushButton("Вийти з акаунту")
         logout_btn.setMinimumHeight(50)
-        logout_btn.setStyleSheet(Styles.button_error())
+        logout_btn.setStyleSheet(SettingsStyles.logout_button())
         logout_btn.clicked.connect(self.logout)
         layout.addWidget(logout_btn)
 

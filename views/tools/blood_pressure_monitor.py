@@ -5,7 +5,8 @@ from controllers.data_controller import DataController
 from utils.logger import get_logger
 from utils.base_widgets import (StyledCard, StyledDateEdit, StyledTimeEdit, StyledSpinBox,
                                StyledInput, StyledButton, StyledListWidget, TitleLabel)
-from utils.styles import Styles
+from styles.tools import BloodPressureStyles
+from styles.base import BaseStyles
 
 logger = get_logger('blood_pressure_monitor')
 
@@ -24,7 +25,7 @@ class BloodPressureMonitorScreen(QWidget):
         main_layout.setSpacing(15)
 
         title = TitleLabel("Моніторинг артеріального тиску", 22)
-        title.setStyleSheet(Styles.title_colored("#E91E63"))
+        title.setStyleSheet("color: #E91E63; font-size: 22px; font-weight: bold;")
         main_layout.addWidget(title)
 
         splitter = QSplitter(Qt.Orientation.Horizontal)
@@ -35,7 +36,7 @@ class BloodPressureMonitorScreen(QWidget):
         left_layout.setContentsMargins(10, 10, 10, 10)
 
         form_frame = StyledCard("Додати новий запис")
-        form_frame.setStyleSheet(Styles.card_colored("#E91E63"))
+        form_frame.setStyleSheet(BloodPressureStyles.pressure_card())
 
         info_text = """
         <p>Регулярне вимірювання артеріального тиску важливе під час вагітності для раннього виявлення 
@@ -45,7 +46,7 @@ class BloodPressureMonitorScreen(QWidget):
         """
         info_label = QLabel(info_text)
         info_label.setWordWrap(True)
-        info_label.setStyleSheet(Styles.text_secondary())
+        info_label.setStyleSheet(BaseStyles.text_secondary())
         form_frame.layout.addWidget(info_label)
 
         input_form = QFormLayout()
@@ -77,7 +78,7 @@ class BloodPressureMonitorScreen(QWidget):
         form_frame.layout.addItem(QSpacerItem(20, 10, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding))
 
         save_btn = StyledButton("Зберегти запис")
-        save_btn.setStyleSheet(Styles.button_colored("#E91E63", "#C2185B"))
+        save_btn.setStyleSheet(BloodPressureStyles.pressure_button())
         save_btn.clicked.connect(self.save_pressure)
         form_frame.layout.addWidget(save_btn)
 
@@ -89,7 +90,7 @@ class BloodPressureMonitorScreen(QWidget):
         right_layout.setContentsMargins(10, 10, 10, 10)
 
         list_frame = StyledCard("Історія вимірювань")
-        list_frame.setStyleSheet(Styles.card_colored("#E91E63"))
+        list_frame.setStyleSheet(BloodPressureStyles.pressure_card())
 
         self.pressure_list = StyledListWidget()
         list_frame.layout.addWidget(self.pressure_list)
@@ -100,7 +101,7 @@ class BloodPressureMonitorScreen(QWidget):
         refresh_btn.clicked.connect(self.load_pressure_records)
 
         period_label = QLabel("Показати за:")
-        period_label.setStyleSheet(Styles.text_primary())
+        period_label.setStyleSheet(BaseStyles.text_primary())
 
         self.period_spin = StyledSpinBox(7, 90, " днів")
         self.period_spin.setValue(30)

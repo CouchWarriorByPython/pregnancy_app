@@ -20,7 +20,8 @@ from views.auth.verification_screen import VerificationScreen
 from controllers.data_controller import DataController
 from controllers.auth_controller import AuthController
 from utils.logger import get_logger
-from utils.styles import Styles
+from styles.navigation import NavigationStyles
+from styles.base import Colors
 from utils.reminder_service import ReminderService
 from datetime import datetime
 
@@ -44,11 +45,13 @@ class MainWindow(QMainWindow):
 
     def _setup_window(self):
         self.setWindowTitle("Щоденник вагітності")
+        self.setStyleSheet(f"QMainWindow {{ background-color: {Colors.BACKGROUND}; }}")
         screen_size = QApplication.primaryScreen().availableSize()
         self.resize(min(390, screen_size.width() - 40), min(844, screen_size.height() - 60))
 
     def _create_screens(self):
         self.stack_widget = QStackedWidget()
+        self.stack_widget.setStyleSheet(NavigationStyles.stack_widget())
 
         self.auth_screens = {
             'login': LoginScreen(self),
@@ -56,7 +59,6 @@ class MainWindow(QMainWindow):
             'verification': VerificationScreen(parent=self)
         }
 
-        # Створюємо головні екрани без DataController
         self.main_screens = {
             'child_info': ChildInfoScreen(self),
             'user_info': UserInfoScreen(self),
@@ -102,7 +104,7 @@ class MainWindow(QMainWindow):
         self.nav_buttons = []
         self.bottom_nav = QWidget()
         self.bottom_nav.setMinimumHeight(70)
-        self.bottom_nav.setStyleSheet(Styles.nav_bottom())
+        self.bottom_nav.setStyleSheet(NavigationStyles.bottom_nav())
 
         nav_layout = QHBoxLayout(self.bottom_nav)
         nav_layout.setContentsMargins(5, 5, 5, 5)
@@ -125,12 +127,13 @@ class MainWindow(QMainWindow):
             button.setIconSize(QSize(22, 22))
 
         button.setText(item["text"])
-        button.setStyleSheet(Styles.nav_button())
+        button.setStyleSheet(NavigationStyles.nav_button())
         button.clicked.connect(lambda: self.navigate_to(item["screen"]))
         return button
 
     def _setup_layout(self):
         main_widget = QWidget()
+        main_widget.setStyleSheet(NavigationStyles.main_layout())
         self.main_layout = QVBoxLayout(main_widget)
         self.main_layout.setContentsMargins(0, 0, 0, 0)
         self.main_layout.setSpacing(0)
@@ -139,7 +142,6 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(main_widget)
 
     def _handle_authentication(self):
-        # Спробуємо відновити сесію
         session_data = self.auth_controller.load_session()
         if session_data:
             logger.info(f"Відновлена сесія для користувача {session_data['email']}")
@@ -210,7 +212,6 @@ class MainWindow(QMainWindow):
             self.reminder_service.start()
 
     def _update_screens_with_user_data(self):
-        """Оновлюємо екрани з правильним DataController після авторизації"""
         for screen_name, screen in self.main_screens.items():
             if hasattr(screen, 'data_controller'):
                 screen.data_controller = DataController(self.current_user_id)
@@ -282,14 +283,6 @@ class MainWindow(QMainWindow):
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     app.setStyle("Fusion")
-
-    style_file = os.path.join("resources", "styles", "dark_theme.qss")
-    try:
-        with open(style_file, 'r') as f:
-            app.setStyleSheet(f.read())
-            logger.info("Стилі успішно застосовані")
-    except Exception as e:
-        logger.error(f"Помилка застосування стилів: {str(e)}")
 
     window = MainWindow()
     window.show()

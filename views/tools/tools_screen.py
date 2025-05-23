@@ -4,7 +4,8 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont, QPixmap
 
 from controllers.data_controller import DataController
-from utils.styles import Styles
+from styles.tools import ToolsStyles
+from styles.base import BaseStyles
 
 from .health_report import HealthReportScreen
 from .kegel_exercises import KegelExercisesScreen
@@ -24,7 +25,7 @@ class ToolCard(QFrame):
         self._setup_ui(title, description, icon_path, accent_color)
 
     def _setup_ui(self, title, description, icon_path, accent_color):
-        self.setStyleSheet(Styles.tool_card_base())
+        self.setStyleSheet(ToolsStyles.tool_card_base())
         layout = QVBoxLayout(self)
         layout.setContentsMargins(15, 15, 15, 15)
 
@@ -38,7 +39,7 @@ class ToolCard(QFrame):
 
         desc_label = QLabel(description)
         desc_label.setWordWrap(True)
-        desc_label.setStyleSheet(Styles.tool_card_description())
+        desc_label.setStyleSheet(ToolsStyles.tool_card_description())
         desc_label.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
 
         layout.addLayout(header_layout)
@@ -60,7 +61,7 @@ class ToolCard(QFrame):
             pass
 
         icon_label.setText("🔧")
-        icon_label.setStyleSheet(Styles.tool_icon_fallback(accent_color))
+        icon_label.setStyleSheet(ToolsStyles.tool_icon_fallback(accent_color))
         icon_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         return icon_label
 
@@ -68,7 +69,7 @@ class ToolCard(QFrame):
         title_label = QLabel(title)
         title_label.setObjectName("titleLabel")
         title_label.setFont(QFont('Arial', 16, QFont.Weight.Bold))
-        title_label.setStyleSheet(Styles.tool_card_title(accent_color))
+        title_label.setStyleSheet(ToolsStyles.tool_card_title(accent_color))
         return title_label
 
     def mousePressEvent(self, event):
@@ -113,14 +114,14 @@ class ToolsScreen(QWidget):
     def _create_header(self):
         header = QWidget()
         header.setMinimumHeight(60)
-        header.setStyleSheet(Styles.header())
+        header.setStyleSheet(BaseStyles.header())
 
         header_layout = QHBoxLayout(header)
         header_layout.setContentsMargins(15, 5, 15, 5)
 
         tools_label = QLabel("Інструменти")
         tools_label.setFont(QFont('Arial', 18, QFont.Weight.Bold))
-        tools_label.setStyleSheet(Styles.text_accent())
+        tools_label.setStyleSheet(BaseStyles.text_accent())
         header_layout.addWidget(tools_label)
 
         return header
@@ -128,7 +129,7 @@ class ToolsScreen(QWidget):
     def _create_content(self):
         scroll_area = QScrollArea()
         scroll_area.setWidgetResizable(True)
-        scroll_area.setStyleSheet(Styles.scroll_area())
+        scroll_area.setStyleSheet(BaseStyles.scroll_area())
         scroll_area.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
 
         content_widget = QWidget()

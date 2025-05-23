@@ -2,7 +2,7 @@ from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushBut
                              QLineEdit, QDateEdit, QTimeEdit, QSpinBox, QDoubleSpinBox, QCheckBox,
                              QComboBox, QListWidget, QScrollArea, QFormLayout)
 from PyQt6.QtGui import QFont
-from .styles import Styles
+from styles.base import BaseStyles
 
 class BaseWidget(QWidget):
     def __init__(self, parent=None):
@@ -11,17 +11,17 @@ class BaseWidget(QWidget):
 class BaseFrame(QFrame):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setStyleSheet(Styles.frame())
+        self.setStyleSheet(BaseStyles.card_frame())
 
 class StyledCard(QFrame):
     def __init__(self, title=None, parent=None):
         super().__init__(parent)
-        self.setStyleSheet(Styles.card_frame())
+        self.setStyleSheet(BaseStyles.card_frame())
         self.layout = QVBoxLayout(self)
         if title:
             title_label = QLabel(title)
             title_label.setFont(QFont('Arial', 16, QFont.Weight.Bold))
-            title_label.setStyleSheet(Styles.text_accent())
+            title_label.setStyleSheet(BaseStyles.text_accent())
             self.layout.addWidget(title_label)
 
 class StyledFormWidget(QWidget):
@@ -35,11 +35,18 @@ class StyledButton(QPushButton):
     def __init__(self, text, style_type='primary', parent=None):
         super().__init__(text, parent)
         self.setMinimumHeight(50)
-        self.setStyleSheet(getattr(Styles, f'button_{style_type}')())
+        if style_type == 'primary':
+            self.setStyleSheet(BaseStyles.button_primary())
+        elif style_type == 'secondary':
+            self.setStyleSheet(BaseStyles.button_secondary())
+        elif style_type == 'success':
+            self.setStyleSheet(BaseStyles.button_success())
+        elif style_type == 'error':
+            self.setStyleSheet(BaseStyles.button_error())
 
 class BaseInput(QWidget):
     def _apply_common_style(self, widget):
-        widget.setStyleSheet(Styles.input_field())
+        widget.setStyleSheet(BaseStyles.input_field())
         widget.setMinimumHeight(40)
         return widget
 
@@ -56,11 +63,13 @@ class StyledDateEdit(QDateEdit, BaseInput):
         self._apply_common_style(self)
         self.setCalendarPopup(True)
         self.setDisplayFormat("dd.MM.yyyy")
+        self.setStyleSheet(BaseStyles.form_controls())
 
 class StyledTimeEdit(QTimeEdit, BaseInput):
     def __init__(self, parent=None):
         super().__init__(parent)
         self._apply_common_style(self)
+        self.setStyleSheet(BaseStyles.form_controls())
 
 class StyledSpinBox(QSpinBox, BaseInput):
     def __init__(self, min_val=0, max_val=100, suffix=None, parent=None):
@@ -69,6 +78,7 @@ class StyledSpinBox(QSpinBox, BaseInput):
         self.setRange(min_val, max_val)
         if suffix:
             self.setSuffix(suffix)
+        self.setStyleSheet(BaseStyles.form_controls())
 
 class StyledDoubleSpinBox(QDoubleSpinBox, BaseInput):
     def __init__(self, min_val=0.0, max_val=100.0, decimals=1, suffix=None, parent=None):
@@ -78,11 +88,12 @@ class StyledDoubleSpinBox(QDoubleSpinBox, BaseInput):
         self.setDecimals(decimals)
         if suffix:
             self.setSuffix(suffix)
+        self.setStyleSheet(BaseStyles.form_controls())
 
 class StyledCheckBox(QCheckBox):
     def __init__(self, text, parent=None):
         super().__init__(text, parent)
-        self.setStyleSheet(Styles.checkbox())
+        self.setStyleSheet(BaseStyles.checkbox())
 
 class StyledComboBox(QComboBox, BaseInput):
     def __init__(self, items=None, parent=None):
@@ -90,27 +101,28 @@ class StyledComboBox(QComboBox, BaseInput):
         self._apply_common_style(self)
         if items:
             self.addItems(items)
+        self.setStyleSheet(BaseStyles.form_controls())
 
 class StyledListWidget(QListWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setStyleSheet(Styles.list_widget())
+        self.setStyleSheet(BaseStyles.list_widget())
 
 class StyledScrollArea(QScrollArea):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWidgetResizable(True)
-        self.setStyleSheet(Styles.scroll_area())
+        self.setStyleSheet(BaseStyles.scroll_area())
 
 class HeaderWidget(QWidget):
     def __init__(self, title, parent=None):
         super().__init__(parent)
-        self.setStyleSheet(Styles.header())
+        self.setStyleSheet(BaseStyles.header())
         layout = QHBoxLayout(self)
         layout.setContentsMargins(15, 5, 15, 5)
         title_label = QLabel(title)
         title_label.setFont(QFont('Arial', 18, QFont.Weight.Bold))
-        title_label.setStyleSheet(Styles.text_accent())
+        title_label.setStyleSheet(BaseStyles.text_accent())
         layout.addWidget(title_label)
 
 class TabButton(QPushButton):
@@ -118,10 +130,9 @@ class TabButton(QPushButton):
         super().__init__(text, parent)
         self.setCheckable(True)
         self.setFixedHeight(50)
-        self.setStyleSheet(Styles.tab_button())
 
 class TitleLabel(QLabel):
     def __init__(self, text, size=18, parent=None):
         super().__init__(text, parent)
         self.setFont(QFont('Arial', size, QFont.Weight.Bold))
-        self.setStyleSheet(Styles.text_accent())
+        self.setStyleSheet(BaseStyles.text_accent())

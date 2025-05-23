@@ -6,7 +6,8 @@ from controllers.baby_development_controller import BabyDevelopmentController
 from .fruit_comparison_view import FruitComparisonView
 from utils.logger import get_logger
 from utils.image_utils import generate_circle_image
-from utils.styles import Styles
+from styles.weeks import WeeksStyles
+from styles.base import BaseStyles, Colors
 
 logger = get_logger('weeks_screen')
 
@@ -19,7 +20,7 @@ class InfoCard(QFrame):
         self.setMouseTracking(True)
 
     def _setup_ui(self, title, content, icon_path):
-        self.setStyleSheet(Styles.info_card_base())
+        self.setStyleSheet(WeeksStyles.info_card_base())
         layout = QVBoxLayout(self)
         layout.setContentsMargins(15, 15, 15, 15)
 
@@ -54,27 +55,27 @@ class InfoCard(QFrame):
         except Exception as e:
             logger.error(f"Помилка завантаження іконки: {e}")
 
-        icon_label.setPixmap(generate_circle_image(size=24, color=Styles.COLORS['primary']))
+        icon_label.setPixmap(generate_circle_image(size=24, color=Colors.PRIMARY))
         return icon_label
 
     def enterEvent(self, event):
         self.is_hover = True
-        self.setStyleSheet(Styles.info_card_hover())
+        self.setStyleSheet(WeeksStyles.info_card_hover())
         super().enterEvent(event)
 
     def leaveEvent(self, event):
         self.is_hover = False
-        self.setStyleSheet(Styles.info_card_base())
+        self.setStyleSheet(WeeksStyles.info_card_base())
         super().leaveEvent(event)
 
     def mousePressEvent(self, event):
         if event.button() == Qt.MouseButton.LeftButton:
-            self.setStyleSheet(Styles.info_card_pressed())
+            self.setStyleSheet(WeeksStyles.info_card_pressed())
         super().mousePressEvent(event)
 
     def mouseReleaseEvent(self, event):
         if event.button() == Qt.MouseButton.LeftButton:
-            style = Styles.info_card_hover() if self.is_hover else Styles.info_card_base()
+            style = WeeksStyles.info_card_hover() if self.is_hover else WeeksStyles.info_card_base()
             self.setStyleSheet(style)
         super().mouseReleaseEvent(event)
 
@@ -131,7 +132,7 @@ class WeeksScreen(QWidget):
     def _create_nav_button(self, text, callback):
         button = QPushButton(text)
         button.setFixedSize(45, 45)
-        button.setStyleSheet(Styles.button_nav_arrow())
+        button.setStyleSheet(WeeksStyles.nav_arrow_button())
         button.clicked.connect(callback)
         return button
 
@@ -141,7 +142,7 @@ class WeeksScreen(QWidget):
         week_btn.setFixedSize(60, 60)
         week_btn.setCheckable(True)
         week_btn.setChecked(is_current)
-        week_btn.setStyleSheet(Styles.button_circular(color, 60))
+        week_btn.setStyleSheet(WeeksStyles.week_button(color, 60))
         week_btn.week = week
         week_btn.clicked.connect(lambda: self.week_changed(week))
         return week_btn
@@ -157,7 +158,7 @@ class WeeksScreen(QWidget):
     def _create_content_area(self):
         scroll_area = QScrollArea()
         scroll_area.setWidgetResizable(True)
-        scroll_area.setStyleSheet(Styles.scroll_area())
+        scroll_area.setStyleSheet(BaseStyles.scroll_area())
 
         content_widget = QWidget()
         self.content_layout = QVBoxLayout(content_widget)
@@ -166,7 +167,7 @@ class WeeksScreen(QWidget):
 
         self.week_title = QLabel(f"Тиждень {self.current_week}")
         self.week_title.setFont(QFont('Arial', 22, QFont.Weight.Bold))
-        self.week_title.setStyleSheet(Styles.text_accent())
+        self.week_title.setStyleSheet(WeeksStyles.week_title(Colors.TEXT_ACCENT))
         self.week_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.content_layout.addWidget(self.week_title)
 
