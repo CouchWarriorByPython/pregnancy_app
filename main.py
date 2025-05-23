@@ -2,7 +2,7 @@ import os
 import sys
 from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QStackedWidget, \
     QMessageBox, QSizePolicy
-from PyQt6.QtCore import QSize
+from PyQt6.QtCore import QSize, QTimer
 from PyQt6.QtGui import QIcon
 
 from views.weeks.weeks_screen import WeeksScreen
@@ -13,10 +13,15 @@ from views.settings.settings_screen import SettingsScreen
 from views.onboarding.child_info_screen import ChildInfoScreen
 from views.onboarding.user_info_screen import UserInfoScreen
 from views.onboarding.pregnancy_info_screen import PregnancyInfoScreen
+from views.auth.login_screen import LoginScreen
+from views.auth.register_screen import RegisterScreen
+from views.auth.verification_screen import VerificationScreen
 
 from controllers.data_controller import DataController
+from controllers.auth_controller import AuthController
 from utils.logger import get_logger
 from utils.styles import Styles
+from utils.reminder_service import ReminderService
 from datetime import datetime, timedelta
 
 logger = get_logger('main')
@@ -26,12 +31,16 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         logger.info("Запуск додатку 'Щоденник вагітності'")
-        self.data_controller = DataController()
+        self.current_user_id = None
+        self.current_user_email = None
+        self.data_controller = None
+        self.auth_controller = AuthController()
+        self.reminder_service = None
         self._setup_window()
         self._create_screens()
         self._setup_navigation()
         self._setup_layout()
-        self._handle_first_launch()
+        self._handle_authentication()
 
     def _setup_window(self):
         self.setWindowTitle("Щоденник вагітності")
@@ -41,7 +50,14 @@ class MainWindow(QMainWindow):
     def _create_screens(self):
         self.stack_widget = QStackedWidget()
 
-        self.screens = {
+        self.auth_screens = {
+            'login': LoginScreen(self),
+            'register': RegisterScreen(self),
+            'verification': VerificationScreen(parent=self)
+        }
+
+        # Створюємо головні екрани без DataController
+        self.main_screens = {
             'child_info': ChildInfoScreen(self),
             'user_info': UserInfoScreen(self),
             'weeks': WeeksScreen(self),
@@ -52,12 +68,27 @@ class MainWindow(QMainWindow):
             'pregnancy_info': PregnancyInfoScreen(self)
         }
 
-        for screen in self.screens.values():
+        all_screens = {**self.auth_screens, **self.main_screens}
+        for screen in all_screens.values():
             self.stack_widget.addWidget(screen)
 
-        self.screens['child_info'].proceed_signal.connect(self.on_child_info_completed)
-        self.screens['user_info'].proceed_signal.connect(self.on_user_info_completed)
-        self.screens['pregnancy_info'].proceed_signal.connect(self.on_pregnancy_info_completed)
+        self._connect_auth_signals()
+        self._connect_onboarding_signals()
+
+    def _connect_auth_signals(self):
+        self.auth_screens['login'].login_success.connect(self.on_login_success)
+        self.auth_screens['login'].switch_to_register.connect(lambda: self.show_screen('register'))
+
+        self.auth_screens['register'].registration_success.connect(self.on_registration_success)
+        self.auth_screens['register'].switch_to_login.connect(lambda: self.show_screen('login'))
+
+        self.auth_screens['verification'].verification_success.connect(self.on_verification_success)
+        self.auth_screens['verification'].back_to_register.connect(lambda: self.show_screen('register'))
+
+    def _connect_onboarding_signals(self):
+        self.main_screens['child_info'].proceed_signal.connect(self.on_child_info_completed)
+        self.main_screens['user_info'].proceed_signal.connect(self.on_user_info_completed)
+        self.main_screens['pregnancy_info'].proceed_signal.connect(self.on_pregnancy_info_completed)
 
     def _setup_navigation(self):
         nav_items = [
@@ -107,20 +138,71 @@ class MainWindow(QMainWindow):
         self.main_layout.addWidget(self.bottom_nav)
         self.setCentralWidget(main_widget)
 
-    def _handle_first_launch(self):
+    def _handle_authentication(self):
+        self.bottom_nav.setVisible(False)
+        self.show_screen('login')
+
+    def show_screen(self, screen_name):
+        if screen_name in self.auth_screens:
+            screen = self.auth_screens[screen_name]
+        else:
+            screen = self.main_screens[screen_name]
+        self.stack_widget.setCurrentWidget(screen)
+
+    def on_login_success(self, user_data):
+        logger.info(f"Успішний вхід користувача {user_data['email']}")
+        self.current_user_id = user_data['user_id']
+        self.current_user_email = user_data['email']
+        self.data_controller = DataController(self.current_user_id)
+        self._init_reminder_service()
+
         if self.data_controller.is_first_launch():
-            logger.info("Виявлено перший запуск додатку. Показуємо екран введення даних дитини.")
-            self.stack_widget.setCurrentWidget(self.screens['child_info'])
+            logger.info("Перший запуск для користувача. Показуємо онбординг.")
+            self.show_screen('child_info')
             self.bottom_nav.setVisible(False)
         else:
-            logger.info("Не перший запуск. Показуємо основний екран.")
-            self.stack_widget.setCurrentWidget(self.screens['weeks'])
+            logger.info("Користувач авторизований. Показуємо головний екран.")
+            self._update_screens_with_user_data()
+            self.bottom_nav.setVisible(True)
+            self.show_screen('weeks')
+
+    def on_registration_success(self, email):
+        logger.info(f"Успішна реєстрація користувача {email}")
+        verification_screen = self.auth_screens['verification']
+        verification_screen.set_email(email)
+        self.show_screen('verification')
+
+    def on_verification_success(self, user_data):
+        logger.info(f"Успішне підтвердження пошти {user_data['email']}")
+        self.current_user_id = user_data['user_id']
+        self.current_user_email = user_data['email']
+        self.data_controller = DataController(self.current_user_id)
+        self._init_reminder_service()
+        self.show_screen('child_info')
+        self.bottom_nav.setVisible(False)
+
+    def _init_reminder_service(self):
+        if self.data_controller:
+            self.reminder_service = ReminderService(
+                self.data_controller.db,
+                self.current_user_id,
+                self.current_user_email  # Додаємо email
+            )
+            self.reminder_service.start()
+
+    def _update_screens_with_user_data(self):
+        """Оновлюємо екрани з правильним DataController після авторизації"""
+        for screen_name, screen in self.main_screens.items():
+            if hasattr(screen, 'data_controller'):
+                screen.data_controller = DataController(self.current_user_id)
+            if hasattr(screen, 'parent'):
+                screen.parent = self
 
     def navigate_to(self, screen_name):
         logger.info(f"Перехід на екран: {screen_name}")
-        self.stack_widget.setCurrentWidget(self.screens[screen_name])
+        self.show_screen(screen_name)
 
-        screen_indices = list(self.screens.keys())
+        screen_indices = list(self.main_screens.keys())
         main_screens = ['weeks', 'calendar', 'tools', 'checklist', 'settings']
 
         for i, button in enumerate(self.nav_buttons):
@@ -128,14 +210,14 @@ class MainWindow(QMainWindow):
 
     def on_child_info_completed(self, child_data):
         logger.info("Отримана інформація про дитину, переходимо до екрану інформації про користувача")
-        if self.data_controller.save_child_info(child_data):
-            self.stack_widget.setCurrentWidget(self.screens['user_info'])
+        if self.data_controller and self.data_controller.save_child_info(child_data):
+            self.show_screen('user_info')
         else:
             QMessageBox.critical(self, "Помилка", "Не вдалося зберегти інформацію про дитину")
 
     def on_user_info_completed(self, user_data):
         logger.info(f"Отримана інформація про користувача: {user_data}")
-        self.stack_widget.setCurrentWidget(self.screens['pregnancy_info'])
+        self.show_screen('pregnancy_info')
 
     def on_pregnancy_info_completed(self, pregnancy_data):
         logger.info("Отримана інформація про вагітність, переходимо до основного екрану")
@@ -143,17 +225,37 @@ class MainWindow(QMainWindow):
             last_period = datetime.strptime(pregnancy_data['last_period_date'], "%Y-%m-%d").date()
             conception = datetime.strptime(pregnancy_data['conception_date'], "%Y-%m-%d").date()
 
-            self.data_controller.pregnancy_data.last_period_date = last_period
-            self.data_controller.pregnancy_data.conception_date = conception
-            self.data_controller.pregnancy_data.due_date = last_period + timedelta(days=280)
-            self.data_controller.save_pregnancy_data()
+            if last_period > conception:
+                QMessageBox.warning(self, "Помилка", "Дата останньої менструації не може бути пізніше дати зачаття")
+                return
 
-            self.bottom_nav.setVisible(True)
-            self.stack_widget.setCurrentWidget(self.screens['weeks'])
+            if self.data_controller:
+                self.data_controller.pregnancy_data.last_period_date = last_period
+                self.data_controller.pregnancy_data.conception_date = conception
+                self.data_controller.save_pregnancy_data()
+
+                self._update_screens_with_user_data()
+                self.bottom_nav.setVisible(True)
+                self.show_screen('weeks')
         except Exception as e:
             QMessageBox.critical(self, "Помилка", f"Не вдалося зберегти інформацію про вагітність: {str(e)}")
 
+    def logout(self):
+        self.auth_controller.logout()
+        self.current_user_id = None
+        self.current_user_email = None
+        self.data_controller = None
+        if self.reminder_service:
+            self.reminder_service.stop()
+            self.reminder_service = None
+
+        self.bottom_nav.setVisible(False)
+        self.show_screen('login')
+        logger.info("Користувач вийшов з системи")
+
     def closeEvent(self, event):
+        if self.reminder_service:
+            self.reminder_service.stop()
         logger.info("Завершення роботи додатку")
         event.accept()
 

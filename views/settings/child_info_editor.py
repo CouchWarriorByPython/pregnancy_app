@@ -57,6 +57,12 @@ class ChildInfoEditor(QWidget):
         return form_frame
 
     def load_child_data(self):
+        if not self.data_controller.pregnancy_data:
+            logger.info("Дані про дитину не знайдено, встановлюємо дефолтні значення")
+            self.name_edit.setText("")
+            self.gender_combo.setCurrentText("Невідомо")
+            return
+
         child_info = self.data_controller.get_child_info()
         self.name_edit.setText(child_info.get("name", ""))
 
@@ -68,6 +74,10 @@ class ChildInfoEditor(QWidget):
         logger.info("Завантажено дані про дитину")
 
     def save_child_data(self):
+        if not self.data_controller.pregnancy_data:
+            logger.warning("Неможливо зберегти дані про дитину - користувач не авторизований")
+            return
+
         child_data = {
             "name": self.name_edit.text(),
             "gender": self.gender_combo.currentText(),
@@ -82,5 +92,7 @@ class ChildInfoEditor(QWidget):
 
     def showEvent(self, event):
         super().showEvent(event)
-        self.data_controller = DataController()
+        # Оновлюємо DataController при показі екрану
+        if hasattr(self.parent(), 'current_user_id') and self.parent().current_user_id:
+            self.data_controller = DataController(self.parent().current_user_id)
         self.load_child_data()

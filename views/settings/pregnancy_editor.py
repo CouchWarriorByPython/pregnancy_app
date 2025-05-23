@@ -1,10 +1,11 @@
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QFormLayout, QFrame
+from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QFormLayout, QFrame, QMessageBox
 from PyQt6.QtCore import QDate
 from PyQt6.QtGui import QFont
 from controllers.data_controller import DataController
 from datetime import datetime
 from utils.base_widgets import StyledDateEdit, StyledButton, TitleLabel
 from utils.styles import Styles
+
 
 class PregnancyEditor(QWidget):
     def __init__(self, parent=None):
@@ -16,10 +17,10 @@ class PregnancyEditor(QWidget):
 
     def _init_controls(self):
         self.last_period_edit = StyledDateEdit()
-        self.due_date_edit = StyledDateEdit()
         self.conception_edit = StyledDateEdit()
         self.week_label = QLabel("Поточний термін: ? тижнів")
         self.days_left_label = QLabel("До пологів залишилось: ? днів")
+        self.due_date_label = QLabel("Очікувана дата пологів: ?")
 
     def _setup_ui(self):
         main_layout = QVBoxLayout(self)
@@ -47,8 +48,7 @@ class PregnancyEditor(QWidget):
 
         fields = [
             ("Дата останньої менструації:", self.last_period_edit),
-            ("Очікувана дата пологів:", self.due_date_edit),
-            ("Дата зачаття (якщо відома):", self.conception_edit)
+            ("Дата зачаття:", self.conception_edit)
         ]
 
         for label_text, widget in fields:
@@ -75,6 +75,9 @@ class PregnancyEditor(QWidget):
         self.week_label.setStyleSheet(Styles.text_primary())
         info_layout.addWidget(self.week_label)
 
+        self.due_date_label.setStyleSheet(Styles.text_primary())
+        info_layout.addWidget(self.due_date_label)
+
         self.days_left_label.setStyleSheet(Styles.text_primary())
         info_layout.addWidget(self.days_left_label)
 
@@ -83,45 +86,78 @@ class PregnancyEditor(QWidget):
     def load_pregnancy_data(self):
         pregnancy = self.data_controller.pregnancy_data
 
-        dates = [
-            (pregnancy.last_period_date, self.last_period_edit, -280),
-            (pregnancy.due_date, self.due_date_edit, 280 - 40 * 7),
-            (pregnancy.conception_date, self.conception_edit, -266)
-        ]
+        if not pregnancy:
+            # Встановлюємо дефолтні значення
+            self.last_period_edit.setDate(QDate.currentDate().addDays(-280))
+            self.conception_edit.setDate(QDate.currentDate().addDays(-266))
+            self.update_pregnancy_info()
+            return
 
-        for date_val, widget, default_offset in dates:
-            if date_val:
-                qdate = QDate(date_val.year, date_val.month, date_val.day)
-                widget.setDate(qdate)
-            else:
-                widget.setDate(QDate.currentDate().addDays(default_offset))
+        if pregnancy.last_period_date:
+            qdate = QDate(pregnancy.last_period_date.year, pregnancy.last_period_date.month,
+                          pregnancy.last_period_date.day)
+            self.last_period_edit.setDate(qdate)
+        else:
+            self.last_period_edit.setDate(QDate.currentDate().addDays(-280))
+
+        if pregnancy.conception_date:
+            qdate = QDate(pregnancy.conception_date.year, pregnancy.conception_date.month,
+                          pregnancy.conception_date.day)
+            self.conception_edit.setDate(qdate)
+        else:
+            self.conception_edit.setDate(QDate.currentDate().addDays(-266))
 
         self.update_pregnancy_info()
 
     def update_pregnancy_info(self):
+        if not self.data_controller.pregnancy_data:
+            self.week_label.setText("Поточний термін: не визначено")
+            self.due_date_label.setText("Очікувана дата пологів: не визначено")
+            self.days_left_label.setText("До пологів залишилось: не визначено")
+            return
+
         current_week = self.data_controller.get_current_week()
         days_left = self.data_controller.get_days_left()
+        due_date = self.data_controller.pregnancy_data.due_date
 
         self.week_label.setText(f"Поточний термін: {current_week or 'не визначено'} тижнів")
         self.days_left_label.setText(f"До пологів залишилось: {days_left or 'не визначено'} днів")
 
+        if due_date:
+            self.due_date_label.setText(f"Очікувана дата пологів: {due_date.strftime('%d.%m.%Y')}")
+        else:
+            self.due_date_label.setText("Очікувана дата пологів: не визначено")
+
     def save_pregnancy_data(self):
+        if not self.data_controller.pregnancy_data:
+            QMessageBox.warning(self, "Помилка", "Неможливо зберегти дані - користувач не авторизований")
+            return
+
         pregnancy = self.data_controller.pregnancy_data
 
-        dates = [
-            (self.last_period_edit, 'last_period_date'),
-            (self.due_date_edit, 'due_date'),
-            (self.conception_edit, 'conception_date')
-        ]
+        last_period_date = self.last_period_edit.date()
+        conception_date = self.conception_edit.date()
 
-        for widget, attr in dates:
-            date_val = widget.date()
-            setattr(pregnancy, attr, datetime(date_val.year(), date_val.month(), date_val.day()).date())
+        last_period_date_obj = datetime(last_period_date.year(), last_period_date.month(),
+                                        last_period_date.day()).date()
+        conception_date_obj = datetime(conception_date.year(), conception_date.month(), conception_date.day()).date()
+
+        if last_period_date_obj > conception_date_obj:
+            QMessageBox.warning(self, "Помилка",
+                                "Дата останньої менструації не може бути пізніше дати зачаття")
+            return
+
+        pregnancy.last_period_date = last_period_date_obj
+        pregnancy.conception_date = conception_date_obj
 
         self.data_controller.save_pregnancy_data()
         self.update_pregnancy_info()
 
+        QMessageBox.information(self, "Успіх", "Дані успішно збережено")
+
     def showEvent(self, event):
         super().showEvent(event)
-        self.data_controller = DataController()
+        # Оновлюємо DataController при показі екрану
+        if hasattr(self.parent(), 'current_user_id') and self.parent().current_user_id:
+            self.data_controller = DataController(self.parent().current_user_id)
         self.load_pregnancy_data()

@@ -1,4 +1,4 @@
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QRadioButton, QButtonGroup
+from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QRadioButton, QButtonGroup, QMessageBox
 from PyQt6.QtCore import pyqtSignal
 from PyQt6.QtGui import QFont
 from utils.logger import get_logger
@@ -13,6 +13,7 @@ class ChildInfoScreen(QWidget):
 
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.parent = parent
         self._init_controls()
         self._setup_ui()
 
@@ -81,7 +82,18 @@ class ChildInfoScreen(QWidget):
 
         return section
 
+    def _get_current_user_id(self):
+        """Отримуємо ID поточного користувача"""
+        if hasattr(self.parent, 'current_user_id') and self.parent.current_user_id:
+            return self.parent.current_user_id
+        return None
+
     def _on_next_clicked(self):
+        user_id = self._get_current_user_id()
+        if not user_id:
+            QMessageBox.critical(self, "Помилка", "Користувач не авторизований")
+            return
+
         child_data = {
             "name": self.name_input.text().strip(),
             "first_labour": self.first_labour_checkbox.isChecked(),

@@ -1,4 +1,4 @@
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton
+from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QMessageBox
 from PyQt6.QtGui import QFont
 from controllers.data_controller import DataController
 from utils.styles import Styles
@@ -10,15 +10,16 @@ from .child_info_editor import ChildInfoEditor
 class SettingsScreen(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.parent = parent
         self.data_controller = DataController()
         self._init_editors()
         self._setup_ui()
 
     def _init_editors(self):
         self.editors = [
-            ("Профіль", ProfileEditor()),
-            ("Вагітність", PregnancyEditor()),
-            ("Дитина", ChildInfoEditor())
+            ("Профіль", ProfileEditor(self)),
+            ("Вагітність", PregnancyEditor(self)),
+            ("Дитина", ChildInfoEditor(self))
         ]
         for _, editor in self.editors:
             editor.hide()
@@ -31,6 +32,7 @@ class SettingsScreen(QWidget):
         main_layout.addWidget(self._create_header())
         main_layout.addWidget(self._create_tab_selector())
         main_layout.addWidget(self._create_content_container())
+        main_layout.addWidget(self._create_logout_section())
 
         self.set_tab(0)
 
@@ -80,9 +82,40 @@ class SettingsScreen(QWidget):
 
         return self.content_container
 
+    def _create_logout_section(self):
+        logout_section = QWidget()
+        logout_section.setMinimumHeight(80)
+        logout_section.setStyleSheet("background-color: #1a1a1a; border-top: 1px solid #333;")
+
+        layout = QVBoxLayout(logout_section)
+        layout.setContentsMargins(20, 15, 20, 15)
+
+        logout_btn = QPushButton("Вийти з акаунту")
+        logout_btn.setMinimumHeight(50)
+        logout_btn.setStyleSheet(Styles.button_error())
+        logout_btn.clicked.connect(self.logout)
+        layout.addWidget(logout_btn)
+
+        return logout_section
+
+    def logout(self):
+        reply = QMessageBox.question(
+            self,
+            "Підтвердження",
+            "Ви впевнені, що хочете вийти з акаунту?",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+        )
+
+        if reply == QMessageBox.StandardButton.Yes:
+            if hasattr(self.parent, 'logout'):
+                self.parent.logout()
+
     def set_tab(self, index):
         for i, btn in enumerate(self.tab_buttons):
             btn.setChecked(i == index)
 
         for i, (_, editor) in enumerate(self.editors):
             editor.setVisible(i == index)
+
+    def current_user_id(self):
+        return getattr(self.parent, 'current_user_id', None)

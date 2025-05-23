@@ -1,8 +1,8 @@
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QFormLayout
+from PyQt6.QtWidgets import QWidget, QVBoxLayout, QFormLayout, QMessageBox
 from PyQt6.QtCore import pyqtSignal, QDate
 from utils.logger import get_logger
 from utils.base_widgets import (StyledInput, StyledDateEdit, StyledDoubleSpinBox, StyledSpinBox,
-                                StyledCheckBox, StyledButton, TitleLabel, StyledScrollArea)
+                                StyledButton, TitleLabel, StyledScrollArea)
 from utils.styles import Styles
 from datetime import datetime
 from controllers.data_controller import DataController
@@ -15,10 +15,10 @@ class UserInfoScreen(QWidget):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.data_controller = DataController()
+        self.parent = parent
+        self.data_controller = None
         self._init_controls()
         self._setup_ui()
-        self._load_user_data()
 
     def _init_controls(self):
         self.user_name_input = StyledInput("Введіть ваше ім'я")
@@ -33,8 +33,6 @@ class UserInfoScreen(QWidget):
 
         self.cycle_spin = StyledSpinBox(21, 35, " днів")
         self.cycle_spin.setValue(28)
-
-        self.diet_checkboxes = {}
 
     def _setup_ui(self):
         main_layout = QVBoxLayout(self)
@@ -52,9 +50,6 @@ class UserInfoScreen(QWidget):
 
         profile_form = self._create_profile_form()
         form_layout.addLayout(profile_form)
-
-        diet_section = self._create_diet_section()
-        form_layout.addWidget(diet_section)
         form_layout.addStretch(1)
 
         finish_btn = StyledButton("Завершити")
@@ -82,28 +77,25 @@ class UserInfoScreen(QWidget):
 
         return form
 
-    def _create_diet_section(self):
-        from PyQt6.QtWidgets import QLabel
-
-        section = QWidget()
-        layout = QVBoxLayout(section)
-
-        diet_label = QLabel("Дієтичні вподобання:")
-        diet_label.setStyleSheet(Styles.text_primary())
-        layout.addWidget(diet_label)
-
-        diet_options = ["Вегетаріанство", "Веганство", "Безглютенова дієта", "Низьколактозна дієта"]
-        for option in diet_options:
-            checkbox = StyledCheckBox(option)
-            self.diet_checkboxes[option] = checkbox
-            layout.addWidget(checkbox)
-
-        return section
+    def _get_current_user_id(self):
+        """Отримуємо ID поточного користувача"""
+        if hasattr(self.parent, 'current_user_id') and self.parent.current_user_id:
+            return self.parent.current_user_id
+        return None
 
     def _load_user_data(self):
+        """Завантажуємо дані користувача якщо вони є"""
+        user_id = self._get_current_user_id()
+        if not user_id:
+            logger.info("Користувач не авторизований, залишаємо дефолтні значення")
+            return
+
         try:
+            self.data_controller = DataController(user_id)
             profile = self.data_controller.user_profile
+
             if not profile:
+                logger.info("Профіль не знайдено, залишаємо дефолтні значення")
                 return
 
             self.user_name_input.setText(profile.name or "")
@@ -116,10 +108,6 @@ class UserInfoScreen(QWidget):
             self.height_spin.setValue(profile.height or 165)
             self.cycle_spin.setValue(profile.cycle_length or 28)
 
-            diet_preferences = self.data_controller.db.get_diet_preferences()
-            for option, checkbox in self.diet_checkboxes.items():
-                checkbox.setChecked(option in diet_preferences)
-
             logger.info(f"Дані користувача {profile.name} завантажено")
         except Exception as e:
             logger.error(f"Помилка при завантаженні даних користувача: {e}")
@@ -127,33 +115,47 @@ class UserInfoScreen(QWidget):
     def _on_finish_clicked(self):
         logger.info("Натиснуто кнопку 'Завершити'")
 
+        user_id = self._get_current_user_id()
+        if not user_id:
+            QMessageBox.critical(self, "Помилка", "Користувач не авторизований")
+            return
+
         birth_date = self.birth_date_edit.date()
         birth_date_obj = datetime(birth_date.year(), birth_date.month(), birth_date.day()).date()
-
-        diet_preferences = [option for option, checkbox in self.diet_checkboxes.items()
-                            if checkbox.isChecked()]
 
         user_data = {
             "name": self.user_name_input.text().strip(),
             "birth_date": birth_date_obj.isoformat(),
             "weight_before_pregnancy": self.weight_spin.value(),
             "height": self.height_spin.value(),
-            "cycle_length": self.cycle_spin.value(),
-            "diet_preferences": diet_preferences
+            "cycle_length": self.cycle_spin.value()
         }
 
         try:
+            # Ініціалізуємо DataController з правильним user_id
+            if not self.data_controller:
+                self.data_controller = DataController(user_id)
+
             profile = self.data_controller.user_profile
+            if not profile:
+                QMessageBox.critical(self, "Помилка", "Не вдалося знайти профіль користувача")
+                return
+
+            # Оновлюємо дані профілю
             profile.name = user_data["name"]
             profile.birth_date = birth_date_obj
             profile.weight_before_pregnancy = user_data["weight_before_pregnancy"]
             profile.height = user_data["height"]
             profile.cycle_length = user_data["cycle_length"]
 
-            self.data_controller.db.update_diet_preferences(user_data["diet_preferences"])
             self.data_controller.save_user_profile()
 
             logger.info("Профіль користувача збережено")
             self.proceed_signal.emit(user_data)
         except Exception as e:
+            QMessageBox.critical(self, "Помилка", f"Помилка при збереженні даних: {str(e)}")
             logger.error(f"Помилка при збереженні даних користувача: {e}")
+
+    def showEvent(self, event):
+        super().showEvent(event)
+        self._load_user_data()
