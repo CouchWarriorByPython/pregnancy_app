@@ -3,7 +3,6 @@ from PyQt6.QtCore import pyqtSignal, QDate
 from utils.logger import get_logger
 from utils.base_widgets import (StyledInput, StyledDateEdit, StyledDoubleSpinBox, StyledSpinBox,
                                 StyledButton, TitleLabel, StyledScrollArea)
-from utils.styles import Styles
 from datetime import datetime
 from controllers.data_controller import DataController
 

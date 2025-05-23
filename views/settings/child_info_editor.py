@@ -2,7 +2,7 @@ from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QFormLayout, QFrame, Q
 from controllers.data_controller import DataController
 from utils.logger import get_logger
 from utils.base_widgets import StyledInput, StyledComboBox, StyledButton, TitleLabel
-from utils.styles import Styles
+from styles.base import BaseStyles
 
 logger = get_logger('child_info_editor')
 
@@ -38,7 +38,7 @@ class ChildInfoEditor(QWidget):
 
     def _create_form_frame(self):
         form_frame = QFrame()
-        form_frame.setStyleSheet(Styles.card_frame())
+        form_frame.setStyleSheet(BaseStyles.card_frame())
         form_layout = QFormLayout(form_frame)
         form_layout.setSpacing(15)
         form_layout.setContentsMargins(15, 15, 15, 15)
@@ -50,7 +50,7 @@ class ChildInfoEditor(QWidget):
 
         for label_text, widget in fields:
             label = QLabel(label_text)
-            label.setStyleSheet(Styles.text_primary())
+            label.setStyleSheet(BaseStyles.text_primary())
             widget.setMinimumHeight(40)
             form_layout.addRow(label, widget)
 
@@ -62,7 +62,6 @@ class ChildInfoEditor(QWidget):
                 return self.parent.current_user_id()
             else:
                 return self.parent.current_user_id
-        # Якщо parent має parent (MainWindow)
         if hasattr(self.parent, 'parent') and hasattr(self.parent.parent, 'current_user_id'):
             return self.parent.parent.current_user_id
         return None

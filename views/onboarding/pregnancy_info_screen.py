@@ -2,7 +2,7 @@ from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QSpacerItem, QSizePoli
 from PyQt6.QtCore import pyqtSignal, QDate
 from utils.logger import get_logger
 from utils.base_widgets import StyledDateEdit, StyledButton, TitleLabel
-from utils.styles import Styles
+from styles.base import BaseStyles
 from datetime import datetime
 
 logger = get_logger('pregnancy_info_screen')
@@ -30,21 +30,21 @@ class PregnancyInfoScreen(QWidget):
         form_layout.setContentsMargins(0, 0, 0, 0)
 
         last_period_label = QLabel("Дата останньої менструації:")
-        last_period_label.setStyleSheet(Styles.text_primary())
+        last_period_label.setStyleSheet(BaseStyles.text_primary())
 
         self.last_period_edit = StyledDateEdit()
         self.last_period_edit.setDate(QDate.currentDate().addDays(-30))
         form_layout.addRow(last_period_label, self.last_period_edit)
 
         conception_label = QLabel("Дата зачаття:")
-        conception_label.setStyleSheet(Styles.text_primary())
+        conception_label.setStyleSheet(BaseStyles.text_primary())
 
         self.conception_edit = StyledDateEdit()
         self.conception_edit.setDate(QDate.currentDate().addDays(-14))
         form_layout.addRow(conception_label, self.conception_edit)
 
         info_label = QLabel("Дата пологів буде розрахована автоматично на основі дати зачаття")
-        info_label.setStyleSheet(Styles.text_secondary())
+        info_label.setStyleSheet(BaseStyles.text_secondary())
         info_label.setWordWrap(True)
         form_layout.addRow("", info_label)
 
@@ -57,7 +57,6 @@ class PregnancyInfoScreen(QWidget):
         main_layout.addWidget(next_btn)
 
     def _get_current_user_id(self):
-        """Отримуємо ID поточного користувача"""
         if hasattr(self.parent, 'current_user_id'):
             if callable(self.parent.current_user_id):
                 return self.parent.current_user_id()

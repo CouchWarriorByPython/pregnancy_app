@@ -4,7 +4,7 @@ from PyQt6.QtGui import QFont
 from controllers.data_controller import DataController
 from datetime import datetime
 from utils.base_widgets import StyledDateEdit, StyledButton, TitleLabel
-from utils.styles import Styles
+from styles.base import BaseStyles
 from utils.logger import get_logger
 
 logger = get_logger('pregnancy_editor')
@@ -44,7 +44,7 @@ class PregnancyEditor(QWidget):
 
     def _create_form_frame(self):
         form_frame = QFrame()
-        form_frame.setStyleSheet(Styles.card_frame())
+        form_frame.setStyleSheet(BaseStyles.card_frame())
         form_layout = QFormLayout(form_frame)
         form_layout.setSpacing(15)
         form_layout.setContentsMargins(15, 15, 15, 15)
@@ -56,7 +56,7 @@ class PregnancyEditor(QWidget):
 
         for label_text, widget in fields:
             label = QLabel(label_text)
-            label.setStyleSheet(Styles.text_primary())
+            label.setStyleSheet(BaseStyles.text_primary())
             widget.setMinimumHeight(40)
             form_layout.addRow(label, widget)
 
@@ -64,24 +64,24 @@ class PregnancyEditor(QWidget):
 
     def _create_info_frame(self):
         info_frame = QFrame()
-        info_frame.setStyleSheet(Styles.card_frame())
+        info_frame.setStyleSheet(BaseStyles.card_frame())
         info_layout = QVBoxLayout(info_frame)
         info_layout.setContentsMargins(15, 15, 15, 15)
         info_layout.setSpacing(10)
 
         info_title = QLabel("Поточна інформація")
         info_title.setFont(QFont('Arial', 16, QFont.Weight.Bold))
-        info_title.setStyleSheet(Styles.text_accent())
+        info_title.setStyleSheet(BaseStyles.text_accent())
         info_layout.addWidget(info_title)
 
         self.week_label.setFont(QFont('Arial', 14))
-        self.week_label.setStyleSheet(Styles.text_primary())
+        self.week_label.setStyleSheet(BaseStyles.text_primary())
         info_layout.addWidget(self.week_label)
 
-        self.due_date_label.setStyleSheet(Styles.text_primary())
+        self.due_date_label.setStyleSheet(BaseStyles.text_primary())
         info_layout.addWidget(self.due_date_label)
 
-        self.days_left_label.setStyleSheet(Styles.text_primary())
+        self.days_left_label.setStyleSheet(BaseStyles.text_primary())
         info_layout.addWidget(self.days_left_label)
 
         return info_frame
@@ -92,7 +92,6 @@ class PregnancyEditor(QWidget):
                 return self.parent.current_user_id()
             else:
                 return self.parent.current_user_id
-        # Якщо parent має parent (MainWindow)
         if hasattr(self.parent, 'parent') and hasattr(self.parent.parent, 'current_user_id'):
             return self.parent.parent.current_user_id
         return None

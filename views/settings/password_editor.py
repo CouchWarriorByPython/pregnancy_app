@@ -2,7 +2,7 @@ from PyQt6.QtWidgets import QWidget, QVBoxLayout, QFormLayout, QFrame, QMessageB
 from controllers.auth_controller import AuthController
 from utils.logger import get_logger
 from utils.base_widgets import StyledInput, StyledButton, TitleLabel
-from utils.styles import Styles
+from styles.base import BaseStyles
 
 logger = get_logger('password_editor')
 
@@ -47,7 +47,7 @@ class PasswordEditor(QWidget):
 
     def _create_form_frame(self):
         form_frame = QFrame()
-        form_frame.setStyleSheet(Styles.card_frame())
+        form_frame.setStyleSheet(BaseStyles.card_frame())
         form_layout = QFormLayout(form_frame)
         form_layout.setSpacing(15)
         form_layout.setContentsMargins(15, 15, 15, 15)
@@ -110,7 +110,6 @@ class PasswordEditor(QWidget):
                 return self.parent.current_user_id()
             else:
                 return self.parent.current_user_id
-        # Якщо parent має parent (MainWindow)
         if hasattr(self.parent, 'parent') and hasattr(self.parent.parent, 'current_user_id'):
             return self.parent.parent.current_user_id
         return None

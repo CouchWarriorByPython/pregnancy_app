@@ -4,7 +4,8 @@ import platform
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QMessageBox, QHBoxLayout, QSpacerItem, QSizePolicy
 from utils.logger import get_logger
 from utils.base_widgets import TitleLabel, StyledButton
-from utils.styles import Styles
+from styles.tools import KegelExercisesStyles
+from styles.base import BaseStyles
 
 logger = get_logger('kegel_exercises')
 
@@ -21,7 +22,7 @@ class KegelExercisesScreen(QWidget):
         main_layout.setSpacing(20)
 
         title = TitleLabel("Вправи Кегеля", 22)
-        title.setStyleSheet(Styles.title_colored("#9C27B0"))
+        title.setStyleSheet("color: #9C27B0; font-size: 22px; font-weight: bold;")
         main_layout.addWidget(title)
 
         info_text = """
@@ -38,12 +39,7 @@ class KegelExercisesScreen(QWidget):
 
         info_label = QLabel(info_text)
         info_label.setWordWrap(True)
-        info_label.setStyleSheet(f"""
-            color: {Styles.COLORS['text_primary']};
-            background-color: {Styles.COLORS['surface']};
-            padding: 15px;
-            border-radius: 10px;
-        """)
+        info_label.setStyleSheet(KegelExercisesStyles.info_box())
         main_layout.addWidget(info_label)
 
         main_layout.addItem(QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding))
@@ -54,7 +50,7 @@ class KegelExercisesScreen(QWidget):
         open_pdf_btn = StyledButton("Відкрити інструкцію з вправами")
         open_pdf_btn.setMinimumHeight(50)
         open_pdf_btn.setMinimumWidth(250)
-        open_pdf_btn.setStyleSheet(Styles.button_colored_large("#9C27B0", "#7B1FA2"))
+        open_pdf_btn.setStyleSheet(KegelExercisesStyles.exercise_button())
         open_pdf_btn.clicked.connect(self.open_pdf)
 
         button_layout.addWidget(open_pdf_btn)

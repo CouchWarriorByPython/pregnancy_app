@@ -1,6 +1,6 @@
 from PyQt6.QtCore import QTimer, QObject, pyqtSignal
 from PyQt6.QtWidgets import QMessageBox, QSystemTrayIcon
-from datetime import datetime, date, time
+from datetime import datetime, date
 from utils.logger import get_logger
 from utils.email_service import EmailService
 

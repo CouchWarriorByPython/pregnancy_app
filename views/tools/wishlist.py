@@ -6,7 +6,8 @@ from controllers.data_controller import DataController
 from utils.logger import get_logger
 from utils.base_widgets import (StyledCard, StyledInput, StyledComboBox, StyledDoubleSpinBox,
                                 StyledCheckBox, StyledButton, StyledListWidget, TitleLabel)
-from utils.styles import Styles
+from styles.tools import WishlistStyles
+from styles.base import BaseStyles
 
 logger = get_logger('wishlist')
 
@@ -25,7 +26,7 @@ class WishlistScreen(QWidget):
         main_layout.setSpacing(15)
 
         title = TitleLabel("Список бажань", 22)
-        title.setStyleSheet(Styles.title_colored("#673AB7"))
+        title.setStyleSheet("color: #673AB7; font-size: 22px; font-weight: bold;")
         main_layout.addWidget(title)
 
         splitter = QSplitter(Qt.Orientation.Horizontal)
@@ -36,7 +37,7 @@ class WishlistScreen(QWidget):
         left_layout.setContentsMargins(10, 10, 10, 10)
 
         form_frame = StyledCard("Додати нове бажання")
-        form_frame.setStyleSheet(Styles.card_colored("#673AB7"))
+        form_frame.setStyleSheet(WishlistStyles.wishlist_card())
 
         input_form = QFormLayout()
 
@@ -72,7 +73,7 @@ class WishlistScreen(QWidget):
         form_frame.layout.addLayout(input_form)
 
         save_btn = StyledButton("Додати в список")
-        save_btn.setStyleSheet(Styles.button_colored("#673AB7", "#5E35B1"))
+        save_btn.setStyleSheet(WishlistStyles.wishlist_button())
         save_btn.clicked.connect(self.add_wishlist_item)
         form_frame.layout.addWidget(save_btn)
 
@@ -84,11 +85,11 @@ class WishlistScreen(QWidget):
         right_layout.setContentsMargins(10, 10, 10, 10)
 
         list_frame = StyledCard("Ваш список бажань")
-        list_frame.setStyleSheet(Styles.card_colored("#673AB7"))
+        list_frame.setStyleSheet(WishlistStyles.wishlist_card())
 
         filter_layout = QHBoxLayout()
         filter_label = QLabel("Фільтр категорій:")
-        filter_label.setStyleSheet(Styles.text_primary())
+        filter_label.setStyleSheet(BaseStyles.text_primary())
 
         filter_items = ["Всі категорії"] + category_items
         self.filter_combo = StyledComboBox(filter_items)
@@ -134,6 +135,8 @@ class WishlistScreen(QWidget):
             items = self.data_controller.db.get_wishlist_items(category)
             self.wishlist.clear()
 
+            colors = WishlistStyles.priority_colors()
+
             for item in items:
                 priority_text = ""
                 if item['priority'] == 1:
@@ -155,7 +158,7 @@ class WishlistScreen(QWidget):
                 list_item.setData(Qt.ItemDataRole.UserRole, item)
 
                 if item['priority'] == 1:
-                    list_item.setForeground(QColor('#AAAAAA'))
+                    list_item.setForeground(QColor(colors['low']))
                 elif item['priority'] == 3:
                     list_item.setForeground(QColor('#FF9800'))
 
@@ -163,7 +166,7 @@ class WishlistScreen(QWidget):
                     font = list_item.font()
                     font.setStrikeOut(True)
                     list_item.setFont(font)
-                    list_item.setForeground(QColor('#777777'))
+                    list_item.setForeground(QColor(colors['purchased']))
 
                 self.wishlist.addItem(list_item)
 
@@ -276,7 +279,7 @@ class WishlistScreen(QWidget):
             dialog = QDialog(self)
             dialog.setWindowTitle("Редагування товару")
             dialog.setMinimumWidth(400)
-            dialog.setStyleSheet(Styles.dialog_base())
+            dialog.setStyleSheet(BaseStyles.dialog_base())
 
             layout = QVBoxLayout(dialog)
 
@@ -331,10 +334,10 @@ class WishlistScreen(QWidget):
             buttons.button(QDialogButtonBox.StandardButton.Cancel).setText("Скасувати")
 
             ok_btn = buttons.button(QDialogButtonBox.StandardButton.Ok)
-            ok_btn.setStyleSheet(Styles.button_primary())
+            ok_btn.setStyleSheet(BaseStyles.button_primary())
 
             cancel_btn = buttons.button(QDialogButtonBox.StandardButton.Cancel)
-            cancel_btn.setStyleSheet(Styles.button_secondary())
+            cancel_btn.setStyleSheet(BaseStyles.button_secondary())
 
             layout.addWidget(buttons)
 
