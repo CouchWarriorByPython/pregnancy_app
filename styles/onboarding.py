@@ -10,7 +10,7 @@ class OnboardingStyles:
     def main_container():
         return f"""
             QWidget {{
-                background-color: {Colors.BACKGROUND};
+                background: {Colors.BACKGROUND_GRADIENT};
                 color: {Colors.TEXT_PRIMARY};
             }}
         """
@@ -19,11 +19,12 @@ class OnboardingStyles:
     def step_title():
         return f"""
             QLabel {{
-                color: {Colors.TEXT_ACCENT};
-                font-size: 22px;
-                font-weight: bold;
+                color: white;
+                font-size: 26px;
+                font-weight: 700;
                 text-align: center;
                 margin-bottom: 20px;
+                text-shadow: 0 2px 8px rgba(139, 92, 246, 0.5);
             }}
         """
 
@@ -32,9 +33,11 @@ class OnboardingStyles:
         return f"""
             QLabel {{
                 color: {Colors.TEXT_SECONDARY};
-                font-size: 14px;
+                font-size: 16px;
+                font-weight: 500;
                 text-align: center;
                 margin-bottom: 30px;
+                line-height: 1.5;
             }}
         """
 
@@ -42,10 +45,12 @@ class OnboardingStyles:
     def form_section():
         return f"""
             QWidget {{
-                background-color: {Colors.SURFACE};
-                border-radius: 15px;
-                padding: 20px;
-                margin: 10px;
+                background: {Colors.GLASS_SURFACE};
+                border: 1px solid {Colors.GLASS_BORDER};
+                border-radius: 20px;
+                padding: 24px;
+                margin: 12px;
+                backdrop-filter: blur(15px);
             }}
         """
 
@@ -54,9 +59,10 @@ class OnboardingStyles:
         return f"""
             QLabel {{
                 color: {Colors.TEXT_PRIMARY};
-                font-size: 16px;
-                font-weight: bold;
-                margin-bottom: 10px;
+                font-size: 18px;
+                font-weight: 700;
+                margin-bottom: 16px;
+                text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
             }}
         """
 
@@ -66,7 +72,8 @@ class OnboardingStyles:
             QLabel {{
                 color: {Colors.TEXT_SECONDARY};
                 font-size: 14px;
-                margin-bottom: 5px;
+                font-weight: 500;
+                margin-bottom: 8px;
             }}
         """
 
@@ -74,16 +81,23 @@ class OnboardingStyles:
     def onboarding_input():
         return f"""
             QLineEdit {{
-                background-color: {Colors.SURFACE_VARIANT};
-                border: none;
-                border-radius: 8px;
-                padding: 12px;
+                background: {Colors.GLASS_SURFACE};
+                border: 1px solid {Colors.GLASS_BORDER};
+                border-radius: 16px;
+                padding: 16px 20px;
                 color: {Colors.TEXT_PRIMARY};
-                font-size: 14px;
-                min-height: 25px;
+                font-size: 16px;
+                font-weight: 500;
+                min-height: 20px;
+                backdrop-filter: blur(10px);
             }}
             QLineEdit:focus {{
                 border: 2px solid {Colors.PRIMARY};
+                background: rgba(255, 255, 255, 0.12);
+            }}
+            QLineEdit::placeholder {{
+                color: {Colors.TEXT_SECONDARY};
+                font-weight: 400;
             }}
         """
 
@@ -91,20 +105,25 @@ class OnboardingStyles:
     def onboarding_button():
         return f"""
             QPushButton {{
-                background-color: {Colors.PRIMARY};
+                background: {Colors.PRIMARY_GRADIENT};
                 color: white;
                 border: none;
-                border-radius: 15px;
-                padding: 15px;
-                font-weight: bold;
+                border-radius: 20px;
+                padding: 18px 32px;
+                font-weight: 700;
                 font-size: 16px;
-                min-height: 40px;
+                min-height: 20px;
+                text-transform: uppercase;
+                letter-spacing: 1px;
             }}
             QPushButton:hover {{
-                background-color: {Colors.PRIMARY_HOVER};
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #7C3AED, stop:1 #DB2777);
+                transform: translateY(-2px);
+                box-shadow: 0 8px 24px rgba(139, 92, 246, 0.4);
             }}
             QPushButton:pressed {{
-                background-color: {Colors.PRIMARY_PRESSED};
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #6D28D9, stop:1 #BE185D);
+                transform: translateY(0px);
             }}
         """
 
@@ -112,15 +131,18 @@ class OnboardingStyles:
     def back_button():
         return f"""
             QPushButton {{
-                background-color: {Colors.SURFACE_VARIANT};
+                background: {Colors.SURFACE};
                 color: {Colors.TEXT_PRIMARY};
-                border: none;
-                border-radius: 10px;
-                padding: 12px;
-                font-weight: bold;
+                border: 1px solid {Colors.GLASS_BORDER};
+                border-radius: 16px;
+                padding: 14px 24px;
+                font-weight: 600;
+                font-size: 14px;
+                backdrop-filter: blur(10px);
             }}
             QPushButton:hover {{
-                background-color: {Colors.BORDER_HOVER};
+                background: {Colors.SURFACE_HOVER};
+                border: 1px solid {Colors.PRIMARY};
             }}
         """
 
@@ -128,9 +150,11 @@ class OnboardingStyles:
     def progress_indicator():
         return f"""
             QWidget {{
-                background-color: {Colors.SURFACE};
+                background: {Colors.GLASS_SURFACE};
+                border: 1px solid {Colors.GLASS_BORDER};
                 border-radius: 20px;
-                padding: 10px;
+                padding: 16px;
+                backdrop-filter: blur(15px);
             }}
         """
 
@@ -138,12 +162,13 @@ class OnboardingStyles:
     def progress_step_active():
         return f"""
             QLabel {{
-                background-color: {Colors.PRIMARY};
+                background: {Colors.PRIMARY_GRADIENT};
                 color: white;
-                border-radius: 15px;
-                padding: 8px;
-                font-weight: bold;
+                border-radius: 16px;
+                padding: 12px 16px;
+                font-weight: 700;
                 text-align: center;
+                font-size: 14px;
             }}
         """
 
@@ -151,11 +176,14 @@ class OnboardingStyles:
     def progress_step_inactive():
         return f"""
             QLabel {{
-                background-color: {Colors.SURFACE_VARIANT};
+                background: rgba(255, 255, 255, 0.1);
                 color: {Colors.TEXT_SECONDARY};
-                border-radius: 15px;
-                padding: 8px;
+                border: 1px solid {Colors.GLASS_BORDER};
+                border-radius: 16px;
+                padding: 12px 16px;
+                font-weight: 500;
                 text-align: center;
+                font-size: 14px;
             }}
         """
 
@@ -165,10 +193,12 @@ class ChildInfoStyles(OnboardingStyles):
     def gender_section():
         return f"""
             QWidget {{
-                background-color: {Colors.SURFACE};
-                border-radius: 15px;
-                padding: 20px;
-                margin: 10px 0;
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 rgba(236, 72, 153, 0.1), stop:1 rgba(219, 39, 119, 0.05));
+                border: 1px solid rgba(236, 72, 153, 0.3);
+                border-radius: 20px;
+                padding: 24px;
+                margin: 12px 0;
+                backdrop-filter: blur(15px);
             }}
         """
 
@@ -178,18 +208,26 @@ class ChildInfoStyles(OnboardingStyles):
             QRadioButton {{
                 color: {Colors.TEXT_PRIMARY};
                 font-size: 16px;
-                padding: 10px;
-                spacing: 10px;
+                font-weight: 600;
+                padding: 16px;
+                spacing: 16px;
+                border-radius: 12px;
+                margin: 4px 0;
+            }}
+            QRadioButton:hover {{
+                background: rgba(255, 255, 255, 0.05);
             }}
             QRadioButton::indicator {{
-                width: 24px;
-                height: 24px;
-                border-radius: 12px;
-                border: 2px solid {Colors.BORDER};
+                width: 28px;
+                height: 28px;
+                border-radius: 14px;
+                border: 2px solid {Colors.GLASS_BORDER};
+                background: {Colors.GLASS_SURFACE};
+                backdrop-filter: blur(10px);
             }}
             QRadioButton::indicator:checked {{
-                background-color: {Colors.PRIMARY};
-                border: 2px solid {Colors.PRIMARY};
+                background: {Colors.PRIMARY_GRADIENT};
+                border: 3px solid white;
             }}
         """
 
@@ -199,18 +237,29 @@ class ChildInfoStyles(OnboardingStyles):
             QCheckBox {{
                 color: {Colors.TEXT_PRIMARY};
                 font-size: 16px;
-                padding: 15px;
-                spacing: 10px;
+                font-weight: 600;
+                padding: 20px;
+                spacing: 16px;
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 rgba(16, 185, 129, 0.1), stop:1 rgba(5, 150, 105, 0.05));
+                border: 1px solid rgba(16, 185, 129, 0.3);
+                border-radius: 16px;
+                margin: 12px 0;
+                backdrop-filter: blur(10px);
+            }}
+            QCheckBox:hover {{
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 rgba(16, 185, 129, 0.15), stop:1 rgba(5, 150, 105, 0.1));
             }}
             QCheckBox::indicator {{
-                width: 24px;
-                height: 24px;
-                border-radius: 4px;
-                border: 2px solid {Colors.BORDER};
+                width: 28px;
+                height: 28px;
+                border-radius: 8px;
+                border: 2px solid {Colors.GLASS_BORDER};
+                background: {Colors.GLASS_SURFACE};
+                backdrop-filter: blur(10px);
             }}
             QCheckBox::indicator:checked {{
-                background-color: {Colors.SUCCESS};
-                border: 2px solid {Colors.SUCCESS};
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #10B981, stop:1 #059669);
+                border: 3px solid white;
             }}
         """
 
@@ -220,7 +269,7 @@ class UserInfoStyles(OnboardingStyles):
     def form_layout():
         return f"""
             QFormLayout {{
-                spacing: 15px;
+                spacing: 20px;
             }}
         """
 
@@ -228,16 +277,19 @@ class UserInfoStyles(OnboardingStyles):
     def spinbox_input():
         return f"""
             QSpinBox, QDoubleSpinBox {{
-                background-color: {Colors.SURFACE_VARIANT};
-                border: none;
-                border-radius: 8px;
-                padding: 12px;
+                background: {Colors.GLASS_SURFACE};
+                border: 1px solid {Colors.GLASS_BORDER};
+                border-radius: 16px;
+                padding: 16px 20px;
                 color: {Colors.TEXT_PRIMARY};
-                font-size: 14px;
-                min-height: 25px;
+                font-size: 16px;
+                font-weight: 500;
+                min-height: 20px;
+                backdrop-filter: blur(10px);
             }}
             QSpinBox:focus, QDoubleSpinBox:focus {{
                 border: 2px solid {Colors.PRIMARY};
+                background: rgba(255, 255, 255, 0.12);
             }}
         """
 
@@ -245,16 +297,19 @@ class UserInfoStyles(OnboardingStyles):
     def date_input():
         return f"""
             QDateEdit {{
-                background-color: {Colors.SURFACE_VARIANT};
-                border: none;
-                border-radius: 8px;
-                padding: 12px;
+                background: {Colors.GLASS_SURFACE};
+                border: 1px solid {Colors.GLASS_BORDER};
+                border-radius: 16px;
+                padding: 16px 20px;
                 color: {Colors.TEXT_PRIMARY};
-                font-size: 14px;
-                min-height: 25px;
+                font-size: 16px;
+                font-weight: 500;
+                min-height: 20px;
+                backdrop-filter: blur(10px);
             }}
             QDateEdit:focus {{
                 border: 2px solid {Colors.PRIMARY};
+                background: rgba(255, 255, 255, 0.12);
             }}
         """
 
@@ -264,8 +319,8 @@ class PregnancyInfoStyles(OnboardingStyles):
     def date_form():
         return f"""
             QFormLayout {{
-                spacing: 20px;
-                padding: 20px;
+                spacing: 24px;
+                padding: 24px;
             }}
         """
 
@@ -274,11 +329,15 @@ class PregnancyInfoStyles(OnboardingStyles):
         return f"""
             QLabel {{
                 color: {Colors.TEXT_SECONDARY};
-                font-size: 13px;
+                font-size: 14px;
+                font-weight: 500;
                 font-style: italic;
-                padding: 10px;
-                background-color: {Colors.SURFACE_VARIANT};
-                border-radius: 8px;
+                padding: 16px 20px;
+                background: rgba(59, 130, 246, 0.1);
+                border: 1px solid rgba(59, 130, 246, 0.3);
+                border-radius: 12px;
+                backdrop-filter: blur(10px);
+                line-height: 1.5;
             }}
         """
 
@@ -286,14 +345,16 @@ class PregnancyInfoStyles(OnboardingStyles):
     def due_date_display():
         return f"""
             QLabel {{
-                color: {Colors.SUCCESS};
-                font-size: 16px;
-                font-weight: bold;
+                color: white;
+                font-size: 18px;
+                font-weight: 700;
                 text-align: center;
-                padding: 15px;
-                background-color: {Colors.SURFACE};
-                border-radius: 10px;
-                border: 2px solid {Colors.SUCCESS};
+                padding: 20px;
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #10B981, stop:1 #059669);
+                border-radius: 16px;
+                border: 2px solid rgba(255, 255, 255, 0.2);
+                backdrop-filter: blur(15px);
+                text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
             }}
         """
 
@@ -301,10 +362,12 @@ class PregnancyInfoStyles(OnboardingStyles):
     def calculation_method():
         return f"""
             QWidget {{
-                background-color: {Colors.SURFACE};
-                border-radius: 10px;
-                padding: 15px;
-                margin: 10px 0;
+                background: {Colors.GLASS_SURFACE};
+                border: 1px solid {Colors.GLASS_BORDER};
+                border-radius: 16px;
+                padding: 20px;
+                margin: 12px 0;
+                backdrop-filter: blur(15px);
             }}
         """
 
@@ -314,7 +377,7 @@ class WelcomeStyles(OnboardingStyles):
     def welcome_container():
         return f"""
             QWidget {{
-                background-color: {Colors.BACKGROUND};
+                background: {Colors.BACKGROUND_GRADIENT};
                 padding: 40px;
             }}
         """
@@ -323,11 +386,12 @@ class WelcomeStyles(OnboardingStyles):
     def app_title():
         return f"""
             QLabel {{
-                color: {Colors.TEXT_ACCENT};
-                font-size: 28px;
-                font-weight: bold;
+                color: white;
+                font-size: 32px;
+                font-weight: 700;
                 text-align: center;
-                margin-bottom: 20px;
+                margin-bottom: 24px;
+                text-shadow: 0 4px 12px rgba(139, 92, 246, 0.6);
             }}
         """
 
@@ -336,9 +400,10 @@ class WelcomeStyles(OnboardingStyles):
         return f"""
             QLabel {{
                 color: {Colors.TEXT_PRIMARY};
-                font-size: 16px;
+                font-size: 18px;
+                font-weight: 500;
                 text-align: center;
-                line-height: 1.5;
+                line-height: 1.6;
                 margin-bottom: 40px;
             }}
         """
@@ -349,10 +414,14 @@ class WelcomeStyles(OnboardingStyles):
             QLabel {{
                 color: {Colors.TEXT_SECONDARY};
                 font-size: 14px;
-                padding: 20px;
-                background-color: {Colors.SURFACE};
-                border-radius: 10px;
+                font-weight: 500;
+                padding: 24px;
+                background: {Colors.GLASS_SURFACE};
+                border: 1px solid {Colors.GLASS_BORDER};
+                border-radius: 16px;
                 margin: 20px 0;
+                backdrop-filter: blur(15px);
+                line-height: 1.6;
             }}
         """
 
@@ -360,17 +429,21 @@ class WelcomeStyles(OnboardingStyles):
     def start_button():
         return f"""
             QPushButton {{
-                background-color: {Colors.PRIMARY};
+                background: {Colors.PRIMARY_GRADIENT};
                 color: white;
                 border: none;
-                border-radius: 20px;
-                padding: 20px;
-                font-weight: bold;
+                border-radius: 24px;
+                padding: 24px 40px;
+                font-weight: 700;
                 font-size: 18px;
-                min-height: 30px;
+                min-height: 20px;
+                text-transform: uppercase;
+                letter-spacing: 1px;
             }}
             QPushButton:hover {{
-                background-color: {Colors.PRIMARY_HOVER};
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #7C3AED, stop:1 #DB2777);
+                transform: translateY(-3px);
+                box-shadow: 0 12px 32px rgba(139, 92, 246, 0.5);
             }}
         """
 
@@ -378,15 +451,19 @@ class WelcomeStyles(OnboardingStyles):
     def login_button():
         return f"""
             QPushButton {{
-                background-color: transparent;
+                background: transparent;
                 border: 2px solid {Colors.PRIMARY};
                 color: {Colors.PRIMARY};
-                border-radius: 15px;
-                padding: 15px;
-                font-weight: bold;
+                border-radius: 20px;
+                padding: 20px 32px;
+                font-weight: 600;
                 font-size: 16px;
+                backdrop-filter: blur(10px);
             }}
             QPushButton:hover {{
-                background-color: rgba(255, 140, 0, 0.2);
+                background: rgba(139, 92, 246, 0.15);
+                color: white;
+                border: 2px solid {Colors.PRIMARY_HOVER};
+                transform: translateY(-2px);
             }}
         """

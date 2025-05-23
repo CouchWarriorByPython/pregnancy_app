@@ -10,7 +10,7 @@ class AuthStyles:
     def main_container():
         return f"""
             QWidget {{
-                background-color: {Colors.BACKGROUND};
+                background: {Colors.BACKGROUND_GRADIENT};
                 color: {Colors.TEXT_PRIMARY};
             }}
         """
@@ -19,10 +19,11 @@ class AuthStyles:
     def title_label():
         return f"""
             QLabel {{
-                color: {Colors.TEXT_ACCENT};
-                font-size: 24px;
-                font-weight: bold;
+                color: white;
+                font-size: 28px;
+                font-weight: 700;
                 text-align: center;
+                text-shadow: 0 2px 8px rgba(139, 92, 246, 0.5);
             }}
         """
 
@@ -31,8 +32,10 @@ class AuthStyles:
         return f"""
             QLabel {{
                 color: {Colors.TEXT_SECONDARY};
-                font-size: 14px;
+                font-size: 16px;
+                font-weight: 500;
                 text-align: center;
+                line-height: 1.4;
             }}
         """
 
@@ -40,16 +43,23 @@ class AuthStyles:
     def auth_input():
         return f"""
             QLineEdit {{
-                background-color: {Colors.SURFACE_VARIANT};
-                border: none;
-                border-radius: 8px;
-                padding: 15px;
+                background: {Colors.GLASS_SURFACE};
+                border: 1px solid {Colors.GLASS_BORDER};
+                border-radius: 16px;
+                padding: 18px 24px;
                 color: {Colors.TEXT_PRIMARY};
-                font-size: 14px;
+                font-size: 16px;
+                font-weight: 500;
                 min-height: 20px;
+                backdrop-filter: blur(15px);
             }}
             QLineEdit:focus {{
                 border: 2px solid {Colors.PRIMARY};
+                background: rgba(255, 255, 255, 0.12);
+            }}
+            QLineEdit::placeholder {{
+                color: {Colors.TEXT_SECONDARY};
+                font-weight: 400;
             }}
         """
 
@@ -57,20 +67,25 @@ class AuthStyles:
     def auth_button_large():
         return f"""
             QPushButton {{
-                background-color: {Colors.PRIMARY};
+                background: {Colors.PRIMARY_GRADIENT};
                 color: white;
                 border: none;
-                border-radius: 15px;
-                padding: 15px;
-                font-weight: bold;
+                border-radius: 20px;
+                padding: 18px 32px;
+                font-weight: 700;
                 font-size: 16px;
-                min-height: 25px;
+                min-height: 20px;
+                text-transform: uppercase;
+                letter-spacing: 1px;
             }}
             QPushButton:hover {{
-                background-color: {Colors.PRIMARY_HOVER};
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #7C3AED, stop:1 #DB2777);
+                transform: translateY(-2px);
+                box-shadow: 0 8px 24px rgba(139, 92, 246, 0.4);
             }}
             QPushButton:pressed {{
-                background-color: {Colors.PRIMARY_PRESSED};
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #6D28D9, stop:1 #BE185D);
+                transform: translateY(0px);
             }}
         """
 
@@ -78,15 +93,19 @@ class AuthStyles:
     def switch_button():
         return f"""
             QPushButton {{
-                background-color: transparent;
+                background: transparent;
                 border: 2px solid {Colors.PRIMARY};
                 color: {Colors.PRIMARY};
-                border-radius: 10px;
-                padding: 10px;
-                font-weight: bold;
+                border-radius: 16px;
+                padding: 12px 24px;
+                font-weight: 600;
+                font-size: 14px;
+                backdrop-filter: blur(10px);
             }}
             QPushButton:hover {{
-                background-color: rgba(255, 140, 0, 0.2);
+                background: rgba(139, 92, 246, 0.1);
+                border: 2px solid {Colors.PRIMARY_HOVER};
+                color: white;
             }}
         """
 
@@ -94,19 +113,22 @@ class AuthStyles:
     def verification_code_input():
         return f"""
             QLineEdit {{
-                background-color: {Colors.SURFACE_VARIANT};
-                border: 2px solid {Colors.BORDER};
-                border-radius: 10px;
-                padding: 15px;
+                background: {Colors.GLASS_SURFACE};
+                border: 2px solid {Colors.GLASS_BORDER};
+                border-radius: 16px;
+                padding: 20px;
                 color: {Colors.TEXT_PRIMARY};
-                font-size: 18px;
-                font-weight: bold;
-                letter-spacing: 5px;
+                font-size: 24px;
+                font-weight: 700;
+                letter-spacing: 8px;
                 text-align: center;
                 min-height: 20px;
+                backdrop-filter: blur(15px);
             }}
             QLineEdit:focus {{
-                border: 2px solid {Colors.PRIMARY};
+                border: 3px solid {Colors.PRIMARY};
+                background: rgba(255, 255, 255, 0.15);
+                box-shadow: 0 0 20px rgba(139, 92, 246, 0.3);
             }}
         """
 
@@ -114,15 +136,18 @@ class AuthStyles:
     def resend_button():
         return f"""
             QPushButton {{
-                background-color: {Colors.SURFACE_VARIANT};
+                background: {Colors.SURFACE};
                 color: {Colors.TEXT_PRIMARY};
-                border: none;
-                border-radius: 10px;
-                padding: 12px;
-                font-weight: bold;
+                border: 1px solid {Colors.GLASS_BORDER};
+                border-radius: 16px;
+                padding: 14px 24px;
+                font-weight: 600;
+                font-size: 14px;
+                backdrop-filter: blur(10px);
             }}
             QPushButton:hover {{
-                background-color: {Colors.BORDER_HOVER};
+                background: {Colors.SURFACE_HOVER};
+                border: 1px solid {Colors.PRIMARY};
             }}
         """
 
@@ -130,15 +155,18 @@ class AuthStyles:
     def back_button():
         return f"""
             QPushButton {{
-                background-color: transparent;
+                background: transparent;
                 color: {Colors.TEXT_SECONDARY};
                 border: 1px solid {Colors.TEXT_SECONDARY};
-                border-radius: 8px;
-                padding: 10px;
+                border-radius: 12px;
+                padding: 12px 20px;
+                font-weight: 500;
+                font-size: 14px;
             }}
             QPushButton:hover {{
                 color: {Colors.TEXT_PRIMARY};
                 border-color: {Colors.TEXT_PRIMARY};
+                background: rgba(255, 255, 255, 0.05);
             }}
         """
 
@@ -148,9 +176,11 @@ class LoginStyles(AuthStyles):
     def login_form():
         return f"""
             QWidget {{
-                background-color: {Colors.BACKGROUND};
-                border-radius: 20px;
-                padding: 20px;
+                background: {Colors.GLASS_SURFACE};
+                border: 1px solid {Colors.GLASS_BORDER};
+                border-radius: 24px;
+                padding: 32px;
+                backdrop-filter: blur(20px);
             }}
         """
 
@@ -160,6 +190,7 @@ class LoginStyles(AuthStyles):
             QLabel {{
                 color: {Colors.PRIMARY};
                 text-decoration: underline;
+                font-weight: 500;
             }}
             QLabel:hover {{
                 color: {Colors.PRIMARY_HOVER};
@@ -172,9 +203,11 @@ class RegisterStyles(AuthStyles):
     def register_form():
         return f"""
             QWidget {{
-                background-color: {Colors.BACKGROUND};
-                border-radius: 20px;
-                padding: 20px;
+                background: {Colors.GLASS_SURFACE};
+                border: 1px solid {Colors.GLASS_BORDER};
+                border-radius: 24px;
+                padding: 32px;
+                backdrop-filter: blur(20px);
             }}
         """
 
@@ -184,7 +217,11 @@ class RegisterStyles(AuthStyles):
             QLabel {{
                 color: {Colors.TEXT_SECONDARY};
                 font-size: 12px;
-                padding: 5px;
+                font-weight: 500;
+                padding: 8px 12px;
+                background: rgba(255, 255, 255, 0.05);
+                border-radius: 8px;
+                border: 1px solid {Colors.GLASS_BORDER};
             }}
         """
 
@@ -194,9 +231,11 @@ class VerificationStyles(AuthStyles):
     def verification_form():
         return f"""
             QWidget {{
-                background-color: {Colors.BACKGROUND};
-                border-radius: 20px;
-                padding: 20px;
+                background: {Colors.GLASS_SURFACE};
+                border: 1px solid {Colors.GLASS_BORDER};
+                border-radius: 24px;
+                padding: 32px;
+                backdrop-filter: blur(20px);
             }}
         """
 
@@ -205,9 +244,11 @@ class VerificationStyles(AuthStyles):
         return f"""
             QLabel {{
                 color: {Colors.TEXT_SECONDARY};
-                font-size: 14px;
+                font-size: 16px;
+                font-weight: 500;
                 text-align: center;
-                line-height: 1.4;
+                line-height: 1.5;
+                margin: 16px 0;
             }}
         """
 
@@ -216,7 +257,12 @@ class VerificationStyles(AuthStyles):
         return f"""
             QLabel {{
                 color: {Colors.WARNING};
-                font-size: 12px;
+                font-size: 13px;
+                font-weight: 600;
                 text-align: center;
+                background: rgba(245, 158, 11, 0.1);
+                padding: 8px 16px;
+                border-radius: 8px;
+                border: 1px solid rgba(245, 158, 11, 0.3);
             }}
         """

@@ -10,20 +10,26 @@ class ChecklistStyles:
     def tab_button():
         return f"""
             QPushButton {{
-                background-color: {Colors.BACKGROUND};
+                background: rgba(255, 255, 255, 0.05);
                 color: {Colors.TEXT_SECONDARY};
                 border: none;
                 font-size: 14px;
-                padding: 10px;
+                font-weight: 500;
+                padding: 16px 24px;
                 text-align: center;
+                border-radius: 12px;
+                margin: 4px;
             }}
             QPushButton:checked {{
-                background-color: {Colors.SURFACE};
-                color: {Colors.PRIMARY};
-                font-weight: bold;
+                background: {Colors.PRIMARY_GRADIENT};
+                color: white;
+                font-weight: 700;
+                transform: scale(1.02);
+                border: 2px solid rgba(255, 255, 255, 0.2);
             }}
             QPushButton:hover:!checked {{
-                background-color: #1A1A1A;
+                background: rgba(255, 255, 255, 0.1);
+                color: {Colors.TEXT_PRIMARY};
             }}
         """
 
@@ -31,10 +37,15 @@ class ChecklistStyles:
     def progress_bar():
         return f"""
             QLabel {{
-                background-color: {Colors.SURFACE_VARIANT};
-                border-radius: 10px;
-                padding: 0px;
-                text-align: left;
+                background: rgba(255, 255, 255, 0.1);
+                border: 1px solid {Colors.GLASS_BORDER};
+                border-radius: 16px;
+                padding: 4px;
+                text-align: center;
+                color: white;
+                font-weight: 600;
+                font-size: 14px;
+                min-height: 20px;
             }}
         """
 
@@ -42,27 +53,41 @@ class ChecklistStyles:
     def progress_bar_dynamic(progress_percent):
         return f"""
             QLabel {{
-                background-color: {Colors.SURFACE_VARIANT};
-                border-radius: 10px;
-                padding: 0px;
-                text-align: left;
                 background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
-                    stop:0 {Colors.PRIMARY}, stop:{progress_percent / 100} {Colors.PRIMARY},
-                    stop:{progress_percent / 100} {Colors.SURFACE_VARIANT}, stop:1 {Colors.SURFACE_VARIANT});
+                    stop:0 {Colors.PRIMARY}, stop:{progress_percent / 100} {Colors.SECONDARY},
+                    stop:{progress_percent / 100} rgba(255, 255, 255, 0.1), stop:1 rgba(255, 255, 255, 0.1));
+                border: 1px solid {Colors.GLASS_BORDER};
+                border-radius: 16px;
+                padding: 4px;
+                text-align: center;
+                color: white;
+                font-weight: 600;
+                font-size: 14px;
+                min-height: 20px;
             }}
         """
 
     @staticmethod
     def section_title():
-        return "font-family: Arial; font-size: 16px; font-weight: bold;"
+        return f"""
+            font-family: 'Segoe UI', Arial; 
+            font-size: 18px; 
+            font-weight: 700;
+            color: {Colors.TEXT_ACCENT};
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+            margin: 16px 0 12px 0;
+        """
 
     @staticmethod
     def checklist_frame():
         return f"""
             QFrame {{
-                background-color: {Colors.SURFACE};
-                border-radius: 15px;
-                padding: 10px;
+                background: {Colors.GLASS_SURFACE};
+                border: 1px solid {Colors.GLASS_BORDER};
+                border-radius: 20px;
+                padding: 20px;
+                margin: 12px;
+                backdrop-filter: blur(15px);
             }}
         """
 
@@ -72,16 +97,31 @@ class ChecklistStyles:
             QCheckBox {{
                 color: {Colors.TEXT_PRIMARY};
                 font-size: 14px;
-                spacing: 5px;
+                font-weight: 500;
+                spacing: 12px;
+                padding: 8px;
+                border-radius: 8px;
+                margin: 2px 0;
+            }}
+            QCheckBox:hover {{
+                background: rgba(255, 255, 255, 0.05);
             }}
             QCheckBox::indicator {{
-                width: 20px;
-                height: 20px;
-                border-radius: 4px;
-                border: 2px solid {Colors.BORDER};
+                width: 24px;
+                height: 24px;
+                border-radius: 8px;
+                border: 2px solid {Colors.GLASS_BORDER};
+                background: {Colors.GLASS_SURFACE};
+                backdrop-filter: blur(10px);
             }}
             QCheckBox::indicator:checked {{
-                background-color: {Colors.SUCCESS};
-                border: 2px solid {Colors.SUCCESS};
+                background: {Colors.PRIMARY_GRADIENT};
+                border: 2px solid {Colors.PRIMARY};
+            }}
+            QCheckBox::indicator:checked::after {{
+                content: "✓";
+                color: white;
+                font-weight: bold;
+                font-size: 16px;
             }}
         """

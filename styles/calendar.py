@@ -10,18 +10,58 @@ class CalendarStyles:
     def calendar_widget():
         return f"""
             QCalendarWidget {{
-                background-color: {Colors.BACKGROUND};
+                background: {Colors.GLASS_SURFACE};
+                border: 1px solid {Colors.GLASS_BORDER};
+                border-radius: 20px;
+                backdrop-filter: blur(15px);
+                color: {Colors.TEXT_PRIMARY};
+                font-weight: 500;
+                padding: 16px;
             }}
             QCalendarWidget QToolButton {{
                 color: {Colors.TEXT_PRIMARY};
-                background-color: {Colors.SURFACE_VARIANT};
-                border-radius: 5px;
+                background: {Colors.GLASS_SURFACE};
+                border: 1px solid {Colors.GLASS_BORDER};
+                border-radius: 12px;
+                padding: 8px 16px;
+                font-weight: 600;
+                margin: 4px;
+            }}
+            QCalendarWidget QToolButton:hover {{
+                background: {Colors.SURFACE_HOVER};
+                border: 1px solid {Colors.PRIMARY};
             }}
             QCalendarWidget QAbstractItemView:enabled {{
                 color: {Colors.TEXT_PRIMARY};
-                background-color: {Colors.BACKGROUND};
+                background: transparent;
                 selection-background-color: {Colors.PRIMARY};
                 selection-color: white;
+                font-weight: 500;
+            }}
+            QCalendarWidget QAbstractItemView::item {{
+                padding: 8px;
+                border-radius: 8px;
+                margin: 2px;
+            }}
+            QCalendarWidget QAbstractItemView::item:hover {{
+                background: rgba(255, 255, 255, 0.1);
+            }}
+            QCalendarWidget QAbstractItemView::item:selected {{
+                background: {Colors.PRIMARY_GRADIENT};
+                color: white;
+                font-weight: 700;
+            }}
+            QCalendarWidget QWidget#qt_calendar_navigationbar {{
+                background: transparent;
+                border: none;
+            }}
+            QCalendarWidget QSpinBox {{
+                background: {Colors.GLASS_SURFACE};
+                border: 1px solid {Colors.GLASS_BORDER};
+                border-radius: 8px;
+                padding: 4px 8px;
+                color: {Colors.TEXT_PRIMARY};
+                font-weight: 600;
             }}
         """
 
@@ -29,8 +69,10 @@ class CalendarStyles:
     def event_dialog():
         return f"""
             QDialog {{
-                background-color: {Colors.BACKGROUND};
+                background: {Colors.BACKGROUND_GRADIENT};
                 color: {Colors.TEXT_PRIMARY};
+                border-radius: 20px;
+                border: 1px solid {Colors.GLASS_BORDER};
             }}
         """
 
@@ -38,12 +80,16 @@ class CalendarStyles:
     def events_card():
         return f"""
             QFrame {{
-                background-color: {Colors.SURFACE};
-                border-radius: 15px;
-                padding: 15px;
-                margin: 10px;
+                background: {Colors.GLASS_SURFACE};
+                border: 1px solid {Colors.GLASS_BORDER};
+                border-radius: 20px;
+                padding: 20px;
+                margin: 12px;
+                backdrop-filter: blur(15px);
             }}
             QLabel {{
                 color: {Colors.TEXT_PRIMARY};
+                font-weight: 500;
+                line-height: 1.5;
             }}
         """
