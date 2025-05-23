@@ -25,6 +25,7 @@ class HealthReportScreen(QWidget):
         main_layout.setSpacing(15)
 
         title = TitleLabel("Звіт про здоров'я", 22)
+        title.setStyleSheet(Styles.title_colored("#FF5252"))
         main_layout.addWidget(title)
 
         splitter = QSplitter()

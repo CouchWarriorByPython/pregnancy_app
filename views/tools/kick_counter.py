@@ -10,8 +10,6 @@ logger = get_logger('kick_counter')
 
 
 class KickCounterScreen(QWidget):
-    """Екран для підрахунку поштовхів дитини"""
-
     def __init__(self, parent=None):
         super().__init__(parent)
         self.parent = parent
@@ -25,19 +23,18 @@ class KickCounterScreen(QWidget):
         main_layout.setSpacing(15)
 
         title = TitleLabel("Лічильник поштовхів", 22)
-        title.setStyleSheet("color: #4CAF50;")
+        title.setStyleSheet(Styles.title_colored("#4CAF50"))
         main_layout.addWidget(title)
 
         splitter = QSplitter(Qt.Orientation.Horizontal)
         splitter.setChildrenCollapsible(False)
 
-        # === Ліва частина - форма для додавання записів ===
         left_widget = QWidget()
         left_layout = QVBoxLayout(left_widget)
         left_layout.setContentsMargins(10, 10, 10, 10)
 
         form_frame = StyledCard("Записати поштовхи")
-        form_frame.setStyleSheet(form_frame.styleSheet() + "QLabel { color: #4CAF50; }")
+        form_frame.setStyleSheet(Styles.card_colored("#4CAF50"))
 
         info_text = """
         <p>Підрахунок поштовхів дитини допомагає відстежувати її активність і здоров'я.</p>
@@ -78,20 +75,19 @@ class KickCounterScreen(QWidget):
         form_frame.layout.addLayout(kicks_layout)
 
         save_btn = StyledButton("Зберегти запис")
-        save_btn.setStyleSheet("background-color: #4CAF50; QPushButton:hover { background-color: #388E3C; }")
+        save_btn.setStyleSheet(Styles.button_colored("#4CAF50", "#388E3C"))
         save_btn.clicked.connect(self.save_kicks)
         form_frame.layout.addWidget(save_btn)
 
         left_layout.addWidget(form_frame)
         splitter.addWidget(left_widget)
 
-        # === Права частина - список записів ===
         right_widget = QWidget()
         right_layout = QVBoxLayout(right_widget)
         right_layout.setContentsMargins(10, 10, 10, 10)
 
         list_frame = StyledCard("Історія поштовхів")
-        list_frame.setStyleSheet(list_frame.styleSheet() + "QLabel { color: #4CAF50; }")
+        list_frame.setStyleSheet(Styles.card_colored("#4CAF50"))
 
         self.kicks_list = StyledListWidget()
         list_frame.layout.addWidget(self.kicks_list)
@@ -106,7 +102,6 @@ class KickCounterScreen(QWidget):
         main_layout.addWidget(splitter)
 
     def load_kicks(self):
-        """Завантажує історію поштовхів з бази даних"""
         try:
             kicks = self.data_controller.db.get_baby_kicks()
             self.kicks_list.clear()
@@ -122,7 +117,6 @@ class KickCounterScreen(QWidget):
             logger.error(f"Помилка при завантаженні поштовхів: {str(e)}")
 
     def save_kicks(self):
-        """Зберігає новий запис поштовхів"""
         try:
             date_str = self.date_edit.date().toString("yyyy-MM-dd")
             time_str = self.time_edit.time().toString("HH:mm")

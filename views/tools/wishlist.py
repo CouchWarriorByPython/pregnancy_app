@@ -12,8 +12,6 @@ logger = get_logger('wishlist')
 
 
 class WishlistScreen(QWidget):
-    """Екран для управління списком бажань"""
-
     def __init__(self, parent=None):
         super().__init__(parent)
         self.parent = parent
@@ -27,7 +25,7 @@ class WishlistScreen(QWidget):
         main_layout.setSpacing(15)
 
         title = TitleLabel("Список бажань", 22)
-        title.setStyleSheet("color: #673AB7;")
+        title.setStyleSheet(Styles.title_colored("#673AB7"))
         main_layout.addWidget(title)
 
         splitter = QSplitter(Qt.Orientation.Horizontal)
@@ -38,7 +36,7 @@ class WishlistScreen(QWidget):
         left_layout.setContentsMargins(10, 10, 10, 10)
 
         form_frame = StyledCard("Додати нове бажання")
-        form_frame.setStyleSheet(form_frame.styleSheet() + "QLabel { color: #673AB7; }")
+        form_frame.setStyleSheet(Styles.card_colored("#673AB7"))
 
         input_form = QFormLayout()
 
@@ -74,7 +72,7 @@ class WishlistScreen(QWidget):
         form_frame.layout.addLayout(input_form)
 
         save_btn = StyledButton("Додати в список")
-        save_btn.setStyleSheet("background-color: #673AB7; QPushButton:hover { background-color: #5E35B1; }")
+        save_btn.setStyleSheet(Styles.button_colored("#673AB7", "#5E35B1"))
         save_btn.clicked.connect(self.add_wishlist_item)
         form_frame.layout.addWidget(save_btn)
 
@@ -86,7 +84,7 @@ class WishlistScreen(QWidget):
         right_layout.setContentsMargins(10, 10, 10, 10)
 
         list_frame = StyledCard("Ваш список бажань")
-        list_frame.setStyleSheet(list_frame.styleSheet() + "QLabel { color: #673AB7; }")
+        list_frame.setStyleSheet(Styles.card_colored("#673AB7"))
 
         filter_layout = QHBoxLayout()
         filter_label = QLabel("Фільтр категорій:")
@@ -128,7 +126,6 @@ class WishlistScreen(QWidget):
         main_layout.addWidget(splitter)
 
     def load_wishlist(self):
-        """Завантажує список бажань з бази даних"""
         try:
             category = None
             if self.filter_combo.currentIndex() > 0:
@@ -177,7 +174,6 @@ class WishlistScreen(QWidget):
             logger.error(f"Помилка при завантаженні списку бажань: {str(e)}")
 
     def add_wishlist_item(self):
-        """Додає новий елемент до списку бажань"""
         try:
             title = self.title_edit.text().strip()
             if not title:
@@ -218,7 +214,6 @@ class WishlistScreen(QWidget):
             logger.error(f"Помилка при додаванні товару до списку бажань: {str(e)}")
 
     def mark_as_purchased(self):
-        """Позначає вибраний елемент як придбаний"""
         try:
             selected_items = self.wishlist.selectedItems()
 
@@ -244,7 +239,6 @@ class WishlistScreen(QWidget):
             logger.error(f"Помилка при позначенні товару як придбаного: {str(e)}")
 
     def delete_item(self):
-        """Видаляє вибраний елемент зі списку бажань"""
         try:
             selected_items = self.wishlist.selectedItems()
 
@@ -276,18 +270,13 @@ class WishlistScreen(QWidget):
             logger.error(f"Помилка при видаленні товару зі списку бажань: {str(e)}")
 
     def edit_item(self, item):
-        """Редагує вибраний елемент списку бажань"""
         try:
             item_data = item.data(Qt.ItemDataRole.UserRole)
 
             dialog = QDialog(self)
             dialog.setWindowTitle("Редагування товару")
             dialog.setMinimumWidth(400)
-            dialog.setStyleSheet(f"""
-                QDialog {{
-                    background-color: {Styles.COLORS['surface']};
-                }}
-            """)
+            dialog.setStyleSheet(Styles.dialog_base())
 
             layout = QVBoxLayout(dialog)
 

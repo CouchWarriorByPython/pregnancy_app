@@ -1,7 +1,6 @@
-from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QLabel, QAbstractSpinBox,
-                             QLineEdit, QCheckBox, QPushButton, QDateEdit,
+from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QLabel, QLineEdit, QCheckBox, QPushButton, QDateEdit,
                              QDoubleSpinBox, QSpinBox, QFormLayout, QScrollArea)
-from PyQt6.QtCore import pyqtSignal, QDate, Qt
+from PyQt6.QtCore import pyqtSignal, QDate
 from utils.logger import get_logger
 from datetime import datetime
 from controllers.data_controller import DataController

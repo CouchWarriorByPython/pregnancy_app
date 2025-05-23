@@ -34,30 +34,12 @@ class ContractionCounterScreen(QWidget):
 
         title = QLabel("Лічильник переймів")
         title.setFont(QFont('Arial', 22, QFont.Weight.Bold))
-        title.setStyleSheet("color: #2196F3;")
+        title.setStyleSheet(Styles.title_colored("#2196F3"))
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         main_layout.addWidget(title)
 
         tab_widget = QTabWidget()
-        tab_widget.setStyleSheet(f"""
-            QTabWidget::pane {{
-                border: 1px solid {Styles.COLORS['surface_variant']};
-                background-color: {Styles.COLORS['surface']};
-                border-radius: 8px;
-            }}
-            QTabBar::tab {{
-                background-color: {Styles.COLORS['surface_variant']};
-                color: {Styles.COLORS['text_primary']};
-                padding: 8px 15px;
-                margin-right: 2px;
-                border-top-left-radius: 4px;
-                border-top-right-radius: 4px;
-            }}
-            QTabBar::tab:selected {{
-                background-color: #2196F3;
-                color: white;
-            }}
-        """)
+        tab_widget.setStyleSheet(Styles.tab_widget_contraction())
 
         timer_tab = QWidget()
         self.setup_timer_tab(timer_tab)
@@ -86,7 +68,7 @@ class ContractionCounterScreen(QWidget):
         """
         info_label = QLabel(info_text)
         info_label.setWordWrap(True)
-        info_label.setStyleSheet(f"color: white; background-color: {Styles.COLORS['surface_variant']}; padding: 10px; border-radius: 5px;")
+        info_label.setStyleSheet(Styles.info_text_box())
         layout.addWidget(info_label)
 
         timer_frame = QFrame()
@@ -94,8 +76,7 @@ class ContractionCounterScreen(QWidget):
         timer_layout = QVBoxLayout(timer_frame)
 
         self.timer_label = QLabel("00:00")
-        self.timer_label.setFont(QFont('Arial', 40, QFont.Weight.Bold))
-        self.timer_label.setStyleSheet("color: #2196F3;")
+        self.timer_label.setStyleSheet(Styles.timer_display())
         self.timer_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         timer_layout.addWidget(self.timer_label)
 
@@ -103,51 +84,19 @@ class ContractionCounterScreen(QWidget):
         self.progress_bar.setRange(0, 180)
         self.progress_bar.setValue(0)
         self.progress_bar.setTextVisible(False)
-        self.progress_bar.setStyleSheet(f"""
-            QProgressBar {{
-                background-color: {Styles.COLORS['border']};
-                border-radius: 5px;
-                height: 15px;
-            }}
-            QProgressBar::chunk {{
-                background-color: #2196F3;
-                border-radius: 5px;
-            }}
-        """)
+        self.progress_bar.setStyleSheet(Styles.progress_bar_contraction())
         timer_layout.addWidget(self.progress_bar)
 
         buttons_layout = QHBoxLayout()
 
         self.start_btn = QPushButton("Почати перейму")
-        self.start_btn.setStyleSheet(f"""
-            QPushButton {{
-                background-color: {Styles.COLORS['success']};
-                color: white;
-                border-radius: 5px;
-                padding: 10px;
-                font-weight: bold;
-                font-size: 14px;
-            }}
-            QPushButton:hover {{
-                background-color: {Styles.COLORS['success_hover']};
-            }}
-        """)
+        self.start_btn.setStyleSheet(Styles.button_success())
         self.start_btn.clicked.connect(self.start_contraction)
 
         self.stop_btn = QPushButton("Зупинити перейму")
         self.stop_btn.setEnabled(False)
         self.stop_btn.setStyleSheet(f"""
-            QPushButton {{
-                background-color: {Styles.COLORS['error']};
-                color: white;
-                border-radius: 5px;
-                padding: 10px;
-                font-weight: bold;
-                font-size: 14px;
-            }}
-            QPushButton:hover {{
-                background-color: {Styles.COLORS['error_hover']};
-            }}
+            {Styles.button_error()}
             QPushButton:disabled {{
                 background-color: #777777;
                 color: #AAAAAA;
@@ -180,18 +129,7 @@ class ContractionCounterScreen(QWidget):
         timer_layout.addLayout(intensity_layout)
 
         save_btn = QPushButton("Зберегти результат")
-        save_btn.setStyleSheet(f"""
-            QPushButton {{
-                background-color: #2196F3;
-                color: white;
-                border-radius: 5px;
-                padding: 10px;
-                font-weight: bold;
-            }}
-            QPushButton:hover {{
-                background-color: #1976D2;
-            }}
-        """)
+        save_btn.setStyleSheet(Styles.button_colored("#2196F3", "#1976D2"))
         save_btn.clicked.connect(self.save_timed_contraction)
         timer_layout.addWidget(save_btn)
 
@@ -252,18 +190,7 @@ class ContractionCounterScreen(QWidget):
         form_layout.addWidget(self.manual_intensity_spin, 4, 1)
 
         save_btn = QPushButton("Зберегти запис")
-        save_btn.setStyleSheet(f"""
-            QPushButton {{
-                background-color: #2196F3;
-                color: white;
-                border-radius: 5px;
-                padding: 10px;
-                font-weight: bold;
-            }}
-            QPushButton:hover {{
-                background-color: #1976D2;
-            }}
-        """)
+        save_btn.setStyleSheet(Styles.button_colored("#2196F3", "#1976D2"))
         save_btn.clicked.connect(self.save_manual_contraction)
         form_layout.addWidget(save_btn, 5, 0, 1, 2)
 

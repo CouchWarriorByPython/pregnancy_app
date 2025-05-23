@@ -3,6 +3,7 @@ from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QLabel,
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont
 from utils.styles import Styles
+from models.data import CHECKLIST_DATA
 
 
 class CheckItem(QWidget):
@@ -16,21 +17,7 @@ class CheckItem(QWidget):
 
         self.checkbox = QCheckBox()
         self.checkbox.setMinimumSize(30, 30)
-        self.checkbox.setStyleSheet(f"""
-            QCheckBox {{
-                spacing: 5px;
-            }}
-            QCheckBox::indicator {{
-                width: 25px;
-                height: 25px;
-                border-radius: 5px;
-                border: 2px solid {Styles.COLORS['border']};
-            }}
-            QCheckBox::indicator:checked {{
-                background-color: {Styles.COLORS['success']};
-                border: 2px solid {Styles.COLORS['success']};
-            }}
-        """)
+        self.checkbox.setStyleSheet(Styles.checkbox_custom(Styles.COLORS['border'], Styles.COLORS['success']))
         self.checkbox.toggled.connect(self.on_checkbox_toggled)
         layout.addWidget(self.checkbox)
 
@@ -93,12 +80,13 @@ class ChecklistScreen(QWidget):
         trimester_layout.setSpacing(0)
 
         self.trimester_buttons = []
-        for i, name in enumerate(["I Триместр", "II Триместр", "III Триместр"]):
-            btn = QPushButton(name)
+        for i in range(1, 4):
+            trimester_data = CHECKLIST_DATA[i]
+            btn = QPushButton(trimester_data["title"])
             btn.setCheckable(True)
             btn.setFixedHeight(50)
             btn.setStyleSheet(Styles.tab_button())
-            btn.clicked.connect(lambda checked, idx=i: self.set_trimester(idx))
+            btn.clicked.connect(lambda checked, idx=i - 1: self.set_trimester(idx))
             trimester_layout.addWidget(btn)
             self.trimester_buttons.append(btn)
 
@@ -106,20 +94,10 @@ class ChecklistScreen(QWidget):
 
         self.trimester_stack = QStackedWidget()
 
-        first_tab = self.create_trimester_tab("I Триместр")
-        first_tab.setObjectName("trimester_tab_1")
-        second_tab = self.create_trimester_tab("II Триместр")
-        second_tab.setObjectName("trimester_tab_2")
-        third_tab = self.create_trimester_tab("III Триместр")
-        third_tab.setObjectName("trimester_tab_3")
-
-        self.add_first_trimester_items(first_tab)
-        self.add_second_trimester_items(second_tab)
-        self.add_third_trimester_items(third_tab)
-
-        self.trimester_stack.addWidget(first_tab)
-        self.trimester_stack.addWidget(second_tab)
-        self.trimester_stack.addWidget(third_tab)
+        for i in range(1, 4):
+            tab = self.create_trimester_tab(i)
+            tab.setObjectName(f"trimester_tab_{i}")
+            self.trimester_stack.addWidget(tab)
 
         main_layout.addWidget(self.trimester_stack)
         self.set_trimester(0)
@@ -133,7 +111,9 @@ class ChecklistScreen(QWidget):
         self.trimester_stack.setCurrentIndex(index)
         self.update_progress(index)
 
-    def create_trimester_tab(self, title):
+    def create_trimester_tab(self, trimester_number):
+        trimester_data = CHECKLIST_DATA[trimester_number]
+
         tab = QWidget()
         layout = QVBoxLayout(tab)
         layout.setContentsMargins(0, 0, 0, 0)
@@ -143,13 +123,13 @@ class ChecklistScreen(QWidget):
         scroll_area.setStyleSheet(Styles.scroll_area())
 
         content_widget = QWidget()
-        self.content_layout = QVBoxLayout(content_widget)
-        self.content_layout.setContentsMargins(15, 15, 15, 15)
-        self.content_layout.setSpacing(15)
+        content_layout = QVBoxLayout(content_widget)
+        content_layout.setContentsMargins(15, 15, 15, 15)
+        content_layout.setSpacing(15)
 
-        title_label = QLabel(title)
+        title_label = QLabel(trimester_data["title"])
         title_label.setFont(QFont('Arial', 20, QFont.Weight.Bold))
-        self.content_layout.addWidget(title_label)
+        content_layout.addWidget(title_label)
 
         progress_frame = QFrame()
         progress_frame.setStyleSheet(Styles.frame())
@@ -158,188 +138,43 @@ class ChecklistScreen(QWidget):
         progress_title = QLabel("Прогрес:")
         progress_title.setFont(QFont('Arial', 16))
 
-        self.progress_bar = QLabel()
-        self.progress_bar.setObjectName("progress_bar")
-        self.progress_bar.setMinimumHeight(20)
-        self.progress_bar.setStyleSheet(Styles.progress_bar())
+        progress_bar = QLabel()
+        progress_bar.setObjectName("progress_bar")
+        progress_bar.setMinimumHeight(20)
+        progress_bar.setStyleSheet(Styles.progress_bar())
 
-        self.progress_text = QLabel("0% виконано")
-        self.progress_text.setObjectName("progress_text")
-        self.progress_text.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        progress_text = QLabel("0% виконано")
+        progress_text.setObjectName("progress_text")
+        progress_text.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         progress_layout.addWidget(progress_title)
-        progress_layout.addWidget(self.progress_bar)
-        progress_layout.addWidget(self.progress_text)
+        progress_layout.addWidget(progress_bar)
+        progress_layout.addWidget(progress_text)
 
-        self.content_layout.addWidget(progress_frame)
+        content_layout.addWidget(progress_frame)
 
-        self.checklist_section = QFrame()
-        self.checklist_section.setObjectName("checklist_section")
-        self.checklist_section.setStyleSheet(Styles.frame())
-        self.checklist_section.setMaximumWidth(600)
+        checklist_section = QFrame()
+        checklist_section.setObjectName("checklist_section")
+        checklist_section.setStyleSheet(Styles.frame())
+        checklist_section.setMaximumWidth(600)
 
-        self.checklist_layout = QVBoxLayout(self.checklist_section)
+        checklist_layout = QVBoxLayout(checklist_section)
 
-        self.content_layout.addWidget(self.checklist_section)
+        for section in trimester_data["sections"]:
+            section_label = QLabel(section["name"])
+            section_label.setStyleSheet(Styles.section_title())
+            checklist_layout.addWidget(section_label)
+
+            for text, desc in section["items"]:
+                item = CheckItem(text, desc)
+                checklist_layout.addWidget(item)
+
+        content_layout.addWidget(checklist_section)
 
         scroll_area.setWidget(content_widget)
         layout.addWidget(scroll_area)
 
         return tab
-
-    def add_first_trimester_items(self, tab):
-        checklist_layout = tab.findChild(QFrame, "checklist_section").layout()
-
-        analyses_label = QLabel("Аналізи")
-        analyses_label.setFont(QFont('Arial', 16, QFont.Weight.Bold))
-        checklist_layout.addWidget(analyses_label)
-
-        items = [
-            ("Загальний аналіз крові", "До 12 тижнів"),
-            ("Аналіз крові на групу та резус-фактор", "До 12 тижнів"),
-            ("Аналіз крові на ВІЛ", "До 12 тижнів"),
-            ("Аналіз крові на сифіліс", "До 12 тижнів"),
-            ("Загальний аналіз сечі", "До 12 тижнів"),
-            ("Аналіз на TORCH-інфекції", "До 12 тижнів"),
-        ]
-
-        for text, desc in items:
-            item = CheckItem(text, desc)
-            checklist_layout.addWidget(item)
-
-        ultrasound_label = QLabel("УЗД")
-        ultrasound_label.setFont(QFont('Arial', 16, QFont.Weight.Bold))
-        checklist_layout.addWidget(ultrasound_label)
-
-        items = [
-            ("Перше скринінгове УЗД", "11-13 тижнів")
-        ]
-
-        for text, desc in items:
-            item = CheckItem(text, desc)
-            checklist_layout.addWidget(item)
-
-        consult_label = QLabel("Консультації")
-        consult_label.setFont(QFont('Arial', 16, QFont.Weight.Bold))
-        checklist_layout.addWidget(consult_label)
-
-        items = [
-            ("Гінеколог", "Перший візит до 12 тижнів"),
-            ("Терапевт", "До 12 тижнів"),
-            ("Стоматолог", "До 12 тижнів")
-        ]
-
-        for text, desc in items:
-            item = CheckItem(text, desc)
-            checklist_layout.addWidget(item)
-
-    def add_second_trimester_items(self, tab):
-        checklist_layout = tab.findChild(QFrame, "checklist_section").layout()
-        tab.findChild(QFrame, "checklist_section").setMaximumWidth(600)
-
-        analyses_label = QLabel("Аналізи")
-        analyses_label.setFont(QFont('Arial', 16, QFont.Weight.Bold))
-        checklist_layout.addWidget(analyses_label)
-
-        items = [
-            ("Загальний аналіз крові", "16-20 тижнів"),
-            ("Загальний аналіз сечі", "16-20 тижнів"),
-            ("Глюкозотолерантний тест", "24-28 тижнів"),
-            ("Аналіз крові на RW", "20-22 тижні"),
-            ("Аналіз на групу крові", "16-18 тижнів"),
-            ("Аналіз на резус-фактор", "16-18 тижнів"),
-        ]
-
-        for text, desc in items:
-            item = CheckItem(text, desc)
-            checklist_layout.addWidget(item)
-
-        ultrasound_label = QLabel("УЗД")
-        ultrasound_label.setFont(QFont('Arial', 16, QFont.Weight.Bold))
-        checklist_layout.addWidget(ultrasound_label)
-
-        items = [
-            ("Друге скринінгове УЗД", "18-22 тижнів"),
-            ("Доплер-УЗД", "20-24 тижні")
-        ]
-
-        for text, desc in items:
-            item = CheckItem(text, desc)
-            checklist_layout.addWidget(item)
-
-        consult_label = QLabel("Консультації")
-        consult_label.setFont(QFont('Arial', 16, QFont.Weight.Bold))
-        checklist_layout.addWidget(consult_label)
-
-        items = [
-            ("Гінеколог", "Кожні 4 тижні"),
-            ("Окуліст", "До 20 тижнів"),
-            ("Ендокринолог", "18-22 тижні"),
-            ("Терапевт", "20-24 тижні")
-        ]
-
-        for text, desc in items:
-            item = CheckItem(text, desc)
-            checklist_layout.addWidget(item)
-
-        other_label = QLabel("Інше")
-        other_label.setFont(QFont('Arial', 16, QFont.Weight.Bold))
-        checklist_layout.addWidget(other_label)
-
-        items = [
-            ("Придбати одяг для вагітних", "16-20 тижнів"),
-            ("Вибрати пологовий будинок", "18-24 тижні"),
-            ("Записатись на курси для вагітних", "20-24 тижні")
-        ]
-
-        for text, desc in items:
-            item = CheckItem(text, desc)
-            checklist_layout.addWidget(item)
-
-    def add_third_trimester_items(self, tab):
-        checklist_layout = tab.findChild(QFrame, "checklist_section").layout()
-
-        analyses_label = QLabel("Аналізи")
-        analyses_label.setFont(QFont('Arial', 16, QFont.Weight.Bold))
-        checklist_layout.addWidget(analyses_label)
-
-        items = [
-            ("Загальний аналіз крові", "30 тижнів"),
-            ("Загальний аналіз сечі", "30-32 тижнів"),
-            ("Аналіз крові на ВІЛ", "30 тижнів"),
-            ("Аналіз крові на сифіліс", "30 тижнів"),
-            ("Мазок на флору", "30 тижнів")
-        ]
-
-        for text, desc in items:
-            item = CheckItem(text, desc)
-            checklist_layout.addWidget(item)
-
-        ultrasound_label = QLabel("УЗД")
-        ultrasound_label.setFont(QFont('Arial', 16, QFont.Weight.Bold))
-        checklist_layout.addWidget(ultrasound_label)
-
-        items = [
-            ("Третє скринінгове УЗД", "32-34 тижнів"),
-            ("Доплерометрія", "34-36 тижнів")
-        ]
-
-        for text, desc in items:
-            item = CheckItem(text, desc)
-            checklist_layout.addWidget(item)
-
-        consult_label = QLabel("Консультації")
-        consult_label.setFont(QFont('Arial', 16, QFont.Weight.Bold))
-        checklist_layout.addWidget(consult_label)
-
-        items = [
-            ("Гінеколог", "Кожні 2 тижні до 36 тижня, потім щотижня"),
-            ("Консультація анестезіолога", "За 2-3 тижні до пологів")
-        ]
-
-        for text, desc in items:
-            item = CheckItem(text, desc)
-            checklist_layout.addWidget(item)
 
     def update_progress(self, tab_index):
         tab = self.trimester_stack.widget(tab_index)
@@ -365,16 +200,7 @@ class ChecklistScreen(QWidget):
         progress_text = tab.findChild(QLabel, "progress_text")
 
         if progress_bar and progress_text:
-            progress_bar.setStyleSheet(f"""
-                background-color: {Styles.COLORS['surface_variant']};
-                border-radius: 10px;
-                padding: 0px;
-                text-align: left;
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
-                                          stop:0 {Styles.COLORS['primary']}, stop:{progress_percent / 100} {Styles.COLORS['primary']},
-                                          stop:{progress_percent / 100} {Styles.COLORS['surface_variant']}, stop:1 {Styles.COLORS['surface_variant']});
-            """)
-
+            progress_bar.setStyleSheet(Styles.progress_bar_dynamic(progress_percent))
             progress_text.setText(f"{progress_percent}% виконано")
 
     def resizeEvent(self, event):

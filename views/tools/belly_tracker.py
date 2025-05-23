@@ -10,8 +10,6 @@ logger = get_logger('belly_tracker')
 
 
 class BellyTrackerScreen(QWidget):
-    """Екран для відстеження розміру живота"""
-
     def __init__(self, parent=None):
         super().__init__(parent)
         self.parent = parent
@@ -25,19 +23,18 @@ class BellyTrackerScreen(QWidget):
         main_layout.setSpacing(15)
 
         title = TitleLabel("Відстеження розміру живота", 22)
-        title.setStyleSheet("color: #FF9800;")
+        title.setStyleSheet(Styles.title_colored("#FF9800"))
         main_layout.addWidget(title)
 
         splitter = QSplitter(Qt.Orientation.Horizontal)
         splitter.setChildrenCollapsible(False)
 
-        # === Ліва частина - форма для додавання записів ===
         left_widget = QWidget()
         left_layout = QVBoxLayout(left_widget)
         left_layout.setContentsMargins(10, 10, 10, 10)
 
         form_frame = StyledCard("Додати новий запис")
-        form_frame.setStyleSheet(form_frame.styleSheet() + "QLabel { color: #FF9800; }")
+        form_frame.setStyleSheet(Styles.card_colored("#FF9800"))
 
         info_text = """
         <p>Відстеження розміру живота допомагає контролювати ріст дитини протягом вагітності.</p>
@@ -65,20 +62,19 @@ class BellyTrackerScreen(QWidget):
         form_frame.layout.addLayout(input_form)
 
         save_btn = StyledButton("Зберегти запис")
-        save_btn.setStyleSheet("background-color: #FF9800; QPushButton:hover { background-color: #F57C00; }")
+        save_btn.setStyleSheet(Styles.button_colored("#FF9800", "#F57C00"))
         save_btn.clicked.connect(self.save_measurement)
         form_frame.layout.addWidget(save_btn)
 
         left_layout.addWidget(form_frame)
         splitter.addWidget(left_widget)
 
-        # === Права частина - список записів ===
         right_widget = QWidget()
         right_layout = QVBoxLayout(right_widget)
         right_layout.setContentsMargins(10, 10, 10, 10)
 
         list_frame = StyledCard("Історія вимірювань")
-        list_frame.setStyleSheet(list_frame.styleSheet() + "QLabel { color: #FF9800; }")
+        list_frame.setStyleSheet(Styles.card_colored("#FF9800"))
 
         self.measurement_list = StyledListWidget()
         list_frame.layout.addWidget(self.measurement_list)
@@ -93,7 +89,6 @@ class BellyTrackerScreen(QWidget):
         main_layout.addWidget(splitter)
 
     def load_measurements(self):
-        """Завантажує записи про розміри живота з бази даних"""
         try:
             measurements = self.data_controller.db.get_belly_measurements()
             self.measurement_list.clear()
@@ -111,7 +106,6 @@ class BellyTrackerScreen(QWidget):
             logger.error(f"Помилка при завантаженні вимірювань: {str(e)}")
 
     def save_measurement(self):
-        """Зберігає новий запис про розмір живота"""
         try:
             date_str = self.date_edit.date().toString("yyyy-MM-dd")
             measurement = self.measurement_spin.value()

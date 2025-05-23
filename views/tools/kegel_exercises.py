@@ -10,8 +10,6 @@ logger = get_logger('kegel_exercises')
 
 
 class KegelExercisesScreen(QWidget):
-    """Екран для роботи з вправами Кегеля"""
-
     def __init__(self, parent=None):
         super().__init__(parent)
         self.parent = parent
@@ -23,7 +21,7 @@ class KegelExercisesScreen(QWidget):
         main_layout.setSpacing(20)
 
         title = TitleLabel("Вправи Кегеля", 22)
-        title.setStyleSheet("color: #9C27B0;")
+        title.setStyleSheet(Styles.title_colored("#9C27B0"))
         main_layout.addWidget(title)
 
         info_text = """
@@ -56,22 +54,7 @@ class KegelExercisesScreen(QWidget):
         open_pdf_btn = StyledButton("Відкрити інструкцію з вправами")
         open_pdf_btn.setMinimumHeight(50)
         open_pdf_btn.setMinimumWidth(250)
-        open_pdf_btn.setStyleSheet(f"""
-            QPushButton {{
-                background-color: #9C27B0;
-                color: white;
-                border-radius: 25px;
-                font-weight: bold;
-                font-size: 14px;
-                padding: 10px 20px;
-            }}
-            QPushButton:hover {{
-                background-color: #7B1FA2;
-            }}
-            QPushButton:pressed {{
-                background-color: #6A1B9A;
-            }}
-        """)
+        open_pdf_btn.setStyleSheet(Styles.button_colored_large("#9C27B0", "#7B1FA2"))
         open_pdf_btn.clicked.connect(self.open_pdf)
 
         button_layout.addWidget(open_pdf_btn)
@@ -81,7 +64,6 @@ class KegelExercisesScreen(QWidget):
         main_layout.addItem(QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding))
 
     def open_pdf(self):
-        """Відкриває PDF-файл з вправами Кегеля"""
         try:
             pdf_path = os.path.join("resources", "Вправи Кегеля.pdf")
 

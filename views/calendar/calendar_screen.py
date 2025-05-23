@@ -13,12 +13,7 @@ class EventDialog(QDialog):
     def setup_ui(self):
         self.setWindowTitle("Додати подію")
         self.setFixedSize(350, 280)
-        self.setStyleSheet(f"""
-            QDialog {{
-                background-color: {Styles.COLORS['background']};
-                color: {Styles.COLORS['text_primary']};
-            }}
-        """)
+        self.setStyleSheet(Styles.dialog_base())
 
         layout = QVBoxLayout(self)
         layout.setSpacing(15)
@@ -83,22 +78,7 @@ class CalendarScreen(QWidget):
         content_layout.setContentsMargins(10, 10, 10, 10)
 
         self.calendar = QCalendarWidget()
-        self.calendar.setStyleSheet(f"""
-            QCalendarWidget {{
-                background-color: {Styles.COLORS['background']};
-            }}
-            QCalendarWidget QToolButton {{
-                color: {Styles.COLORS['text_primary']};
-                background-color: {Styles.COLORS['surface_variant']};
-                border-radius: 5px;
-            }}
-            QCalendarWidget QAbstractItemView:enabled {{
-                color: {Styles.COLORS['text_primary']};
-                background-color: {Styles.COLORS['background']};
-                selection-background-color: {Styles.COLORS['primary']};
-                selection-color: white;
-            }}
-        """)
+        self.calendar.setStyleSheet(Styles.calendar())
         self.calendar.setGridVisible(True)
         self.calendar.clicked.connect(self.date_clicked)
 

@@ -11,8 +11,6 @@ logger = get_logger('blood_pressure_monitor')
 
 
 class BloodPressureMonitorScreen(QWidget):
-    """Екран для моніторингу артеріального тиску"""
-
     def __init__(self, parent=None):
         super().__init__(parent)
         self.parent = parent
@@ -26,19 +24,18 @@ class BloodPressureMonitorScreen(QWidget):
         main_layout.setSpacing(15)
 
         title = TitleLabel("Моніторинг артеріального тиску", 22)
-        title.setStyleSheet("color: #E91E63;")
+        title.setStyleSheet(Styles.title_colored("#E91E63"))
         main_layout.addWidget(title)
 
         splitter = QSplitter(Qt.Orientation.Horizontal)
         splitter.setChildrenCollapsible(False)
 
-        # === Ліва частина - форма для додавання записів ===
         left_widget = QWidget()
         left_layout = QVBoxLayout(left_widget)
         left_layout.setContentsMargins(10, 10, 10, 10)
 
         form_frame = StyledCard("Додати новий запис")
-        form_frame.setStyleSheet(form_frame.styleSheet() + "QLabel { color: #E91E63; }")
+        form_frame.setStyleSheet(Styles.card_colored("#E91E63"))
 
         info_text = """
         <p>Регулярне вимірювання артеріального тиску важливе під час вагітності для раннього виявлення 
@@ -80,20 +77,19 @@ class BloodPressureMonitorScreen(QWidget):
         form_frame.layout.addItem(QSpacerItem(20, 10, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding))
 
         save_btn = StyledButton("Зберегти запис")
-        save_btn.setStyleSheet("background-color: #E91E63; QPushButton:hover { background-color: #C2185B; }")
+        save_btn.setStyleSheet(Styles.button_colored("#E91E63", "#C2185B"))
         save_btn.clicked.connect(self.save_pressure)
         form_frame.layout.addWidget(save_btn)
 
         left_layout.addWidget(form_frame)
         splitter.addWidget(left_widget)
 
-        # === Права частина - список записів ===
         right_widget = QWidget()
         right_layout = QVBoxLayout(right_widget)
         right_layout.setContentsMargins(10, 10, 10, 10)
 
         list_frame = StyledCard("Історія вимірювань")
-        list_frame.setStyleSheet(list_frame.styleSheet() + "QLabel { color: #E91E63; }")
+        list_frame.setStyleSheet(Styles.card_colored("#E91E63"))
 
         self.pressure_list = StyledListWidget()
         list_frame.layout.addWidget(self.pressure_list)
@@ -122,7 +118,6 @@ class BloodPressureMonitorScreen(QWidget):
         main_layout.addWidget(splitter)
 
     def load_pressure_records(self):
-        """Завантажує записи про тиск з бази даних"""
         try:
             days = self.period_spin.value() if hasattr(self, 'period_spin') else 30
             records = self.data_controller.db.get_blood_pressure(days)
@@ -143,7 +138,6 @@ class BloodPressureMonitorScreen(QWidget):
             logger.error(f"Помилка при завантаженні записів про тиск: {str(e)}")
 
     def save_pressure(self):
-        """Зберігає новий запис про тиск"""
         try:
             date_str = self.date_edit.date().toString("yyyy-MM-dd")
             time_str = self.time_edit.time().toString("HH:mm")

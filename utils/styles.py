@@ -102,6 +102,46 @@ class Styles:
         """
 
     @staticmethod
+    def button_colored(color, hover_color=None):
+        if not hover_color:
+            hover_color = Styles._darken_color(color)
+        return f"""
+            QPushButton {{
+                background-color: {color};
+                color: white;
+                border: none;
+                border-radius: 8px;
+                padding: 8px;
+                min-height: 35px;
+                font-weight: bold;
+            }}
+            QPushButton:hover {{
+                background-color: {hover_color};
+            }}
+        """
+
+    @staticmethod
+    def button_colored_large(color, hover_color=None):
+        if not hover_color:
+            hover_color = Styles._darken_color(color)
+        return f"""
+            QPushButton {{
+                background-color: {color};
+                color: white;
+                border-radius: 25px;
+                font-weight: bold;
+                font-size: 14px;
+                padding: 10px 20px;
+            }}
+            QPushButton:hover {{
+                background-color: {hover_color};
+            }}
+            QPushButton:pressed {{
+                background-color: {Styles._darken_color(hover_color, 0.2)};
+            }}
+        """
+
+    @staticmethod
     def button_circular(color, size=60):
         return f"""
             QPushButton {{
@@ -140,6 +180,46 @@ class Styles:
             }}
             QPushButton:pressed {{
                 background-color: {Styles.COLORS['border_hover']};
+            }}
+        """
+
+    @staticmethod
+    def card_colored(color):
+        return f"""
+            background-color: {Styles.COLORS['surface']};
+            border-radius: 15px;
+            padding: 15px;
+            QLabel {{ color: {color}; }}
+        """
+
+    @staticmethod
+    def title_colored(color, size=22):
+        return f"""
+            color: {color};
+            font-size: {size}px;
+            font-weight: bold;
+        """
+
+    @staticmethod
+    def dialog_base():
+        return f"""
+            QDialog {{
+                background-color: {Styles.COLORS['background']};
+                color: {Styles.COLORS['text_primary']};
+            }}
+        """
+
+    @staticmethod
+    def tool_card_accent(color):
+        return f"""
+            QFrame {{
+                background-color: {Styles.COLORS['surface']};
+                border-radius: 15px;
+                min-height: 150px;
+            }}
+            QLabel#titleLabel {{
+                color: {color};
+                font-weight: bold;
             }}
         """
 
@@ -185,6 +265,26 @@ class Styles:
             QCheckBox::indicator:checked {{
                 background-color: {Styles.COLORS['success']};
                 border: 2px solid {Styles.COLORS['success']};
+            }}
+        """
+
+    @staticmethod
+    def checkbox_custom(border_color, checked_color):
+        return f"""
+            QCheckBox {{
+                color: {Styles.COLORS['text_primary']};
+                font-size: 14px;
+                spacing: 5px;
+            }}
+            QCheckBox::indicator {{
+                width: 25px;
+                height: 25px;
+                border-radius: 5px;
+                border: 2px solid {border_color};
+            }}
+            QCheckBox::indicator:checked {{
+                background-color: {checked_color};
+                border: 2px solid {checked_color};
             }}
         """
 
@@ -249,19 +349,6 @@ class Styles:
         """
 
     @staticmethod
-    def tool_card():
-        return f"""
-            QFrame {{
-                background-color: {Styles.COLORS['surface']};
-                border-radius: 15px;
-                min-height: 150px;
-            }}
-            QLabel#titleLabel {{
-                font-weight: bold;
-            }}
-        """
-
-    @staticmethod
     def header():
         return f"""
             background-color: {Styles.COLORS['background']};
@@ -296,14 +383,6 @@ class Styles:
             border-radius: 10px;
             padding: 0px;
             text-align: left;
-        """
-
-    @staticmethod
-    def splitter():
-        return f"""
-            QSplitter::handle {{
-                background-color: {Styles.COLORS['border']};
-            }}
         """
 
     @staticmethod
@@ -416,7 +495,6 @@ class Styles:
 
     @staticmethod
     def _lighten_color(hex_color, factor=0.2):
-        """Освітлює RGB колір на заданий фактор"""
         hex_color = hex_color.lstrip('#')
         r, g, b = int(hex_color[0:2], 16), int(hex_color[2:4], 16), int(hex_color[4:6], 16)
         r = min(int(r + (255 - r) * factor), 255)
@@ -425,16 +503,176 @@ class Styles:
         return f"#{r:02x}{g:02x}{b:02x}"
 
     @staticmethod
-    def accent_title(color):
-        return f"""
-            color: {color};
-            font-weight: bold;
-        """
+    def _darken_color(hex_color, factor=0.2):
+        hex_color = hex_color.lstrip('#')
+        r, g, b = int(hex_color[0:2], 16), int(hex_color[2:4], 16), int(hex_color[4:6], 16)
+        r = max(int(r * (1 - factor)), 0)
+        g = max(int(g * (1 - factor)), 0)
+        b = max(int(b * (1 - factor)), 0)
+        return f"#{r:02x}{g:02x}{b:02x}"
 
     @staticmethod
-    def form_section():
+    def progress_bar_dynamic(progress_percent):
         return f"""
-            background-color: {Styles.COLORS['surface']};
-            border-radius: 15px;
-            padding: 15px;
-        """
+                background-color: {Styles.COLORS['surface_variant']};
+                border-radius: 10px;
+                padding: 0px;
+                text-align: left;
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                                          stop:0 {Styles.COLORS['primary']}, stop:{progress_percent / 100} {Styles.COLORS['primary']},
+                                          stop:{progress_percent / 100} {Styles.COLORS['surface_variant']}, stop:1 {Styles.COLORS['surface_variant']});
+            """
+
+    @staticmethod
+    def section_title():
+        return """
+                font-family: Arial;
+                font-size: 16px;
+                font-weight: bold;
+            """
+
+    @staticmethod
+    def tab_widget_contraction():
+        return f"""
+                QTabWidget::pane {{
+                    border: 1px solid {Styles.COLORS['surface_variant']};
+                    background-color: {Styles.COLORS['surface']};
+                    border-radius: 8px;
+                }}
+                QTabBar::tab {{
+                    background-color: {Styles.COLORS['surface_variant']};
+                    color: {Styles.COLORS['text_primary']};
+                    padding: 8px 15px;
+                    margin-right: 2px;
+                    border-top-left-radius: 4px;
+                    border-top-right-radius: 4px;
+                }}
+                QTabBar::tab:selected {{
+                    background-color: #2196F3;
+                    color: white;
+                }}
+            """
+
+    @staticmethod
+    def progress_bar_contraction():
+        return f"""
+                QProgressBar {{
+                    background-color: {Styles.COLORS['border']};
+                    border-radius: 5px;
+                    height: 15px;
+                }}
+                QProgressBar::chunk {{
+                    background-color: #2196F3;
+                    border-radius: 5px;
+                }}
+            """
+
+    @staticmethod
+    def info_text_box():
+        return f"""
+                color: white;
+                background-color: {Styles.COLORS['surface_variant']};
+                padding: 10px;
+                border-radius: 5px;
+            """
+
+    @staticmethod
+    def timer_display():
+        return """
+                color: #2196F3;
+                font-family: Arial;
+                font-size: 40px;
+                font-weight: bold;
+            """
+
+    @staticmethod
+    def tool_card_base():
+        return f"""
+                QFrame {{
+                    background-color: {Styles.COLORS['surface']};
+                    border-radius: 15px;
+                    min-height: 150px;
+                }}
+            """
+
+    @staticmethod
+    def tool_card_title(accent_color):
+        return f"""
+                color: {accent_color};
+                font-weight: bold;
+            """
+
+    @staticmethod
+    def tool_card_description():
+        return f"""
+                color: {Styles.COLORS['text_secondary']};
+            """
+
+    @staticmethod
+    def tool_icon_fallback(accent_color):
+        return f"""
+                font-size: 24px;
+                color: {accent_color};
+            """
+
+    @staticmethod
+    def info_card_base():
+        return f"""
+                QFrame {{
+                    background-color: {Styles.COLORS['surface']};
+                    border-radius: 15px;
+                    padding: 10px;
+                }}
+                QLabel {{
+                    color: {Styles.COLORS['text_primary']};
+                }}
+            """
+
+    @staticmethod
+    def info_card_hover():
+        return f"""
+                QFrame {{
+                    background-color: {Styles.COLORS['surface_hover']};
+                    border-radius: 15px;
+                    padding: 10px;
+                    border: 1px solid {Styles.COLORS['primary']};
+                }}
+                QLabel {{
+                    color: {Styles.COLORS['text_primary']};
+                }}
+            """
+
+    @staticmethod
+    def info_card_pressed():
+        return f"""
+                QFrame {{
+                    background-color: {Styles.COLORS['surface_variant']};
+                    border-radius: 15px;
+                    padding: 10px;
+                    border: 1px solid {Styles.COLORS['primary']};
+                }}
+                QLabel {{
+                    color: {Styles.COLORS['text_primary']};
+                }}
+            """
+
+    @staticmethod
+    def settings_tab_button():
+        return f"""
+                QPushButton {{
+                    background-color: {Styles.COLORS['background']};
+                    color: {Styles.COLORS['text_secondary']};
+                    border: none;
+                    font-size: 14px;
+                    padding: 10px;
+                    text-align: center;
+                }}
+                QPushButton:checked {{
+                    background-color: {Styles.COLORS['surface']};
+                    color: {Styles.COLORS['primary']};
+                    font-weight: bold;
+                }}
+                QPushButton:hover:!checked {{
+                    background-color: #1A1A1A;
+                }}
+            """

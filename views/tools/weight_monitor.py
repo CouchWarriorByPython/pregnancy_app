@@ -10,8 +10,6 @@ logger = get_logger('weight_monitor')
 
 
 class WeightMonitorScreen(QWidget):
-    """Екран для моніторингу ваги"""
-
     def __init__(self, parent=None):
         super().__init__(parent)
         self.parent = parent
@@ -25,19 +23,18 @@ class WeightMonitorScreen(QWidget):
         main_layout.setSpacing(15)
 
         title = TitleLabel("Моніторинг ваги", 22)
-        title.setStyleSheet("color: #757575;")
+        title.setStyleSheet(Styles.title_colored("#757575"))
         main_layout.addWidget(title)
 
         splitter = QSplitter(Qt.Orientation.Horizontal)
         splitter.setChildrenCollapsible(False)
 
-        # === Ліва частина - форма для додавання записів ===
         left_widget = QWidget()
         left_layout = QVBoxLayout(left_widget)
         left_layout.setContentsMargins(10, 10, 10, 10)
 
         form_frame = StyledCard("Додати новий запис")
-        form_frame.setStyleSheet(form_frame.styleSheet() + "QLabel { color: #757575; }")
+        form_frame.setStyleSheet(Styles.card_colored("#757575"))
 
         date_layout = QHBoxLayout()
         date_label = QLabel("Дата:")
@@ -63,20 +60,19 @@ class WeightMonitorScreen(QWidget):
         form_frame.layout.addWidget(initial_weight_label)
 
         save_btn = StyledButton("Зберегти запис")
-        save_btn.setStyleSheet("background-color: #757575; QPushButton:hover { background-color: #616161; }")
+        save_btn.setStyleSheet(Styles.button_colored("#757575", "#616161"))
         save_btn.clicked.connect(self.save_weight)
         form_frame.layout.addWidget(save_btn)
 
         left_layout.addWidget(form_frame)
         splitter.addWidget(left_widget)
 
-        # === Права частина - список записів ===
         right_widget = QWidget()
         right_layout = QVBoxLayout(right_widget)
         right_layout.setContentsMargins(10, 10, 10, 10)
 
         list_frame = StyledCard("Історія ваги")
-        list_frame.setStyleSheet(list_frame.styleSheet() + "QLabel { color: #757575; }")
+        list_frame.setStyleSheet(Styles.card_colored("#757575"))
 
         self.weight_list = StyledListWidget()
         list_frame.layout.addWidget(self.weight_list)
@@ -91,7 +87,6 @@ class WeightMonitorScreen(QWidget):
         main_layout.addWidget(splitter)
 
     def load_weight_records(self):
-        """Завантажує всі записи ваги з бази даних"""
         try:
             records = self.data_controller.db.get_weight_records()
             self.weight_list.clear()
@@ -107,7 +102,6 @@ class WeightMonitorScreen(QWidget):
             logger.error(f"Помилка при завантаженні записів ваги: {str(e)}")
 
     def save_weight(self):
-        """Зберігає новий запис ваги"""
         try:
             date_str = self.date_edit.date().toString("yyyy-MM-dd")
             weight = self.weight_spin.value()
