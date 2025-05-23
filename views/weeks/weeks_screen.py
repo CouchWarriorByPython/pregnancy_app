@@ -22,21 +22,23 @@ class InfoCard(QFrame):
     def _setup_ui(self, title, content):
         self.setStyleSheet(WeeksStyles.info_card_base())
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(24, 24, 24, 24)
+        layout.setContentsMargins(30, 30, 30, 30)
+        layout.setSpacing(20)
 
         title_label = QLabel(title)
-        title_label.setFont(QFont('Arial', 16, QFont.Weight.Bold))
+        title_label.setFont(QFont('Arial', 18, QFont.Weight.Bold))
         title_label.setStyleSheet(f"color: {Colors.TEXT_ACCENT}; font-weight: 700;")
+        title_label.setAlignment(Qt.AlignmentFlag.AlignLeft)
 
         content_label = QLabel(content)
         content_label.setWordWrap(True)
         content_label.setFont(QFont('Arial', 14))
-        content_label.setStyleSheet(f"color: {Colors.TEXT_PRIMARY}; font-weight: 500; line-height: 1.5;")
+        content_label.setStyleSheet(f"color: {Colors.TEXT_PRIMARY}; font-weight: 500; line-height: 1.6;")
+        content_label.setAlignment(Qt.AlignmentFlag.AlignLeft)
         content_label.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
 
         layout.addWidget(title_label)
         layout.addWidget(content_label)
-        layout.addStretch()
         self.setMinimumHeight(120)
 
     def enterEvent(self, event):
@@ -178,14 +180,13 @@ class WeeksScreen(QWidget):
         title_card = QFrame()
         title_card.setStyleSheet(WeeksStyles.week_title_card())
         title_card.setFixedWidth(760)
-        title_layout = QVBoxLayout(title_card)
-        title_layout.setContentsMargins(30, 30, 30, 30)
+        title_card.setMinimumHeight(80)
 
-        self.week_title = QLabel(f"Тиждень {self.current_week}")
+        self.week_title = QLabel(f"Тиждень {self.current_week}", title_card)
         self.week_title.setFont(QFont('Arial', 28, QFont.Weight.Bold))
         self.week_title.setStyleSheet(WeeksStyles.week_title(Colors.TEXT_ACCENT))
         self.week_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        title_layout.addWidget(self.week_title)
+        self.week_title.setGeometry(0, 0, 760, 80)
 
         return title_card
 

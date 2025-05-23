@@ -189,6 +189,28 @@ class WeeksStyles:
                 border: 1px solid {Colors.GLASS_BORDER};
                 border-radius: 20px;
                 padding: 0px;
-                margin-top: 10px;
+                margin-top: 15px;
+            }}
+        """
+
+    @staticmethod
+    def fruit_title_container():
+        return f"""
+            QFrame {{
+                background: rgba(139, 92, 246, 0.15);
+                border: 1px solid rgba(139, 92, 246, 0.4);
+                border-radius: 30px;
+                padding: 0px;
+                margin-bottom: 15px;
+            }}
+        """
+
+    @staticmethod
+    def fruit_image_style():
+        return f"""
+            QLabel {{
+                border-radius: 100px;
+                border: 3px solid rgba(255, 255, 255, 0.3);
+                background: rgba(255, 255, 255, 0.1);
             }}
         """

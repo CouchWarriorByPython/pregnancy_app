@@ -23,9 +23,10 @@ class FruitComparisonView(QFrame):
 
         self.main_layout = QVBoxLayout(self)
         self.main_layout.setContentsMargins(30, 30, 30, 30)
-        self.main_layout.setSpacing(20)
+        self.main_layout.setSpacing(25)
         self.main_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
+        # Заголовок безпосередньо в основному блоці
         self.title_label = QLabel()
         self.title_label.setObjectName("fruit_title")
         self.title_label.setFont(QFont('Arial', 20, QFont.Weight.Bold))
@@ -34,13 +35,14 @@ class FruitComparisonView(QFrame):
         self.main_layout.addWidget(self.title_label)
 
         self.content_layout = QHBoxLayout()
-        self.content_layout.setSpacing(40)
+        self.content_layout.setSpacing(30)
         self.content_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.image_label = QLabel()
         self.image_label.setObjectName("fruit_image")
         self.image_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.image_label.setFixedSize(200, 200)
+        self.image_label.setStyleSheet(WeeksStyles.fruit_image_style())
         self.content_layout.addWidget(self.image_label)
 
         self.size_container = QFrame()
@@ -66,20 +68,15 @@ class FruitComparisonView(QFrame):
 
         self.main_layout.addLayout(self.content_layout)
 
-        self.description_container = QFrame()
-        self.description_container.setStyleSheet(WeeksStyles.description_container())
-        self.desc_layout = QVBoxLayout(self.description_container)
-        self.desc_layout.setContentsMargins(20, 20, 20, 20)
-
+        # Опис безпосередньо в основному блоці
         self.description_label = QLabel()
         self.description_label.setObjectName("fruit_description")
         self.description_label.setFont(QFont('Arial', 14))
         self.description_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.description_label.setWordWrap(True)
-        self.description_label.setStyleSheet(f"color: {Colors.TEXT_PRIMARY}; font-weight: 500; line-height: 1.4;")
-        self.desc_layout.addWidget(self.description_label)
-
-        self.main_layout.addWidget(self.description_container)
+        self.description_label.setStyleSheet(
+            f"color: {Colors.TEXT_PRIMARY}; font-weight: 500; line-height: 1.6; padding: 15px 20px; background: {Colors.GLASS_SURFACE}; border: 1px solid {Colors.GLASS_BORDER}; border-radius: 20px; margin-top: 15px;")
+        self.main_layout.addWidget(self.description_label)
 
         self.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Preferred)
 
@@ -102,13 +99,44 @@ class FruitComparisonView(QFrame):
                     pixmap = QPixmap(image_path)
                     if not pixmap.isNull():
                         logger.info(f"Зображення успішно завантажено: {image_path}")
-                        return pixmap.scaled(200, 200, Qt.AspectRatioMode.KeepAspectRatio,
-                                             Qt.TransformationMode.SmoothTransformation)
+                        scaled_pixmap = pixmap.scaled(200, 200, Qt.AspectRatioMode.KeepAspectRatioByExpanding,
+                                                      Qt.TransformationMode.SmoothTransformation)
+                        return self._create_circular_pixmap(scaled_pixmap)
                 except Exception as e:
                     logger.error(f"Помилка завантаження зображення {image_path}: {e}")
 
         logger.warning(f"Не вдалося знайти зображення для тижня {week}, використовуємо запасний варіант")
-        return generate_fruit_image(week, size=200)
+        fallback_pixmap = generate_fruit_image(week, size=200)
+        return self._create_circular_pixmap(fallback_pixmap)
+
+    def _create_circular_pixmap(self, pixmap):
+        """Створює кругле зображення з пікселарта"""
+        from PyQt6.QtGui import QPainter, QBrush, QPainterPath
+
+        size = 200
+        circular_pixmap = QPixmap(size, size)
+        circular_pixmap.fill(Qt.GlobalColor.transparent)
+
+        painter = QPainter(circular_pixmap)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+
+        # Створюємо круглий шлях
+        path = QPainterPath()
+        path.addEllipse(0, 0, size, size)
+        painter.setClipPath(path)
+
+        # Масштабуємо та центруємо зображення
+        if pixmap.width() != size or pixmap.height() != size:
+            pixmap = pixmap.scaled(size, size, Qt.AspectRatioMode.KeepAspectRatioByExpanding,
+                                   Qt.TransformationMode.SmoothTransformation)
+
+        # Центруємо зображення
+        x = (size - pixmap.width()) // 2
+        y = (size - pixmap.height()) // 2
+        painter.drawPixmap(x, y, pixmap)
+
+        painter.end()
+        return circular_pixmap
 
     def _get_possible_image_paths(self, week):
         base_path = "resources/images/fruits"
