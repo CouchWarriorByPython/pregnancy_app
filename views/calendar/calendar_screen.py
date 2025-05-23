@@ -1,5 +1,6 @@
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QHBoxLayout, QCalendarWidget, QDialog
 from PyQt6.QtGui import QFont
+from PyQt6.QtCore import Qt
 from utils.base_widgets import HeaderWidget, StyledButton, StyledInput, StyledComboBox, StyledTimeEdit, StyledCard
 from styles.calendar import CalendarStyles
 from styles.base import BaseStyles
@@ -13,7 +14,8 @@ class EventDialog(QDialog):
 
     def _setup_ui(self):
         self.setWindowTitle("Додати подію")
-        self.setFixedSize(350, 280)
+        # Збільшуємо розмір діалогового вікна
+        self.setFixedSize(450, 380)
         self.setStyleSheet(CalendarStyles.event_dialog())
 
         layout = QVBoxLayout(self)
@@ -66,7 +68,22 @@ class CalendarScreen(QWidget):
         main_layout.setContentsMargins(0, 0, 0, 0)
         main_layout.setSpacing(0)
 
-        main_layout.addWidget(HeaderWidget("Календар"))
+        # Змінюємо заголовок на власний з центруванням
+        header = QWidget()
+        header.setMinimumHeight(60)
+        header.setStyleSheet(BaseStyles.header())
+
+        header_layout = QHBoxLayout(header)
+        header_layout.setContentsMargins(15, 5, 15, 5)
+
+        title_label = QLabel("Календар")
+        title_label.setFont(QFont('Arial', 18, QFont.Weight.Bold))
+        title_label.setStyleSheet(BaseStyles.text_accent())
+        title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        header_layout.addWidget(title_label)
+        main_layout.addWidget(header)
+
         main_layout.addWidget(self._create_content())
 
     def _create_content(self):
