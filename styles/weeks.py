@@ -79,11 +79,15 @@ class WeeksStyles:
     def info_card_base():
         return f"""
             QFrame {{
-                background: {Colors.GLASS_SURFACE};
+                background: transparent;
                 border: 1px solid {Colors.GLASS_BORDER};
                 border-radius: 24px;
                 padding: 0px;
                 margin: 0px;
+            }}
+            QLabel {{
+                background: transparent;
+                border: none;
             }}
         """
 
@@ -91,11 +95,15 @@ class WeeksStyles:
     def info_card_hover():
         return f"""
             QFrame {{
-                background: {Colors.SURFACE_HOVER};
+                background: rgba(255, 255, 255, 0.05);
                 border: 2px solid {Colors.PRIMARY};
                 border-radius: 24px;
                 padding: 0px;
                 margin: 0px;
+            }}
+            QLabel {{
+                background: transparent;
+                border: none;
             }}
         """
 
@@ -103,11 +111,15 @@ class WeeksStyles:
     def info_card_pressed():
         return f"""
             QFrame {{
-                background: rgba(255, 255, 255, 0.25);
+                background: rgba(255, 255, 255, 0.1);
                 border: 2px solid {Colors.PRIMARY};
                 border-radius: 24px;
                 padding: 0px;
                 margin: 0px;
+            }}
+            QLabel {{
+                background: transparent;
+                border: none;
             }}
         """
 

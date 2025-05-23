@@ -22,57 +22,109 @@ class InfoCard(QFrame):
         self.setMouseTracking(True)
 
     def _setup_ui(self):
-        # Головний контейнер
-        main_layout = QVBoxLayout(self)
-        main_layout.setContentsMargins(0, 0, 0, 0)
-        main_layout.setSpacing(8)
+        # Встановлюємо стиль для всього зовнішнього контейнера
+        self.setStyleSheet(f"""
+            QFrame {{
+                background: {Colors.GLASS_SURFACE};
+                border: 1px solid {Colors.GLASS_BORDER};
+                border-radius: 24px;
+                padding: 0px;
+                margin: 0px;
+            }}
+            QLabel {{
+                background: transparent;
+                border: none;
+            }}
+        """)
 
-        # Заголовок зовні блоку
+        # Єдиний layout для всього вмісту
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(30, 30, 30, 30)
+        layout.setSpacing(12)
+
+        # Простий заголовок - як у верхніх блоках
         title_label = QLabel(self.title)
         title_label.setFont(QFont('Arial', 18, QFont.Weight.Bold))
-        title_label.setStyleSheet(f"color: {Colors.TEXT_ACCENT}; font-weight: 700; padding: 0px; background: transparent;")
-        title_label.setAlignment(Qt.AlignmentFlag.AlignLeft)
-        main_layout.addWidget(title_label)
+        title_label.setStyleSheet(f"color: {Colors.TEXT_ACCENT}; font-weight: 700; background: transparent;")
+        layout.addWidget(title_label)
 
-        # Контентний блок
-        content_frame = QFrame()
-        content_frame.setStyleSheet(WeeksStyles.info_card_base())
-        content_layout = QVBoxLayout(content_frame)
-        content_layout.setContentsMargins(30, 30, 30, 30)
-        content_layout.setSpacing(0)
-
+        # Контент
         content_label = QLabel(self.content)
         content_label.setWordWrap(True)
         content_label.setFont(QFont('Arial', 14))
-        content_label.setStyleSheet(f"color: {Colors.TEXT_PRIMARY}; font-weight: 500; line-height: 1.6;")
-        content_label.setAlignment(Qt.AlignmentFlag.AlignLeft)
-        content_label.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        content_label.setStyleSheet(
+            f"color: {Colors.TEXT_PRIMARY}; font-weight: 500; line-height: 1.6; background: transparent;")
+        layout.addWidget(content_label)
 
-        content_layout.addWidget(content_label)
-        main_layout.addWidget(content_frame)
-
-        self.content_frame = content_frame
         self.setMinimumHeight(120)
 
     def enterEvent(self, event):
         self.is_hover = True
-        self.content_frame.setStyleSheet(WeeksStyles.info_card_hover())
+        self.setStyleSheet(f"""
+            QFrame {{
+                background: {Colors.SURFACE_HOVER};
+                border: 1px solid {Colors.GLASS_BORDER};
+                border-radius: 24px;
+                padding: 0px;
+                margin: 0px;
+            }}
+            QLabel {{
+                background: transparent;
+                border: none;
+            }}
+        """)
         super().enterEvent(event)
 
     def leaveEvent(self, event):
         self.is_hover = False
-        self.content_frame.setStyleSheet(WeeksStyles.info_card_base())
+        self.setStyleSheet(f"""
+            QFrame {{
+                background: {Colors.GLASS_SURFACE};
+                border: 1px solid {Colors.GLASS_BORDER};
+                border-radius: 24px;
+                padding: 0px;
+                margin: 0px;
+            }}
+            QLabel {{
+                background: transparent;
+                border: none;
+            }}
+        """)
         super().leaveEvent(event)
 
     def mousePressEvent(self, event):
         if event.button() == Qt.MouseButton.LeftButton:
-            self.content_frame.setStyleSheet(WeeksStyles.info_card_pressed())
+            self.setStyleSheet(f"""
+                QFrame {{
+                    background: rgba(255, 255, 255, 0.25);
+                    border: 1px solid {Colors.GLASS_BORDER};
+                    border-radius: 24px;
+                    padding: 0px;
+                    margin: 0px;
+                }}
+                QLabel {{
+                    background: transparent;
+                    border: none;
+                }}
+            """)
         super().mousePressEvent(event)
 
     def mouseReleaseEvent(self, event):
         if event.button() == Qt.MouseButton.LeftButton:
-            style = WeeksStyles.info_card_hover() if self.is_hover else WeeksStyles.info_card_base()
-            self.content_frame.setStyleSheet(style)
+            style = f"""
+                QFrame {{
+                    background: {Colors.SURFACE_HOVER if self.is_hover else Colors.GLASS_SURFACE};
+                    border: 1px solid {Colors.GLASS_BORDER};
+                    border-radius: 24px;
+                    padding: 0px;
+                    margin: 0px;
+                }}
+                QLabel {{
+                    background: transparent;
+                    border: none;
+                }}
+            """
+            self.setStyleSheet(style)
         super().mouseReleaseEvent(event)
 
 
@@ -158,12 +210,16 @@ class WeeksScreen(QWidget):
         scroll_area.setStyleSheet(BaseStyles.scroll_area())
 
         content_widget = QWidget()
+        content_widget.setStyleSheet("background: transparent;")  # Прозорий фон для основного контейнера
+
         self.content_layout = QVBoxLayout(content_widget)
         self.content_layout.setContentsMargins(20, 20, 20, 20)
         self.content_layout.setSpacing(16)
 
         content_container = QWidget()
         content_container.setFixedWidth(760)
+        content_container.setStyleSheet("background: transparent;")  # Прозорий фон для контейнера карток
+
         self.inner_layout = QVBoxLayout(content_container)
         self.inner_layout.setContentsMargins(0, 0, 0, 0)
         self.inner_layout.setSpacing(16)
@@ -174,6 +230,7 @@ class WeeksScreen(QWidget):
         self.fruit_comparison_view = None
 
         cards_section = QWidget()
+        cards_section.setStyleSheet("background: transparent;")  # Прозорий фон для секції карток
         self.cards_layout = QVBoxLayout(cards_section)
         self.cards_layout.setContentsMargins(0, 0, 0, 0)
         self.cards_layout.setSpacing(12)
@@ -249,11 +306,14 @@ class WeeksScreen(QWidget):
 
         if fruit_data:
             fruit_data.update(size_data)
+            # Завжди створюємо новий віджет для порівняння з фруктом
             if self.fruit_comparison_view:
-                self.fruit_comparison_view.update_fruit_data(week, fruit_data)
-            else:
-                self.fruit_comparison_view = FruitComparisonView(week, fruit_data)
-                self.inner_layout.insertWidget(1, self.fruit_comparison_view)
+                self.fruit_comparison_view.deleteLater()
+
+            self.fruit_comparison_view = FruitComparisonView(week, fruit_data)
+            self.inner_layout.insertWidget(1, self.fruit_comparison_view)
+            # Робимо видимим
+            self.fruit_comparison_view.setVisible(True)
 
     def _create_info_cards(self, week):
         child_info = self.data_controller.get_child_info()
@@ -279,7 +339,6 @@ class WeeksScreen(QWidget):
 
         for card_data in cards_data:
             card = InfoCard(card_data["title"], card_data["content"])
-            card.setStyleSheet("background: transparent; border: none;")  # Прибираємо стилі з основного контейнера
             self.cards_layout.addWidget(card)
 
     def week_changed(self, week):
