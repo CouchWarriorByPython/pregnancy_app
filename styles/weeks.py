@@ -52,14 +52,26 @@ class WeeksStyles:
         """
 
     @staticmethod
-    def fruit_comparison_card():
+    def week_title_card():
         return f"""
-            QWidget {{
+            QFrame {{
                 background: {Colors.GLASS_SURFACE};
                 border: 1px solid {Colors.GLASS_BORDER};
                 border-radius: 24px;
-                padding: 24px;
-                margin: 16px;
+                padding: 0px;
+                margin: 0px;
+            }}
+        """
+
+    @staticmethod
+    def fruit_comparison_card():
+        return f"""
+            QFrame {{
+                background: {Colors.GLASS_SURFACE};
+                border: 1px solid {Colors.GLASS_BORDER};
+                border-radius: 24px;
+                padding: 0px;
+                margin: 0px;
             }}
         """
 
@@ -69,9 +81,9 @@ class WeeksStyles:
             QFrame {{
                 background: {Colors.GLASS_SURFACE};
                 border: 1px solid {Colors.GLASS_BORDER};
-                border-radius: 20px;
+                border-radius: 24px;
                 padding: 0px;
-                margin: 8px;
+                margin: 0px;
             }}
         """
 
@@ -81,9 +93,9 @@ class WeeksStyles:
             QFrame {{
                 background: {Colors.SURFACE_HOVER};
                 border: 2px solid {Colors.PRIMARY};
-                border-radius: 20px;
+                border-radius: 24px;
                 padding: 0px;
-                margin: 8px;
+                margin: 0px;
             }}
         """
 
@@ -93,9 +105,9 @@ class WeeksStyles:
             QFrame {{
                 background: rgba(255, 255, 255, 0.25);
                 border: 2px solid {Colors.PRIMARY};
-                border-radius: 20px;
+                border-radius: 24px;
                 padding: 0px;
-                margin: 8px;
+                margin: 0px;
             }}
         """
 
@@ -103,7 +115,7 @@ class WeeksStyles:
     def week_title(color):
         return f"""
             color: {color}; 
-            font-size: 24px; 
+            font-size: 28px; 
             font-weight: 700;
         """
 
@@ -154,5 +166,29 @@ class WeeksStyles:
                 padding: 8px 16px;
                 border-radius: 12px;
                 border: 1px solid rgba(139, 92, 246, 0.3);
+            }}
+        """
+
+    @staticmethod
+    def size_info_container():
+        return f"""
+            QFrame {{
+                background: rgba(139, 92, 246, 0.1);
+                border: 1px solid rgba(139, 92, 246, 0.3);
+                border-radius: 20px;
+                padding: 0px;
+                min-width: 200px;
+            }}
+        """
+
+    @staticmethod
+    def description_container():
+        return f"""
+            QFrame {{
+                background: {Colors.GLASS_SURFACE};
+                border: 1px solid {Colors.GLASS_BORDER};
+                border-radius: 20px;
+                padding: 0px;
+                margin-top: 10px;
             }}
         """

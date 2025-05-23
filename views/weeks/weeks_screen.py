@@ -21,7 +21,7 @@ class InfoCard(QFrame):
     def _setup_ui(self, title, content):
         self.setStyleSheet(WeeksStyles.info_card_base())
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(20, 20, 20, 20)
+        layout.setContentsMargins(24, 24, 24, 24)
 
         title_label = QLabel(title)
         title_label.setFont(QFont('Arial', 16, QFont.Weight.Bold))
@@ -90,6 +90,7 @@ class WeeksScreen(QWidget):
     def _create_week_selector(self):
         week_selector = QWidget()
         week_selector.setMaximumHeight(100)
+        week_selector.setStyleSheet(WeeksStyles.week_selector())
         layout = QHBoxLayout(week_selector)
         layout.setContentsMargins(10, 10, 10, 10)
 
@@ -142,31 +143,44 @@ class WeeksScreen(QWidget):
 
         content_widget = QWidget()
         self.content_layout = QVBoxLayout(content_widget)
-        self.content_layout.setContentsMargins(15, 15, 15, 15)
-        self.content_layout.setSpacing(15)
+        self.content_layout.setContentsMargins(20, 20, 20, 20)
+        self.content_layout.setSpacing(16)
+
+        content_container = QWidget()
+        content_container.setMaximumWidth(800)
+        self.inner_layout = QVBoxLayout(content_container)
+        self.inner_layout.setContentsMargins(0, 0, 0, 0)
+        self.inner_layout.setSpacing(16)
 
         self.week_title_card = self._create_week_title_card()
-        self.content_layout.addWidget(self.week_title_card)
+        self.inner_layout.addWidget(self.week_title_card)
 
         self.fruit_comparison_view = None
 
         cards_section = QWidget()
         self.cards_layout = QVBoxLayout(cards_section)
         self.cards_layout.setContentsMargins(0, 0, 0, 0)
-        self.cards_layout.setSpacing(10)
+        self.cards_layout.setSpacing(12)
 
-        self.content_layout.addWidget(cards_section)
+        self.inner_layout.addWidget(cards_section)
+
+        layout_container = QHBoxLayout()
+        layout_container.addStretch()
+        layout_container.addWidget(content_container)
+        layout_container.addStretch()
+        self.content_layout.addLayout(layout_container)
+
         scroll_area.setWidget(content_widget)
         return scroll_area
 
     def _create_week_title_card(self):
         title_card = QFrame()
-        title_card.setStyleSheet(WeeksStyles.info_card_base())
+        title_card.setStyleSheet(WeeksStyles.week_title_card())
         title_layout = QVBoxLayout(title_card)
-        title_layout.setContentsMargins(20, 20, 20, 20)
+        title_layout.setContentsMargins(30, 30, 30, 30)
 
         self.week_title = QLabel(f"Тиждень {self.current_week}")
-        self.week_title.setFont(QFont('Arial', 24, QFont.Weight.Bold))
+        self.week_title.setFont(QFont('Arial', 28, QFont.Weight.Bold))
         self.week_title.setStyleSheet(WeeksStyles.week_title(Colors.TEXT_ACCENT))
         self.week_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         title_layout.addWidget(self.week_title)
@@ -223,7 +237,7 @@ class WeeksScreen(QWidget):
                 self.fruit_comparison_view.update_fruit_data(week, fruit_data)
             else:
                 self.fruit_comparison_view = FruitComparisonView(week, fruit_data)
-                self.content_layout.insertWidget(2, self.fruit_comparison_view)
+                self.inner_layout.insertWidget(1, self.fruit_comparison_view)
 
     def _create_info_cards(self, week):
         child_info = self.data_controller.get_child_info()
@@ -277,34 +291,27 @@ class WeeksScreen(QWidget):
         if 0 <= new_index < len(self.available_weeks):
             new_week = self.available_weeks[new_index]
 
-            # Оновлюємо поточний тиждень
             self.current_week = new_week
 
-            # Перевіряємо чи потрібно оновити видимі кнопки
             visible_weeks = [btn.week for btn in self.week_btns]
             if new_week not in visible_weeks:
                 self._rebuild_week_buttons()
 
-            # Оновлюємо контент та стан кнопок
             self.update_content(new_week)
             self._update_buttons_state()
 
     def _rebuild_week_buttons(self):
-        # Видаляємо старі кнопки
         for btn in self.week_btns:
             btn.deleteLater()
         self.week_btns.clear()
 
-        # Отримуємо layout селектора тижнів
         week_selector_layout = self.layout().itemAt(0).widget().layout()
 
-        # Видаляємо кнопки тижнів з layout (залишаємо стрілочки)
         for i in reversed(range(1, week_selector_layout.count() - 1)):
             item = week_selector_layout.itemAt(i)
             if item and item.widget():
                 item.widget().deleteLater()
 
-        # Створюємо нові кнопки для нового діапазону
         current_index = self.available_weeks.index(self.current_week)
         visible_weeks = self._get_visible_weeks_range(current_index)
 
