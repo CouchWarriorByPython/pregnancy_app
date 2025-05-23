@@ -1,8 +1,8 @@
 import os
 import sys
-from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
-                             QHBoxLayout, QPushButton, QStackedWidget, QMessageBox, QSizePolicy)
-from PyQt6.QtCore import QSize, QEvent
+from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QStackedWidget, \
+    QMessageBox, QSizePolicy
+from PyQt6.QtCore import QSize
 from PyQt6.QtGui import QIcon
 
 from views.weeks.weeks_screen import WeeksScreen
@@ -27,209 +27,145 @@ class MainWindow(QMainWindow):
         super().__init__()
         logger.info("Запуск додатку 'Щоденник вагітності'")
         self.data_controller = DataController()
-        self.init_ui()
+        self._setup_window()
+        self._create_screens()
+        self._setup_navigation()
+        self._setup_layout()
+        self._handle_first_launch()
 
-    def init_ui(self):
+    def _setup_window(self):
         self.setWindowTitle("Щоденник вагітності")
-
         screen_size = QApplication.primaryScreen().availableSize()
-        window_width = min(390, screen_size.width() - 40)
-        window_height = min(844, screen_size.height() - 60)
-        self.resize(window_width, window_height)
+        self.resize(min(390, screen_size.width() - 40), min(844, screen_size.height() - 60))
 
+    def _create_screens(self):
+        self.stack_widget = QStackedWidget()
+
+        self.screens = {
+            'child_info': ChildInfoScreen(self),
+            'user_info': UserInfoScreen(self),
+            'weeks': WeeksScreen(self),
+            'calendar': CalendarScreen(self),
+            'tools': ToolsScreen(self),
+            'checklist': ChecklistScreen(self),
+            'settings': SettingsScreen(self),
+            'pregnancy_info': PregnancyInfoScreen(self)
+        }
+
+        for screen in self.screens.values():
+            self.stack_widget.addWidget(screen)
+
+        self.screens['child_info'].proceed_signal.connect(self.on_child_info_completed)
+        self.screens['user_info'].proceed_signal.connect(self.on_user_info_completed)
+        self.screens['pregnancy_info'].proceed_signal.connect(self.on_pregnancy_info_completed)
+
+    def _setup_navigation(self):
+        nav_items = [
+            {"icon": "resources/images/icons/weeks.png", "text": "Тижні", "screen": "weeks"},
+            {"icon": "resources/images/icons/calendar.png", "text": "Календар", "screen": "calendar"},
+            {"icon": "resources/images/icons/tools.png", "text": "Інструменти", "screen": "tools"},
+            {"icon": "resources/images/icons/checklist.png", "text": "Чекліст", "screen": "checklist"},
+            {"icon": "resources/images/icons/settings.png", "text": "Налаштування", "screen": "settings"}
+        ]
+
+        self.nav_buttons = []
+        self.bottom_nav = QWidget()
+        self.bottom_nav.setMinimumHeight(70)
+        self.bottom_nav.setStyleSheet(Styles.nav_bottom())
+
+        nav_layout = QHBoxLayout(self.bottom_nav)
+        nav_layout.setContentsMargins(5, 5, 5, 5)
+        nav_layout.setSpacing(2)
+
+        for item in nav_items:
+            button = self._create_nav_button(item)
+            nav_layout.addWidget(button)
+            self.nav_buttons.append(button)
+
+    def _create_nav_button(self, item):
+        button = QPushButton()
+        button.setCheckable(True)
+        button.setFixedHeight(60)
+        button.setMinimumWidth(60)
+        button.setSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed)
+
+        if os.path.exists(item["icon"]):
+            button.setIcon(QIcon(item["icon"]))
+            button.setIconSize(QSize(22, 22))
+
+        button.setText(item["text"])
+        button.setStyleSheet(Styles.nav_button())
+        button.clicked.connect(lambda: self.navigate_to(item["screen"]))
+        return button
+
+    def _setup_layout(self):
         main_widget = QWidget()
         self.main_layout = QVBoxLayout(main_widget)
         self.main_layout.setContentsMargins(0, 0, 0, 0)
         self.main_layout.setSpacing(0)
-
-        self.stack_widget = QStackedWidget()
-
-        self.child_info_screen = ChildInfoScreen(self)
-        self.child_info_screen.proceed_signal.connect(self.on_child_info_completed)
-        self.stack_widget.addWidget(self.child_info_screen)
-
-        self.user_info_screen = UserInfoScreen(self)
-        self.user_info_screen.proceed_signal.connect(self.on_user_info_completed)
-        logger.info("Сигнал UserInfoScreen підключено")
-        self.stack_widget.addWidget(self.user_info_screen)
-
-        self.load_screens()
         self.main_layout.addWidget(self.stack_widget, 1)
-        self.create_bottom_nav()
+        self.main_layout.addWidget(self.bottom_nav)
         self.setCentralWidget(main_widget)
 
+    def _handle_first_launch(self):
         if self.data_controller.is_first_launch():
             logger.info("Виявлено перший запуск додатку. Показуємо екран введення даних дитини.")
-            self.stack_widget.setCurrentIndex(0)
-            self.hide_bottom_nav()
+            self.stack_widget.setCurrentWidget(self.screens['child_info'])
+            self.bottom_nav.setVisible(False)
         else:
             logger.info("Не перший запуск. Показуємо основний екран.")
-            self.stack_widget.setCurrentIndex(2)
+            self.stack_widget.setCurrentWidget(self.screens['weeks'])
 
-    def hide_bottom_nav(self):
-        for i in range(self.main_layout.count()):
-            item = self.main_layout.itemAt(i)
-            if item and item.widget() and item.widget() != self.stack_widget:
-                item.widget().setVisible(False)
-                logger.debug("Приховано елемент нижньої навігації")
+    def navigate_to(self, screen_name):
+        logger.info(f"Перехід на екран: {screen_name}")
+        self.stack_widget.setCurrentWidget(self.screens[screen_name])
 
-    def show_bottom_nav(self):
-        for i in range(self.main_layout.count()):
-            item = self.main_layout.itemAt(i)
-            if item and item.widget():
-                item.widget().setVisible(True)
-                logger.debug("Показано елемент нижньої навігації")
+        screen_indices = list(self.screens.keys())
+        main_screens = ['weeks', 'calendar', 'tools', 'checklist', 'settings']
+
+        for i, button in enumerate(self.nav_buttons):
+            button.setChecked(main_screens[i] == screen_name)
 
     def on_child_info_completed(self, child_data):
         logger.info("Отримана інформація про дитину, переходимо до екрану інформації про користувача")
-        success = self.data_controller.save_child_info(child_data)
-
-        if success:
-            self.stack_widget.setCurrentIndex(1)
-            logger.info("Успішно перейшли до екрану інформації про користувача")
+        if self.data_controller.save_child_info(child_data):
+            self.stack_widget.setCurrentWidget(self.screens['user_info'])
         else:
             QMessageBox.critical(self, "Помилка", "Не вдалося зберегти інформацію про дитину")
-            logger.error("Не вдалося зберегти інформацію про дитину")
 
     def on_user_info_completed(self, user_data):
         logger.info(f"Отримана інформація про користувача: {user_data}")
-        stack_index = self.stack_widget.indexOf(self.pregnancy_info_screen)
-        if stack_index != -1:
-            logger.info(f"Переходимо на екран інформації про вагітність (індекс {stack_index})")
-            self.stack_widget.setCurrentIndex(stack_index)
-        else:
-            logger.error("Не вдалося знайти екран з інформацією про вагітність")
-            self.stack_widget.setCurrentIndex(7)
-        logger.info("Успішно перейшли до екрану інформації про вагітність")
+        self.stack_widget.setCurrentWidget(self.screens['pregnancy_info'])
 
     def on_pregnancy_info_completed(self, pregnancy_data):
         logger.info("Отримана інформація про вагітність, переходимо до основного екрану")
         try:
             last_period = datetime.strptime(pregnancy_data['last_period_date'], "%Y-%m-%d").date()
-            self.data_controller.pregnancy_data.last_period_date = last_period
-
             conception = datetime.strptime(pregnancy_data['conception_date'], "%Y-%m-%d").date()
-            self.data_controller.pregnancy_data.conception_date = conception
 
+            self.data_controller.pregnancy_data.last_period_date = last_period
+            self.data_controller.pregnancy_data.conception_date = conception
             self.data_controller.pregnancy_data.due_date = last_period + timedelta(days=280)
             self.data_controller.save_pregnancy_data()
 
-            self.show_bottom_nav()
-            self.stack_widget.setCurrentIndex(2)
-            logger.info("Успішно перейшли до основного екрану")
+            self.bottom_nav.setVisible(True)
+            self.stack_widget.setCurrentWidget(self.screens['weeks'])
         except Exception as e:
             QMessageBox.critical(self, "Помилка", f"Не вдалося зберегти інформацію про вагітність: {str(e)}")
-            logger.error(f"Не вдалося зберегти інформацію про вагітність: {str(e)}")
-
-    def load_screens(self):
-        logger.info("Завантаження екранів")
-        try:
-            self.weeks_screen = WeeksScreen(self)
-            self.calendar_screen = CalendarScreen(self)
-            self.tools_screen = ToolsScreen(self)
-            self.checklist_screen = ChecklistScreen(self)
-            self.settings_screen = SettingsScreen(self)
-            self.pregnancy_info_screen = PregnancyInfoScreen(self)
-            self.pregnancy_info_screen.proceed_signal.connect(self.on_pregnancy_info_completed)
-
-            self.stack_widget.addWidget(self.weeks_screen)
-            self.stack_widget.addWidget(self.calendar_screen)
-            self.stack_widget.addWidget(self.tools_screen)
-            self.stack_widget.addWidget(self.checklist_screen)
-            self.stack_widget.addWidget(self.settings_screen)
-            self.stack_widget.addWidget(self.pregnancy_info_screen)
-
-            logger.info("Екрани успішно завантажені")
-        except Exception as e:
-            logger.error(f"Помилка завантаження екранів: {str(e)}")
-            QMessageBox.critical(self, "Помилка", f"Помилка завантаження екранів: {str(e)}")
-
-    def create_bottom_nav(self):
-        bottom_nav = QWidget()
-        bottom_nav.setMinimumHeight(70)
-        bottom_nav.setStyleSheet(Styles.nav_bottom())
-
-        nav_layout = QHBoxLayout(bottom_nav)
-        nav_layout.setContentsMargins(5, 5, 5, 5)
-        nav_layout.setSpacing(2)
-
-        nav_items = [
-            {"icon": "resources/images/icons/weeks.png", "text": "Тижні", "index": 2},
-            {"icon": "resources/images/icons/calendar.png", "text": "Календар", "index": 3},
-            {"icon": "resources/images/icons/tools.png", "text": "Інструменти", "index": 4},
-            {"icon": "resources/images/icons/checklist.png", "text": "Чекліст", "index": 5},
-            {"icon": "resources/images/icons/settings.png", "text": "Налаштування", "index": 6}
-        ]
-
-        self.nav_buttons = []
-
-        for item in nav_items:
-            button = QPushButton()
-            button.setCheckable(True)
-            button.setFixedHeight(60)
-            button.setMinimumWidth(60)
-            button.setSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed)
-
-            if os.path.exists(item["icon"]):
-                button.setIcon(QIcon(item["icon"]))
-                button.setIconSize(QSize(22, 22))
-
-            button.setText(item["text"])
-            button.setStyleSheet(Styles.nav_button())
-            button.clicked.connect(lambda checked, idx=item["index"]: self.navigate_to(idx))
-            nav_layout.addWidget(button)
-            self.nav_buttons.append(button)
-
-        self.main_layout.addWidget(bottom_nav)
-
-    def navigate_to(self, screen_index):
-        logger.info(f"Перехід на екран з індексом {screen_index}")
-        self.stack_widget.setCurrentIndex(screen_index)
-
-        for i, button in enumerate(self.nav_buttons):
-            button.setChecked(i + 2 == screen_index)
-
-        QApplication.processEvents()
 
     def closeEvent(self, event):
         logger.info("Завершення роботи додатку")
         event.accept()
 
 
-def setup_event_logging():
-    original_notify = QApplication.notify
-
-    def notify_wrapper(receiver, event):
-        if event.type() == QEvent.Type.MouseButtonPress:
-            try:
-                if hasattr(receiver, 'text') and callable(receiver.text):
-                    button_text = receiver.text()
-                    if button_text:
-                        logger.info(f"Клік на кнопку: {button_text}")
-                elif hasattr(receiver, 'objectName') and receiver.objectName():
-                    logger.info(f"Клік на об'єкт: {receiver.objectName()}")
-                else:
-                    logger.debug(f"Клік на {type(receiver).__name__}")
-            except:
-                pass
-        return original_notify(QApplication.instance(), receiver, event)
-
-    def patched_notify(self, receiver, event):
-        return notify_wrapper(receiver, event)
-
-    QApplication.notify = patched_notify
-
-
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    setup_event_logging()
     app.setStyle("Fusion")
 
     style_file = os.path.join("resources", "styles", "dark_theme.qss")
     try:
         with open(style_file, 'r') as f:
-            style = f.read()
-            app.setStyleSheet(style)
+            app.setStyleSheet(f.read())
             logger.info("Стилі успішно застосовані")
     except Exception as e:
         logger.error(f"Помилка застосування стилів: {str(e)}")

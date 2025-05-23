@@ -10,46 +10,56 @@ class PregnancyEditor(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.data_controller = DataController()
-        self.setup_ui()
+        self._init_controls()
+        self._setup_ui()
         self.load_pregnancy_data()
 
-    def setup_ui(self):
+    def _init_controls(self):
+        self.last_period_edit = StyledDateEdit()
+        self.due_date_edit = StyledDateEdit()
+        self.conception_edit = StyledDateEdit()
+        self.week_label = QLabel("Поточний термін: ? тижнів")
+        self.days_left_label = QLabel("До пологів залишилось: ? днів")
+
+    def _setup_ui(self):
         main_layout = QVBoxLayout(self)
         main_layout.setContentsMargins(15, 15, 15, 15)
         main_layout.setSpacing(15)
 
         title = TitleLabel("Інформація про вагітність", 18)
-        title.setStyleSheet(Styles.text_accent())
         main_layout.addWidget(title)
 
+        main_layout.addWidget(self._create_form_frame())
+        main_layout.addWidget(self._create_info_frame())
+
+        save_btn = StyledButton("Зберегти зміни")
+        save_btn.setMinimumHeight(50)
+        save_btn.clicked.connect(self.save_pregnancy_data)
+        main_layout.addWidget(save_btn)
+        main_layout.addStretch(1)
+
+    def _create_form_frame(self):
         form_frame = QFrame()
         form_frame.setStyleSheet(Styles.card_frame())
         form_layout = QFormLayout(form_frame)
         form_layout.setSpacing(15)
         form_layout.setContentsMargins(15, 15, 15, 15)
 
-        # Поля форми з лейблами
-        period_label = QLabel("Дата останньої менструації:")
-        period_label.setStyleSheet(Styles.text_primary())
-        self.last_period_edit = StyledDateEdit()
-        self.last_period_edit.setMinimumHeight(40)
-        form_layout.addRow(period_label, self.last_period_edit)
+        fields = [
+            ("Дата останньої менструації:", self.last_period_edit),
+            ("Очікувана дата пологів:", self.due_date_edit),
+            ("Дата зачаття (якщо відома):", self.conception_edit)
+        ]
 
-        due_label = QLabel("Очікувана дата пологів:")
-        due_label.setStyleSheet(Styles.text_primary())
-        self.due_date_edit = StyledDateEdit()
-        self.due_date_edit.setMinimumHeight(40)
-        form_layout.addRow(due_label, self.due_date_edit)
+        for label_text, widget in fields:
+            label = QLabel(label_text)
+            label.setStyleSheet(Styles.text_primary())
+            widget.setMinimumHeight(40)
+            form_layout.addRow(label, widget)
 
-        conception_label = QLabel("Дата зачаття (якщо відома):")
-        conception_label.setStyleSheet(Styles.text_primary())
-        self.conception_edit = StyledDateEdit()
-        self.conception_edit.setMinimumHeight(40)
-        form_layout.addRow(conception_label, self.conception_edit)
+        return form_frame
 
-        main_layout.addWidget(form_frame)
-
-        # Інформаційний блок
+    def _create_info_frame(self):
         info_frame = QFrame()
         info_frame.setStyleSheet(Styles.card_frame())
         info_layout = QVBoxLayout(info_frame)
@@ -61,46 +71,30 @@ class PregnancyEditor(QWidget):
         info_title.setStyleSheet(Styles.text_accent())
         info_layout.addWidget(info_title)
 
-        self.week_label = QLabel("Поточний термін: ? тижнів")
         self.week_label.setFont(QFont('Arial', 14))
         self.week_label.setStyleSheet(Styles.text_primary())
         info_layout.addWidget(self.week_label)
 
-        self.days_left_label = QLabel("До пологів залишилось: ? днів")
         self.days_left_label.setStyleSheet(Styles.text_primary())
         info_layout.addWidget(self.days_left_label)
 
-        main_layout.addWidget(info_frame)
-
-        save_btn = StyledButton("Зберегти зміни")
-        save_btn.setMinimumHeight(50)
-        save_btn.clicked.connect(self.save_pregnancy_data)
-        main_layout.addWidget(save_btn)
-
-        main_layout.addStretch(1)
+        return info_frame
 
     def load_pregnancy_data(self):
         pregnancy = self.data_controller.pregnancy_data
 
-        if pregnancy.last_period_date:
-            qdate = QDate(pregnancy.last_period_date.year, pregnancy.last_period_date.month,
-                          pregnancy.last_period_date.day)
-            self.last_period_edit.setDate(qdate)
-        else:
-            self.last_period_edit.setDate(QDate.currentDate().addDays(-280))
+        dates = [
+            (pregnancy.last_period_date, self.last_period_edit, -280),
+            (pregnancy.due_date, self.due_date_edit, 280 - 40 * 7),
+            (pregnancy.conception_date, self.conception_edit, -266)
+        ]
 
-        if pregnancy.due_date:
-            qdate = QDate(pregnancy.due_date.year, pregnancy.due_date.month, pregnancy.due_date.day)
-            self.due_date_edit.setDate(qdate)
-        else:
-            self.due_date_edit.setDate(QDate.currentDate().addDays(280 - 40 * 7))
-
-        if pregnancy.conception_date:
-            qdate = QDate(pregnancy.conception_date.year, pregnancy.conception_date.month,
-                          pregnancy.conception_date.day)
-            self.conception_edit.setDate(qdate)
-        else:
-            self.conception_edit.setDate(QDate.currentDate().addDays(-266))
+        for date_val, widget, default_offset in dates:
+            if date_val:
+                qdate = QDate(date_val.year, date_val.month, date_val.day)
+                widget.setDate(qdate)
+            else:
+                widget.setDate(QDate.currentDate().addDays(default_offset))
 
         self.update_pregnancy_info()
 
@@ -108,27 +102,21 @@ class PregnancyEditor(QWidget):
         current_week = self.data_controller.get_current_week()
         days_left = self.data_controller.get_days_left()
 
-        if current_week:
-            self.week_label.setText(f"Поточний термін: {current_week} тижнів")
-        else:
-            self.week_label.setText("Поточний термін: не визначено")
-
-        if days_left:
-            self.days_left_label.setText(f"До пологів залишилось: {days_left} днів")
-        else:
-            self.days_left_label.setText("До пологів: не визначено")
+        self.week_label.setText(f"Поточний термін: {current_week or 'не визначено'} тижнів")
+        self.days_left_label.setText(f"До пологів залишилось: {days_left or 'не визначено'} днів")
 
     def save_pregnancy_data(self):
         pregnancy = self.data_controller.pregnancy_data
 
-        last_period = self.last_period_edit.date()
-        pregnancy.last_period_date = datetime(last_period.year(), last_period.month(), last_period.day()).date()
+        dates = [
+            (self.last_period_edit, 'last_period_date'),
+            (self.due_date_edit, 'due_date'),
+            (self.conception_edit, 'conception_date')
+        ]
 
-        due_date = self.due_date_edit.date()
-        pregnancy.due_date = datetime(due_date.year(), due_date.month(), due_date.day()).date()
-
-        conception = self.conception_edit.date()
-        pregnancy.conception_date = datetime(conception.year(), conception.month(), conception.day()).date()
+        for widget, attr in dates:
+            date_val = widget.date()
+            setattr(pregnancy, attr, datetime(date_val.year(), date_val.month(), date_val.day()).date())
 
         self.data_controller.save_pregnancy_data()
         self.update_pregnancy_info()

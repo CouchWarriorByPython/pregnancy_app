@@ -14,151 +14,74 @@ logger = get_logger('weeks_screen')
 class InfoCard(QFrame):
     def __init__(self, title, content, icon_path=None, parent=None):
         super().__init__(parent)
-        self.title_label = None
-        self.content_label = None
         self.is_hover = False
-        self.setup_ui(title, content, icon_path)
+        self._setup_ui(title, content, icon_path)
         self.setMouseTracking(True)
 
-    def setup_ui(self, title, content, icon_path):
-        self.setStyleSheet(f"""
-            QFrame {{
-                background-color: {Styles.COLORS['surface']};
-                border-radius: 15px;
-                padding: 10px;
-            }}
-            QLabel {{
-                color: {Styles.COLORS['text_primary']};
-            }}
-        """)
+    def _setup_ui(self, title, content, icon_path):
+        self.setStyleSheet(Styles.info_card_base())
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(15, 15, 15, 15)
 
-        card_layout = QVBoxLayout(self)
         header_layout = QHBoxLayout()
+        icon_label = self._create_icon(icon_path)
 
+        title_label = QLabel(title)
+        title_label.setFont(QFont('Arial', 14, QFont.Weight.Bold))
+
+        header_layout.addWidget(icon_label)
+        header_layout.addWidget(title_label)
+        header_layout.addStretch()
+
+        content_label = QLabel(content)
+        content_label.setWordWrap(True)
+        content_label.setFont(QFont('Arial', 12))
+        content_label.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+
+        layout.addLayout(header_layout)
+        layout.addWidget(content_label)
+        layout.addStretch()
+        self.setMinimumHeight(100)
+
+    def _create_icon(self, icon_path):
         icon_label = QLabel()
-        icon_found = False
-
-        if icon_path:
-            try:
+        try:
+            if icon_path:
                 pixmap = QPixmap(icon_path)
                 if not pixmap.isNull():
                     icon_label.setPixmap(pixmap.scaled(24, 24, Qt.AspectRatioMode.KeepAspectRatio))
-                    header_layout.addWidget(icon_label)
-                    icon_found = True
-            except Exception as e:
-                logger.error(f"Помилка завантаження іконки: {e}")
+                    return icon_label
+        except Exception as e:
+            logger.error(f"Помилка завантаження іконки: {e}")
 
-        if not icon_found:
-            circle_pixmap = generate_circle_image(size=24, color=Styles.COLORS['primary'])
-            icon_label.setPixmap(circle_pixmap)
-            header_layout.addWidget(icon_label)
-
-        self.title_label = QLabel(title)
-        self.title_label.setFont(QFont('Arial', 14, QFont.Weight.Bold))
-        header_layout.addWidget(self.title_label)
-        header_layout.addStretch()
-
-        card_layout.addLayout(header_layout)
-
-        self.content_label = QLabel(content)
-        self.content_label.setWordWrap(True)
-        self.content_label.setFont(QFont('Arial', 12))
-        self.content_label.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-        card_layout.addWidget(self.content_label)
-
-        self.setMinimumHeight(100)
-        self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
+        icon_label.setPixmap(generate_circle_image(size=24, color=Styles.COLORS['primary']))
+        return icon_label
 
     def enterEvent(self, event):
         self.is_hover = True
-        self.setStyleSheet(f"""
-            QFrame {{
-                background-color: {Styles.COLORS['surface_hover']};
-                border-radius: 15px;
-                padding: 10px;
-                border: 1px solid {Styles.COLORS['primary']};
-            }}
-            QLabel {{
-                color: {Styles.COLORS['text_primary']};
-            }}
-        """)
+        self.setStyleSheet(Styles.info_card_hover())
         super().enterEvent(event)
 
     def leaveEvent(self, event):
         self.is_hover = False
-        self.setStyleSheet(f"""
-            QFrame {{
-                background-color: {Styles.COLORS['surface']};
-                border-radius: 15px;
-                padding: 10px;
-                border: none;
-            }}
-            QLabel {{
-                color: {Styles.COLORS['text_primary']};
-            }}
-        """)
+        self.setStyleSheet(Styles.info_card_base())
         super().leaveEvent(event)
 
     def mousePressEvent(self, event):
         if event.button() == Qt.MouseButton.LeftButton:
-            self.setStyleSheet(f"""
-                QFrame {{
-                    background-color: {Styles.COLORS['surface_variant']};
-                    border-radius: 15px;
-                    padding: 10px;
-                    border: 1px solid {Styles.COLORS['primary']};
-                }}
-                QLabel {{
-                    color: {Styles.COLORS['text_primary']};
-                }}
-            """)
+            self.setStyleSheet(Styles.info_card_pressed())
         super().mousePressEvent(event)
 
     def mouseReleaseEvent(self, event):
         if event.button() == Qt.MouseButton.LeftButton:
-            if self.is_hover:
-                self.setStyleSheet(f"""
-                    QFrame {{
-                        background-color: {Styles.COLORS['surface_hover']};
-                        border-radius: 15px;
-                        padding: 10px;
-                        border: 1px solid {Styles.COLORS['primary']};
-                    }}
-                    QLabel {{
-                        color: {Styles.COLORS['text_primary']};
-                    }}
-                """)
-            else:
-                self.setStyleSheet(f"""
-                    QFrame {{
-                        background-color: {Styles.COLORS['surface']};
-                        border-radius: 15px;
-                        padding: 10px;
-                        border: none;
-                    }}
-                    QLabel {{
-                        color: {Styles.COLORS['text_primary']};
-                    }}
-                """)
+            style = Styles.info_card_hover() if self.is_hover else Styles.info_card_base()
+            self.setStyleSheet(style)
         super().mouseReleaseEvent(event)
 
 
 class WeeksScreen(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.parent = parent
-        self.content_layout = None
-        self.cards_layout = None
-        self.cards_section = None
-        self.week_selector = None
-        self.baby_info_section = None
-        self.fruit_comparison_view = None
-        self.current_displayed_week = None
-        self.week_btns = []
-        self.prev_btn = None
-        self.next_btn = None
-        self.week_title = None
-
         logger.info("Ініціалізація екрану тижнів вагітності")
 
         self.data_controller = DataController()
@@ -166,19 +89,64 @@ class WeeksScreen(QWidget):
 
         self.current_week = self.data_controller.get_current_week() or 33
         self.available_weeks = self.baby_dev_controller.get_available_weeks()
+        self.current_displayed_week = None
+        self.week_btns = []
 
         logger.info(f"Поточний тиждень вагітності: {self.current_week}")
-        self.setup_ui()
+        self._setup_ui()
 
-    def lighten_color(self, hex_color, factor=0.2):
-        hex_color = hex_color.lstrip('#')
-        r, g, b = int(hex_color[0:2], 16), int(hex_color[2:4], 16), int(hex_color[4:6], 16)
-        r = min(int(r + (255 - r) * factor), 255)
-        g = min(int(g + (255 - g) * factor), 255)
-        b = min(int(b + (255 - b) * factor), 255)
-        return f"#{r:02x}{g:02x}{b:02x}"
+    def _setup_ui(self):
+        main_layout = QVBoxLayout(self)
+        main_layout.setContentsMargins(0, 0, 0, 0)
+        main_layout.setSpacing(0)
 
-    def get_week_color(self, week):
+        main_layout.addWidget(self._create_week_selector())
+        main_layout.addWidget(self._create_content_area())
+
+        self._update_buttons_state()
+        self.update_content(self.current_week)
+
+    def _create_week_selector(self):
+        week_selector = QWidget()
+        week_selector.setMaximumHeight(100)
+        layout = QHBoxLayout(week_selector)
+        layout.setContentsMargins(10, 10, 10, 10)
+
+        self.prev_btn = self._create_nav_button("<", self.prev_week)
+        layout.addWidget(self.prev_btn)
+
+        current_index = self._get_current_week_index()
+        visible_weeks = self._get_visible_weeks_range(current_index)
+
+        for week in visible_weeks:
+            week_btn = self._create_week_button(week, week == self.current_week)
+            layout.addWidget(week_btn)
+            self.week_btns.append(week_btn)
+
+        self.next_btn = self._create_nav_button(">", self.next_week)
+        layout.addWidget(self.next_btn)
+
+        return week_selector
+
+    def _create_nav_button(self, text, callback):
+        button = QPushButton(text)
+        button.setFixedSize(45, 45)
+        button.setStyleSheet(Styles.button_nav_arrow())
+        button.clicked.connect(callback)
+        return button
+
+    def _create_week_button(self, week, is_current=False):
+        color = self._get_week_color(week)
+        week_btn = QPushButton(str(week))
+        week_btn.setFixedSize(60, 60)
+        week_btn.setCheckable(True)
+        week_btn.setChecked(is_current)
+        week_btn.setStyleSheet(Styles.button_circular(color, 60))
+        week_btn.week = week
+        week_btn.clicked.connect(lambda: self.week_changed(week))
+        return week_btn
+
+    def _get_week_color(self, week):
         if week <= 13:
             return "#E91E63"
         elif week <= 27:
@@ -186,55 +154,7 @@ class WeeksScreen(QWidget):
         else:
             return "#3F51B5"
 
-    def create_week_button(self, week, is_current=False):
-        color = self.get_week_color(week)
-        week_btn = QPushButton(str(week))
-        week_btn.setObjectName(f"week_btn_{week}")
-        week_btn.setFixedSize(60, 60)
-        week_btn.setCheckable(True)
-        week_btn.setChecked(is_current)
-        week_btn.setStyleSheet(Styles.button_circular(color, 60))
-        week_btn.week = week
-        week_btn.clicked.connect(lambda checked, b=week_btn: self.week_changed(b.week))
-        return week_btn
-
-    def setup_ui(self):
-        main_layout = QVBoxLayout(self)
-        main_layout.setContentsMargins(0, 0, 0, 0)
-        main_layout.setSpacing(0)
-
-        week_selector_section = QWidget()
-        week_selector_section.setObjectName("week_selector_section")
-        week_selector_section.setMaximumHeight(100)
-
-        week_selector_layout = QHBoxLayout(week_selector_section)
-        week_selector_layout.setContentsMargins(10, 10, 10, 10)
-
-        self.prev_btn = QPushButton("<")
-        self.prev_btn.setObjectName("prev_week_btn")
-        self.prev_btn.setFixedSize(45, 45)
-        self.prev_btn.setStyleSheet(Styles.button_nav_arrow())
-        self.prev_btn.clicked.connect(self.prev_week)
-        week_selector_layout.addWidget(self.prev_btn)
-
-        current_index = self.get_current_week_index()
-        visible_weeks = self.get_visible_weeks_range(current_index)
-
-        self.week_btns = []
-        for week in visible_weeks:
-            week_btn = self.create_week_button(week, week == self.current_week)
-            week_selector_layout.addWidget(week_btn)
-            self.week_btns.append(week_btn)
-
-        self.next_btn = QPushButton(">")
-        self.next_btn.setObjectName("next_week_btn")
-        self.next_btn.setFixedSize(45, 45)
-        self.next_btn.setStyleSheet(Styles.button_nav_arrow())
-        self.next_btn.clicked.connect(self.next_week)
-        week_selector_layout.addWidget(self.next_btn)
-
-        main_layout.addWidget(week_selector_section)
-
+    def _create_content_area(self):
         scroll_area = QScrollArea()
         scroll_area.setWidgetResizable(True)
         scroll_area.setStyleSheet(Styles.scroll_area())
@@ -245,7 +165,6 @@ class WeeksScreen(QWidget):
         self.content_layout.setSpacing(15)
 
         self.week_title = QLabel(f"Тиждень {self.current_week}")
-        self.week_title.setObjectName("week_title_label")
         self.week_title.setFont(QFont('Arial', 22, QFont.Weight.Bold))
         self.week_title.setStyleSheet(Styles.text_accent())
         self.week_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -260,141 +179,77 @@ class WeeksScreen(QWidget):
 
         self.content_layout.addWidget(cards_section)
         scroll_area.setWidget(content_widget)
-        main_layout.addWidget(scroll_area)
+        return scroll_area
 
-        self.update_buttons_state()
-        self.update_content(self.current_week)
-
-    def get_current_week_index(self):
+    def _get_current_week_index(self):
         if self.current_week in self.available_weeks:
             return self.available_weeks.index(self.current_week)
 
-        current_index = 0
-        min_diff = abs(self.available_weeks[0] - self.current_week)
-
-        for i, week in enumerate(self.available_weeks):
-            diff = abs(week - self.current_week)
-            if diff < min_diff:
-                min_diff = diff
-                current_index = i
-
+        current_index = min(range(len(self.available_weeks)),
+                            key=lambda i: abs(self.available_weeks[i] - self.current_week))
         self.current_week = self.available_weeks[current_index]
-        logger.info(f"Тиждень {self.current_week} не знайдено серед доступних. "
-                    f"Встановлено найближчий: {self.current_week}")
-
         return current_index
 
-    def get_visible_weeks_range(self, current_index):
+    def _get_visible_weeks_range(self, current_index):
         total_buttons = 5
         half_range = total_buttons // 2
-
         start_idx = max(0, current_index - half_range)
         end_idx = min(len(self.available_weeks), start_idx + total_buttons)
 
         if end_idx - start_idx < total_buttons and start_idx > 0:
-            shift = total_buttons - (end_idx - start_idx)
-            start_idx = max(0, start_idx - shift)
+            start_idx = max(0, start_idx - (total_buttons - (end_idx - start_idx)))
 
         return self.available_weeks[start_idx:end_idx]
-
-    def update_ui_for_week(self, week):
-        logger.info(f"Оновлення UI тижнів для тижня {week}")
-
-        for btn in self.week_btns:
-            btn.deleteLater()
-        self.week_btns.clear()
-
-        week_selector_layout = None
-        for i in range(self.layout().count()):
-            widget = self.layout().itemAt(i).widget()
-            if widget and widget.objectName() == "week_selector_section":
-                week_selector_layout = widget.layout()
-                break
-
-        if not week_selector_layout:
-            logger.error("Не знайдено layout селектора тижнів")
-            return
-
-        for i in reversed(range(1, week_selector_layout.count() - 1)):
-            item = week_selector_layout.itemAt(i)
-            if item and item.widget():
-                item.widget().deleteLater()
-                week_selector_layout.removeItem(item)
-
-        if week in self.available_weeks:
-            current_index = self.available_weeks.index(week)
-        else:
-            current_index = 0
-            min_diff = abs(self.available_weeks[0] - week)
-            for i, w in enumerate(self.available_weeks):
-                diff = abs(w - week)
-                if diff < min_diff:
-                    min_diff = diff
-                    current_index = i
-            week = self.available_weeks[current_index]
-
-        self.current_week = week
-        visible_weeks = self.get_visible_weeks_range(current_index)
-
-        for i, week in enumerate(visible_weeks):
-            week_btn = self.create_week_button(week, week == self.current_week)
-            week_selector_layout.insertWidget(i + 1, week_btn)
-            self.week_btns.append(week_btn)
-
-        self.update_buttons_state()
 
     def update_content(self, week):
         logger.info(f"Оновлення контенту для тижня {week}")
 
-        if hasattr(self, 'week_title'):
-            self.week_title.setText(f"Тиждень {week}")
-
         if self.current_displayed_week == week:
-            logger.info(f"Тиждень {week} вже відображається, пропускаємо оновлення")
             return
 
         self.current_displayed_week = week
+        self.week_title.setText(f"Тиждень {week}")
 
+        self._clear_cards()
+        self._update_fruit_comparison(week)
+        self._create_info_cards(week)
+
+    def _clear_cards(self):
         for i in reversed(range(self.cards_layout.count())):
             widget = self.cards_layout.itemAt(i).widget()
             if widget:
                 widget.deleteLater()
 
+    def _update_fruit_comparison(self, week):
         child_info = self.data_controller.get_child_info()
-
-        baby_dev_info = self.baby_dev_controller.get_baby_development_info(week, gender=child_info["gender"])
-        mother_changes = self.baby_dev_controller.get_mother_changes_info(week)
-        nutrition_tips = self.baby_dev_controller.get_nutrition_tips(week)
-
         fruit_data = self.baby_dev_controller.get_fruit_comparison(week)
         size_data = self.baby_dev_controller.get_baby_size(week)
-
-        logger.info(f"Завантажено дані про тиждень {week}: розмір дитини - {size_data['length']}")
 
         if fruit_data:
             fruit_data.update(size_data)
             if self.fruit_comparison_view:
                 self.fruit_comparison_view.update_fruit_data(week, fruit_data)
-                logger.info(f"Оновлено порівняння з фруктом: {fruit_data['fruit']}")
             else:
                 self.fruit_comparison_view = FruitComparisonView(week, fruit_data)
                 self.content_layout.insertWidget(1, self.fruit_comparison_view)
-                logger.info(f"Створено нове порівняння з фруктом: {fruit_data['fruit']}")
+
+    def _create_info_cards(self, week):
+        child_info = self.data_controller.get_child_info()
 
         cards_data = [
             {
                 "title": "Зростання вашої дитини",
-                "content": baby_dev_info,
+                "content": self.baby_dev_controller.get_baby_development_info(week, child_info["gender"]),
                 "icon": "resources/images/icons/development.png"
             },
             {
                 "title": "Все про вас",
-                "content": mother_changes,
+                "content": self.baby_dev_controller.get_mother_changes_info(week),
                 "icon": "resources/images/icons/symptoms.png"
             },
             {
                 "title": "Поради щодо харчування",
-                "content": nutrition_tips,
+                "content": self.baby_dev_controller.get_nutrition_tips(week),
                 "icon": "resources/images/icons/nutrition.png"
             },
             {
@@ -405,26 +260,17 @@ class WeeksScreen(QWidget):
         ]
 
         for card_data in cards_data:
-            logger.debug(f"Створення картки: {card_data['title']}")
-            card = InfoCard(
-                title=card_data["title"],
-                content=card_data["content"],
-                icon_path=card_data.get("icon"),
-                parent=self
-            )
+            card = InfoCard(card_data["title"], card_data["content"], card_data.get("icon"))
             self.cards_layout.addWidget(card)
-
-        logger.info(f"Контент для тижня {week} успішно оновлено")
 
     def week_changed(self, week):
         if week != self.current_week:
             logger.info(f"Зміна тижня: з {self.current_week} на {week}")
-            old_week = self.current_week
             self.current_week = week
-            self.update_buttons_state()
+            self._update_buttons_state()
             self.update_content(week)
 
-    def update_buttons_state(self):
+    def _update_buttons_state(self):
         for btn in self.week_btns:
             btn.setChecked(btn.week == self.current_week)
 
@@ -432,33 +278,49 @@ class WeeksScreen(QWidget):
             current_index = self.available_weeks.index(self.current_week)
             self.prev_btn.setEnabled(current_index > 0)
             self.next_btn.setEnabled(current_index < len(self.available_weeks) - 1)
-        else:
-            self.prev_btn.setEnabled(False)
-            self.next_btn.setEnabled(False)
-            logger.warning(f"Тиждень {self.current_week} не знайдено серед доступних")
+
+    def _navigate_week(self, direction):
+        if self.current_week not in self.available_weeks:
+            return
+
+        current_index = self.available_weeks.index(self.current_week)
+        new_index = current_index + direction
+
+        if 0 <= new_index < len(self.available_weeks):
+            new_week = self.available_weeks[new_index]
+            visible_weeks = [btn.week for btn in self.week_btns]
+
+            if new_week not in visible_weeks or (direction == -1 and new_week == min(visible_weeks)) or (
+                    direction == 1 and new_week == max(visible_weeks)):
+                self._update_ui_for_week(new_week)
+
+            self.week_changed(new_week)
 
     def prev_week(self):
-        if self.current_week in self.available_weeks:
-            current_index = self.available_weeks.index(self.current_week)
-            if current_index > 0:
-                new_week = self.available_weeks[current_index - 1]
-                logger.info(f"Перехід до попереднього тижня: {new_week}")
-
-                visible_weeks = [btn.week for btn in self.week_btns]
-                if new_week not in visible_weeks or new_week == min(visible_weeks):
-                    self.update_ui_for_week(new_week)
-
-                self.week_changed(new_week)
+        self._navigate_week(-1)
 
     def next_week(self):
-        if self.current_week in self.available_weeks:
-            current_index = self.available_weeks.index(self.current_week)
-            if current_index < len(self.available_weeks) - 1:
-                new_week = self.available_weeks[current_index + 1]
-                logger.info(f"Перехід до наступного тижня: {new_week}")
+        self._navigate_week(1)
 
-                visible_weeks = [btn.week for btn in self.week_btns]
-                if new_week not in visible_weeks or new_week == max(visible_weeks):
-                    self.update_ui_for_week(new_week)
+    def _update_ui_for_week(self, week):
+        for btn in self.week_btns:
+            btn.deleteLater()
+        self.week_btns.clear()
 
-                self.week_changed(new_week)
+        week_selector_layout = self.layout().itemAt(0).widget().layout()
+
+        for i in reversed(range(1, week_selector_layout.count() - 1)):
+            item = week_selector_layout.itemAt(i)
+            if item and item.widget():
+                item.widget().deleteLater()
+
+        current_index = self._get_current_week_index() if week in self.available_weeks else 0
+        self.current_week = week
+        visible_weeks = self._get_visible_weeks_range(current_index)
+
+        for i, week in enumerate(visible_weeks):
+            week_btn = self._create_week_button(week, week == self.current_week)
+            week_selector_layout.insertWidget(i + 1, week_btn)
+            self.week_btns.append(week_btn)
+
+        self._update_buttons_state()
