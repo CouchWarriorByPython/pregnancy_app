@@ -5,7 +5,6 @@ from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QMessageBox, QHBoxLayo
 from utils.logger import get_logger
 from utils.base_widgets import TitleLabel, StyledButton
 from styles.tools import KegelExercisesStyles
-from styles.base import BaseStyles
 
 logger = get_logger('kegel_exercises')
 

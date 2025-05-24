@@ -1,11 +1,10 @@
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QSpacerItem, QSizePolicy, QMessageBox
 from PyQt6.QtCore import pyqtSignal, QDate
-from PyQt6.QtGui import QFont
 from PyQt6.QtCore import Qt
 from utils.logger import get_logger
 from utils.base_widgets import StyledDateEdit, StyledButton, TitleLabel
 from styles.onboarding import OnboardingStyles
-from styles.base import BaseStyles, Colors
+from styles.base import Colors
 from datetime import datetime
 
 logger = get_logger('pregnancy_info_screen')

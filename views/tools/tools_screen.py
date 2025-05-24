@@ -1,10 +1,9 @@
 from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, QScrollArea,
                              QFrame, QGridLayout, QSizePolicy, QMessageBox, QStackedWidget)
 from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QFont, QPixmap
+from PyQt6.QtGui import QFont
 
 from controllers.data_controller import DataController
-from styles.tools import ToolsStyles
 from styles.base import BaseStyles, Colors
 
 from .health_report import HealthReportScreen

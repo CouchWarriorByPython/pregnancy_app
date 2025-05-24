@@ -1,8 +1,7 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from .base import Base, UserProfile, PregnancyData, WeightRecord, MedicalCheck, \
+from .base import Base, UserProfile, PregnancyData, WeightRecord, \
     WishlistItem, HealthNote, BabyKick, Contraction, BloodPressure, BellyMeasurement, Reminder
-from .data import DEFAULT_MEDICAL_CHECKS
 from datetime import datetime, date, timedelta
 
 

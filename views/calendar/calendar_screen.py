@@ -1,7 +1,7 @@
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QHBoxLayout, QCalendarWidget, QDialog
 from PyQt6.QtGui import QFont
 from PyQt6.QtCore import Qt
-from utils.base_widgets import HeaderWidget, StyledButton, StyledInput, StyledComboBox, StyledTimeEdit, StyledCard
+from utils.base_widgets import StyledButton, StyledInput, StyledComboBox, StyledTimeEdit, StyledCard
 from styles.calendar import CalendarStyles
 from styles.base import BaseStyles
 
