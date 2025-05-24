@@ -23,6 +23,10 @@ class AuthStyles:
                 font-size: 28px;
                 font-weight: 700;
                 text-align: center;
+                background: transparent;
+                border: none;
+                padding: 0px;
+                margin: 0px;
             }}
         """
 
@@ -35,6 +39,10 @@ class AuthStyles:
                 font-weight: 500;
                 text-align: center;
                 line-height: 1.4;
+                background: transparent;
+                border: none;
+                padding: 0px;
+                margin: 0px;
             }}
         """
 
@@ -181,6 +189,10 @@ class LoginStyles(AuthStyles):
                 color: {Colors.PRIMARY};
                 text-decoration: underline;
                 font-weight: 500;
+                background: transparent;
+                border: none;
+                padding: 0px;
+                margin: 0px;
             }}
             QLabel:hover {{
                 color: {Colors.PRIMARY_HOVER};
@@ -237,6 +249,9 @@ class VerificationStyles(AuthStyles):
                 text-align: center;
                 line-height: 1.5;
                 margin: 16px 0;
+                background: transparent;
+                border: none;
+                padding: 0px;
             }}
         """
 
