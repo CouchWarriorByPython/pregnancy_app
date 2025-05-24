@@ -49,16 +49,19 @@ class PregnancyEditor(QWidget):
         form_layout.setSpacing(15)
         form_layout.setContentsMargins(15, 15, 15, 15)
 
-        fields = [
-            ("Дата останньої менструації:", self.last_period_edit),
-            ("Дата зачаття:", self.conception_edit)
-        ]
+        # Дата останньої менструації
+        last_period_label = QLabel("Дата останньої менструації:")
+        last_period_label.setStyleSheet(f"color: white; font-weight: 500; font-size: 14px;")
+        last_period_label.setMinimumHeight(20)
+        self.last_period_edit.setMinimumHeight(40)
+        form_layout.addRow(last_period_label, self.last_period_edit)
 
-        for label_text, widget in fields:
-            label = QLabel(label_text)
-            label.setStyleSheet(BaseStyles.text_primary())
-            widget.setMinimumHeight(40)
-            form_layout.addRow(label, widget)
+        # Дата зачаття
+        conception_label = QLabel("Дата зачаття:")
+        conception_label.setStyleSheet(f"color: white; font-weight: 500; font-size: 14px;")
+        conception_label.setMinimumHeight(20)
+        self.conception_edit.setMinimumHeight(40)
+        form_layout.addRow(conception_label, self.conception_edit)
 
         return form_frame
 
@@ -71,17 +74,17 @@ class PregnancyEditor(QWidget):
 
         info_title = QLabel("Поточна інформація")
         info_title.setFont(QFont('Arial', 16, QFont.Weight.Bold))
-        info_title.setStyleSheet(BaseStyles.text_accent())
+        info_title.setStyleSheet("color: #8B5CF6; font-weight: 700;")
         info_layout.addWidget(info_title)
 
         self.week_label.setFont(QFont('Arial', 14))
-        self.week_label.setStyleSheet(BaseStyles.text_primary())
+        self.week_label.setStyleSheet("color: white; font-weight: 500;")
         info_layout.addWidget(self.week_label)
 
-        self.due_date_label.setStyleSheet(BaseStyles.text_primary())
+        self.due_date_label.setStyleSheet("color: white; font-weight: 500;")
         info_layout.addWidget(self.due_date_label)
 
-        self.days_left_label.setStyleSheet(BaseStyles.text_primary())
+        self.days_left_label.setStyleSheet("color: white; font-weight: 500;")
         info_layout.addWidget(self.days_left_label)
 
         return info_frame
