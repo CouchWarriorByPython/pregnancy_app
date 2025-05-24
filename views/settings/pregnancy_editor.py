@@ -1,9 +1,10 @@
 from PyQt6.QtCore import QDate
 from PyQt6.QtGui import QFont
 from controllers.data_controller import DataController
-from datetime import datetime
+from datetime import datetime, timedelta
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton, QDateEdit, QFrame, QMessageBox
 from utils.base_widgets import TitleLabel
+
 
 class PregnancyEditor(QWidget):
     def __init__(self, parent=None):
@@ -20,7 +21,6 @@ class PregnancyEditor(QWidget):
         title = TitleLabel("Інформація про вагітність", 18)
         main_layout.addWidget(title)
 
-        # Основний фрейм з формою
         form_frame = QFrame()
         form_frame.setStyleSheet("""
             QFrame {
@@ -34,7 +34,6 @@ class PregnancyEditor(QWidget):
         form_layout.setContentsMargins(20, 15, 20, 15)
         form_layout.setSpacing(12)
 
-        # Стиль для лейблів - більш яскравий білий
         label_style = """
             color: #FFFFFF;
             font-size: 15px;
@@ -45,7 +44,6 @@ class PregnancyEditor(QWidget):
             margin: 0px;
         """
 
-        # Стиль для QDateEdit
         date_edit_style = """
             QDateEdit {
                 background-color: rgba(255, 255, 255, 0.1);
@@ -104,7 +102,6 @@ class PregnancyEditor(QWidget):
             }
         """
 
-        # Дата останньої менструації
         last_period_label = QLabel("Дата останньої менструації:")
         last_period_label.setStyleSheet(label_style)
         form_layout.addWidget(last_period_label)
@@ -116,19 +113,24 @@ class PregnancyEditor(QWidget):
         self.last_period_edit.setStyleSheet(date_edit_style)
         form_layout.addWidget(self.last_period_edit)
 
-        # Очікувана дата пологів
-        due_date_label = QLabel("Очікувана дата пологів:")
+        due_date_label = QLabel("Очікувана дата пологів (розраховується автоматично):")
         due_date_label.setStyleSheet(label_style)
         form_layout.addWidget(due_date_label)
 
-        self.due_date_edit = QDateEdit()
-        self.due_date_edit.setMinimumHeight(50)
-        self.due_date_edit.setDisplayFormat("dd.MM.yyyy")
-        self.due_date_edit.setCalendarPopup(True)
-        self.due_date_edit.setStyleSheet(date_edit_style)
-        form_layout.addWidget(self.due_date_edit)
+        self.due_date_label_value = QLabel()
+        self.due_date_label_value.setMinimumHeight(50)
+        self.due_date_label_value.setStyleSheet("""
+            QLabel {
+                background-color: rgba(255, 255, 255, 0.05);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: 16px;
+                padding: 16px 20px;
+                color: rgba(255, 255, 255, 0.7);
+                font-size: 14px;
+            }
+        """)
+        form_layout.addWidget(self.due_date_label_value)
 
-        # Дата зачаття
         conception_label = QLabel("Дата зачаття (якщо відома):")
         conception_label.setStyleSheet(label_style)
         form_layout.addWidget(conception_label)
@@ -142,7 +144,6 @@ class PregnancyEditor(QWidget):
 
         main_layout.addWidget(form_frame)
 
-        # Інформаційний фрейм - той самий стиль що й основний
         info_frame = QFrame()
         info_frame.setStyleSheet("""
             QFrame {
@@ -168,7 +169,6 @@ class PregnancyEditor(QWidget):
 
         main_layout.addWidget(info_frame)
 
-        # Кнопка збереження
         save_btn = QPushButton("Зберегти зміни")
         save_btn.setMinimumHeight(55)
         save_btn.setStyleSheet("""
@@ -191,9 +191,8 @@ class PregnancyEditor(QWidget):
         save_btn.clicked.connect(self.save_pregnancy_data)
         main_layout.addWidget(save_btn)
 
-        # Зв'язуємо обробники для автоматичного оновлення дат
-        self.last_period_edit.dateChanged.connect(self.on_last_period_changed)
-        self.conception_edit.dateChanged.connect(self.on_conception_changed)
+        self.last_period_edit.dateChanged.connect(self.on_dates_changed)
+        self.conception_edit.dateChanged.connect(self.on_dates_changed)
 
     def _get_current_user_id(self):
         if hasattr(self.parent, 'current_user_id'):
@@ -205,25 +204,46 @@ class PregnancyEditor(QWidget):
             return self.parent.parent.current_user_id
         return None
 
-    def on_last_period_changed(self, date):
-        # Автоматично розраховуємо очікувану дату пологів (додаємо 280 днів)
-        due_date = date.addDays(280)
-        self.due_date_edit.setDate(due_date)
-        # Оновлюємо дату зачаття (додаємо 14 днів)
-        conception_date = date.addDays(14)
-        self.conception_edit.setDate(conception_date)
+    def on_dates_changed(self):
+        self.update_due_date()
         self.update_pregnancy_info()
 
-    def on_conception_changed(self, date):
-        self.update_pregnancy_info()
+    def update_due_date(self):
+        conception_date = self.conception_edit.date()
+        due_date = conception_date.addDays(266)
+        self.due_date_label_value.setText(due_date.toString("dd.MM.yyyy"))
+
+    def validate_dates(self):
+        last_period_date = self.last_period_edit.date()
+        conception_date = self.conception_edit.date()
+
+        last_period_py = datetime(last_period_date.year(), last_period_date.month(), last_period_date.day()).date()
+        conception_py = datetime(conception_date.year(), conception_date.month(), conception_date.day()).date()
+
+        if last_period_py > conception_py:
+            QMessageBox.warning(self, "Помилка",
+                                "Дата останньої менструації не може бути пізніше дати зачаття.\n"
+                                "Зачаття зазвичай відбувається приблизно через 14 днів після початку останньої менструації.")
+            return False
+
+        days_diff = (conception_py - last_period_py).days
+        if days_diff > 28:
+            result = QMessageBox.question(self, "Увага",
+                                          "Дата зачаття виглядає занадто пізньою.\n"
+                                          "Зазвичай зачаття відбувається протягом 2-3 тижнів після початку останньої менструації.\n"
+                                          "Продовжити зі збереженням?",
+                                          QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+            if result == QMessageBox.StandardButton.No:
+                return False
+
+        return True
 
     def load_pregnancy_data(self):
         user_id = self._get_current_user_id()
         if not user_id:
-            # Встановлюємо дефолтні значення
             self.last_period_edit.setDate(QDate.currentDate().addDays(-280))
-            self.due_date_edit.setDate(QDate.currentDate().addDays(0))
             self.conception_edit.setDate(QDate.currentDate().addDays(-266))
+            self.update_due_date()
             self.week_label.setText("Поточний термін: не визначено")
             self.days_left_label.setText("До пологів: не визначено")
             return
@@ -238,15 +258,6 @@ class PregnancyEditor(QWidget):
         else:
             self.last_period_edit.setDate(QDate.currentDate().addDays(-280))
 
-        if pregnancy and pregnancy.due_date:
-            qdate = QDate(pregnancy.due_date.year, pregnancy.due_date.month, pregnancy.due_date.day)
-            self.due_date_edit.setDate(qdate)
-        elif pregnancy and pregnancy.last_period_date:
-            # Розраховуємо на основі останньої менструації
-            self.due_date_edit.setDate(self.last_period_edit.date().addDays(280))
-        else:
-            self.due_date_edit.setDate(QDate.currentDate().addDays(0))
-
         if pregnancy and pregnancy.conception_date:
             qdate = QDate(pregnancy.conception_date.year, pregnancy.conception_date.month,
                           pregnancy.conception_date.day)
@@ -254,6 +265,7 @@ class PregnancyEditor(QWidget):
         else:
             self.conception_edit.setDate(QDate.currentDate().addDays(-266))
 
+        self.update_due_date()
         self.update_pregnancy_info()
 
     def update_pregnancy_info(self):
@@ -267,14 +279,18 @@ class PregnancyEditor(QWidget):
                 return
 
         current_week = self.data_controller.get_current_week()
-        days_left = self.data_controller.get_days_left()
+
+        conception_date = self.conception_edit.date()
+        due_date = conception_date.addDays(266)
+        due_date_py = datetime(due_date.year(), due_date.month(), due_date.day()).date()
+        days_left = (due_date_py - datetime.now().date()).days
 
         if current_week:
             self.week_label.setText(f"Поточний термін: {current_week} тижнів")
         else:
             self.week_label.setText("Поточний термін: не визначено")
 
-        if days_left is not None and days_left >= 0:
+        if days_left >= 0:
             self.days_left_label.setText(f"До пологів залишилось: {days_left} днів")
         else:
             self.days_left_label.setText("До пологів: не визначено")
@@ -284,13 +300,13 @@ class PregnancyEditor(QWidget):
             QMessageBox.warning(self, "Помилка", "Неможливо зберегти дані - користувач не авторизований")
             return
 
+        if not self.validate_dates():
+            return
+
         pregnancy = self.data_controller.pregnancy_data
 
         last_period = self.last_period_edit.date()
         pregnancy.last_period_date = datetime(last_period.year(), last_period.month(), last_period.day()).date()
-
-        due_date = self.due_date_edit.date()
-        pregnancy.due_date = datetime(due_date.year(), due_date.month(), due_date.day()).date()
 
         conception = self.conception_edit.date()
         pregnancy.conception_date = datetime(conception.year(), conception.month(), conception.day()).date()

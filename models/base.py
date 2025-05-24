@@ -37,6 +37,9 @@ class PregnancyData(Base):
         if self.conception_date:
             from datetime import timedelta
             return self.conception_date + timedelta(days=266)
+        elif self.last_period_date:
+            from datetime import timedelta
+            return self.last_period_date + timedelta(days=280)
         return None
 
 
