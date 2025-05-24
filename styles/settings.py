@@ -33,6 +33,45 @@ class SettingsStyles:
         """
 
     @staticmethod
+    def field_label():
+        return f"""
+            QLabel {{
+                color: {Colors.TEXT_PRIMARY};
+                font-size: 16px;
+                font-weight: 600;
+                background: transparent;
+                border: none;
+                padding: 0px;
+                margin: 0px;
+            }}
+        """
+
+    @staticmethod
+    def field_hint():
+        return f"""
+            QLabel {{
+                color: {Colors.TEXT_SECONDARY};
+                font-size: 13px;
+                font-weight: 400;
+                background: transparent;
+                border: none;
+                padding: 0px;
+                margin: 0px;
+            }}
+        """
+
+    @staticmethod
+    def info_box():
+        return f"""
+            QWidget {{
+                background: rgba(59, 130, 246, 0.1);
+                border: 1px solid rgba(59, 130, 246, 0.3);
+                border-radius: 16px;
+                padding: 16px;
+            }}
+        """
+
+    @staticmethod
     def logout_section():
         return f"""
             QWidget {{
