@@ -1,8 +1,6 @@
-from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QLabel,
-                          QPushButton, QHBoxLayout, QSpacerItem,
-                          QSizePolicy)
-from PyQt6.QtCore import Qt, QSize
-from PyQt6.QtGui import QFont, QPixmap, QIcon
+from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton, QSpacerItem, QSizePolicy
+from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QFont
 
 class WelcomeScreen(QWidget):
     def __init__(self, parent=None):

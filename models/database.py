@@ -1,647 +1,281 @@
-import sqlite3
-import logging
-import os
-from datetime import datetime
-
-# Налаштування логування
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.StreamHandler(),
-        logging.FileHandler('app.log')
-    ]
-)
-
-logger = logging.getLogger('database')
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from .base import Base, UserProfile, PregnancyData, WeightRecord, \
+    WishlistItem, HealthNote, BabyKick, Contraction, BloodPressure, BellyMeasurement, Reminder
+from datetime import datetime, date, timedelta
+from models.base import CalendarEvent
 
 
 class Database:
     def __init__(self, db_path='pregnancy_diary.db'):
-        self.db_path = db_path
-        self._init_db()
+        self.engine = create_engine(f'sqlite:///{db_path}')
+        Base.metadata.create_all(self.engine)
+        Session = sessionmaker(bind=self.engine)
+        self.session = Session()
 
-    def _init_db(self):
-        """Ініціалізація бази даних і створення таблиць"""
-        logger.info(f"Ініціалізація бази даних: {self.db_path}")
+    def get_user_profile(self, user_id):
+        return self.session.query(UserProfile).filter_by(id=user_id).first()
 
-        # Перевіряємо, чи існує файл БД
-        db_exists = os.path.exists(self.db_path)
+    def get_pregnancy_data(self, user_id):
+        pregnancy = self.session.query(PregnancyData).filter_by(user_id=user_id).first()
+        if not pregnancy:
+            pregnancy = PregnancyData(user_id=user_id, baby_gender="Невідомо", baby_name="")
+            self.session.add(pregnancy)
+            self.session.commit()
+        return pregnancy
 
-        conn = sqlite3.connect(self.db_path)
-        c = conn.cursor()
+    def _parse_date_time(self, date_str, time_str=None):
+        date_obj = datetime.strptime(date_str, '%Y-%m-%d').date()
+        if time_str:
+            time_obj = datetime.strptime(time_str, '%H:%M:%S' if ':' in time_str[2:] else '%H:%M').time()
+            return date_obj, time_obj
+        return date_obj
 
-        # Створюємо таблиці, якщо їх немає
-        if not db_exists:
-            logger.info("Створення структури бази даних")
+    def _add_record(self, model_class, **kwargs):
+        if 'user_id' not in kwargs:
+            kwargs['user_id'] = 1
+        record = model_class(**kwargs)
+        self.session.add(record)
+        self.session.commit()
+        return record.id
 
-            # Таблиця для профілю користувача
-            c.execute('''
-                      CREATE TABLE IF NOT EXISTS user_profile
-                      (
-                          id
-                          INTEGER
-                          PRIMARY
-                          KEY,
-                          name
-                          TEXT,
-                          birth_date
-                          TEXT,
-                          height
-                          INTEGER,
-                          weight_before_pregnancy
-                          REAL,
-                          previous_pregnancies
-                          INTEGER,
-                          cycle_length
-                          INTEGER
-                      )
-                      ''')
+    def _get_records(self, model_class, user_id=1, days=None, order_by=None, format_func=None):
+        query = self.session.query(model_class).filter_by(user_id=user_id)
 
-            # Таблиця для дієтичних вподобань
-            c.execute('''
-                      CREATE TABLE IF NOT EXISTS diet_preferences
-                      (
-                          id
-                          INTEGER
-                          PRIMARY
-                          KEY,
-                          preference
-                          TEXT
-                      )
-                      ''')
+        if days and hasattr(model_class, 'date'):
+            start_date = date.today() - timedelta(days=days)
+            query = query.filter(model_class.date >= start_date)
 
-            # Таблиця для даних про вагітність
-            c.execute('''
-                      CREATE TABLE IF NOT EXISTS pregnancy_data
-                      (
-                          id
-                          INTEGER
-                          PRIMARY
-                          KEY,
-                          last_period_date
-                          TEXT,
-                          due_date
-                          TEXT,
-                          conception_date
-                          TEXT,
-                          baby_gender
-                          TEXT,
-                          baby_name
-                          TEXT
-                      )
-                      ''')
+        if order_by:
+            query = query.order_by(*order_by)
 
-            # Таблиця для записів ваги
-            c.execute('''
-                      CREATE TABLE IF NOT EXISTS weight_records
-                      (
-                          id
-                          INTEGER
-                          PRIMARY
-                          KEY,
-                          date
-                          TEXT,
-                          weight
-                          REAL
-                      )
-                      ''')
+        records = query.all()
+        return [format_func(r) for r in records] if format_func else records
 
-            # Таблиця для подій у календарі
-            c.execute('''
-                      CREATE TABLE IF NOT EXISTS calendar_events
-                      (
-                          id
-                          INTEGER
-                          PRIMARY
-                          KEY,
-                          title
-                          TEXT,
-                          description
-                          TEXT,
-                          start_date
-                          TEXT,
-                          end_date
-                          TEXT,
-                          all_day
-                          BOOLEAN,
-                          reminder
-                          BOOLEAN,
-                          reminder_time
-                          TEXT,
-                          event_type
-                          TEXT
-                      )
-                      ''')
+    def add_weight_record(self, date_str, weight, user_id=1):
+        date_obj = self._parse_date_time(date_str)
+        return self._add_record(WeightRecord, date=date_obj, weight=weight, user_id=user_id)
 
-            # Таблиця для чекліста медичних обстежень
-            c.execute('''
-                      CREATE TABLE IF NOT EXISTS medical_checks
-                      (
-                          id
-                          INTEGER
-                          PRIMARY
-                          KEY,
-                          title
-                          TEXT,
-                          description
-                          TEXT,
-                          trimester
-                          INTEGER,
-                          is_completed
-                          BOOLEAN,
-                          completion_date
-                          TEXT,
-                          is_custom
-                          BOOLEAN
-                      )
-                      ''')
+    def get_weight_records(self, user_id=1):
+        records = self._get_records(WeightRecord, user_id=user_id, order_by=[WeightRecord.date])
+        return [(r.date.strftime('%Y-%m-%d'), r.weight) for r in records]
 
-            # Таблиця для списку бажань
-            c.execute('''
-                      CREATE TABLE IF NOT EXISTS wishlist
-                      (
-                          id
-                          INTEGER
-                          PRIMARY
-                          KEY,
-                          title
-                          TEXT,
-                          description
-                          TEXT,
-                          category
-                          TEXT,
-                          price
-                          REAL,
-                          is_purchased
-                          BOOLEAN,
-                          purchase_date
-                          TEXT,
-                          priority
-                          INTEGER
-                      )
-                      ''')
+    def add_baby_kick(self, date_str, time_str, count, user_id=1):
+        date_obj, time_obj = self._parse_date_time(date_str, time_str)
+        return self._add_record(BabyKick, date=date_obj, time=time_obj, count=count, user_id=user_id)
 
-            # Додати у метод _init_db()
+    def get_baby_kicks(self, user_id=1, days=7):
+        def format_kick(k):
+            return {'id': k.id, 'date': k.date.strftime('%Y-%m-%d'),
+                    'time': k.time.strftime('%H:%M'), 'count': k.count}
 
-            # Таблиця для нотаток про здоров'я
-            c.execute('''
-                      CREATE TABLE IF NOT EXISTS health_notes
-                      (
-                          id
-                          INTEGER
-                          PRIMARY
-                          KEY,
-                          date
-                          TEXT,
-                          content
-                          TEXT,
-                          title
-                          TEXT
-                      )
-                      ''')
+        return self._get_records(BabyKick, user_id=user_id, days=days,
+                                 order_by=[BabyKick.date.desc(), BabyKick.time.desc()],
+                                 format_func=format_kick)
 
-            # Таблиця для поштовхів дитини
-            c.execute('''
-                      CREATE TABLE IF NOT EXISTS baby_kicks
-                      (
-                          id
-                          INTEGER
-                          PRIMARY
-                          KEY,
-                          date
-                          TEXT,
-                          time
-                          TEXT,
-                          count
-                          INTEGER
-                      )
-                      ''')
+    def add_contraction(self, date_str, start_time_str, end_time_str, duration, intensity, user_id=1):
+        date_obj = self._parse_date_time(date_str)
+        start_time = datetime.strptime(start_time_str, '%H:%M:%S').time()
+        end_time = datetime.strptime(end_time_str, '%H:%M:%S').time()
+        return self._add_record(Contraction, date=date_obj, start_time=start_time,
+                                end_time=end_time, duration=duration, intensity=intensity, user_id=user_id)
 
-            # Таблиця для переймів
-            c.execute('''
-                      CREATE TABLE IF NOT EXISTS contractions
-                      (
-                          id
-                          INTEGER
-                          PRIMARY
-                          KEY,
-                          date
-                          TEXT,
-                          start_time
-                          TEXT,
-                          end_time
-                          TEXT,
-                          duration
-                          INTEGER, -- тривалість у секундах
-                          intensity
-                          INTEGER  -- від 1 до 10
-                      )
-                      ''')
+    def get_contractions(self, user_id=1, days=1):
+        def format_contraction(c):
+            return {'id': c.id, 'date': c.date.strftime('%Y-%m-%d'),
+                    'start_time': c.start_time.strftime('%H:%M:%S'),
+                    'end_time': c.end_time.strftime('%H:%M:%S'),
+                    'duration': c.duration, 'intensity': c.intensity}
 
-            # Таблиця для показників тиску
-            c.execute('''
-                      CREATE TABLE IF NOT EXISTS blood_pressure
-                      (
-                          id
-                          INTEGER
-                          PRIMARY
-                          KEY,
-                          date
-                          TEXT,
-                          time
-                          TEXT,
-                          systolic
-                          INTEGER, -- верхній тиск
-                          diastolic
-                          INTEGER, -- нижній тиск
-                          pulse
-                          INTEGER, -- пульс
-                          notes
-                          TEXT
-                      )
-                      ''')
+        return self._get_records(Contraction, user_id=user_id, days=days,
+                                 order_by=[Contraction.date.desc(), Contraction.start_time.desc()],
+                                 format_func=format_contraction)
 
-            # Таблиця для розмірів живота
-            c.execute('''
-                      CREATE TABLE IF NOT EXISTS belly_measurements
-                      (
-                          id
-                          INTEGER
-                          PRIMARY
-                          KEY,
-                          date
-                          TEXT,
-                          measurement
-                          REAL, -- у сантиметрах
-                          notes
-                          TEXT
-                      )
-                      ''')
-            # Додаємо початкові дані для профілю
-            c.execute('''
-                      INSERT INTO user_profile (id, name, birth_date, height, weight_before_pregnancy,
-                                                previous_pregnancies, cycle_length)
-                      VALUES (1, 'Користувач', NULL, 165, 60.0, 0, 28)
-                      ''')
+    def add_blood_pressure(self, date_str, time_str, systolic, diastolic, pulse=None, notes='', user_id=1):
+        date_obj, time_obj = self._parse_date_time(date_str, time_str)
+        return self._add_record(BloodPressure, date=date_obj, time=time_obj, systolic=systolic,
+                                diastolic=diastolic, pulse=pulse, notes=notes, user_id=user_id)
 
-            # Додаємо початкові дані для вагітності
-            today = datetime.now().strftime('%Y-%m-%d')
-            due_date = (datetime.now().replace(year=datetime.now().year + 1)).strftime('%Y-%m-%d')
+    def get_blood_pressure(self, user_id=1, days=30):
+        def format_bp(r):
+            return {'id': r.id, 'date': r.date.strftime('%Y-%m-%d'),
+                    'time': r.time.strftime('%H:%M'), 'systolic': r.systolic,
+                    'diastolic': r.diastolic, 'pulse': r.pulse, 'notes': r.notes}
 
-            c.execute('''
-                      INSERT INTO pregnancy_data (id, last_period_date, due_date, conception_date, baby_gender,
-                                                  baby_name)
-                      VALUES (1, ?, ?, NULL, 'Невідомо', '')
-                      ''', (today, due_date))
+        return self._get_records(BloodPressure, user_id=user_id, days=days,
+                                 order_by=[BloodPressure.date.desc(), BloodPressure.time.desc()],
+                                 format_func=format_bp)
 
-            conn.commit()
-            logger.info("Структура бази даних створена успішно")
+    def add_belly_measurement(self, date_str, measurement, notes='', user_id=1):
+        date_obj = self._parse_date_time(date_str)
+        return self._add_record(BellyMeasurement, date=date_obj, measurement=measurement, notes=notes, user_id=user_id)
 
-        conn.close()
+    def get_belly_measurements(self, user_id=1):
+        def format_measurement(m):
+            return {'id': m.id, 'date': m.date.strftime('%Y-%m-%d'),
+                    'measurement': m.measurement, 'notes': m.notes}
 
-    def get_connection(self):
-        """Повертає з'єднання з базою даних"""
-        return sqlite3.connect(self.db_path)
+        return self._get_records(BellyMeasurement, user_id=user_id,
+                                 order_by=[BellyMeasurement.date.desc()],
+                                 format_func=format_measurement)
 
-    def execute_query(self, query, params=()):
-        """Виконує SQL запит та повертає результат"""
-        logger.debug(f"SQL запит: {query} з параметрами: {params}")
-        conn = self.get_connection()
-        c = conn.cursor()
-        c.execute(query, params)
-        result = c.fetchall()
-        conn.commit()
-        conn.close()
-        return result
+    def add_health_note(self, date_str, content, title='', user_id=1):
+        date_obj = self._parse_date_time(date_str)
+        return self._add_record(HealthNote, date=date_obj, content=content, title=title, user_id=user_id)
 
-    def execute_insert(self, query, params=()):
-        """Виконує SQL запит вставки та повертає ID вставленого запису"""
-        logger.debug(f"SQL вставка: {query} з параметрами: {params}")
-        conn = self.get_connection()
-        c = conn.cursor()
-        c.execute(query, params)
-        last_id = c.lastrowid
-        conn.commit()
-        conn.close()
-        return last_id
+    def get_health_notes(self, user_id=1):
+        def format_note(n):
+            return {'id': n.id, 'date': n.date.strftime('%Y-%m-%d'),
+                    'content': n.content, 'title': n.title}
 
-    def execute_update(self, query, params=()):
-        """Виконує SQL запит оновлення та повертає кількість змінених рядків"""
-        logger.debug(f"SQL оновлення: {query} з параметрами: {params}")
-        conn = self.get_connection()
-        c = conn.cursor()
-        c.execute(query, params)
-        rows_affected = c.rowcount
-        conn.commit()
-        conn.close()
-        return rows_affected
+        return self._get_records(HealthNote, user_id=user_id,
+                                 order_by=[HealthNote.date.desc()],
+                                 format_func=format_note)
 
-    # Методи для роботи з профілем користувача
-    def get_user_profile(self):
-        """Отримує профіль користувача"""
-        logger.info("Отримання профілю користувача")
-        result = self.execute_query("SELECT * FROM user_profile WHERE id = 1")
-        if result:
-            return {
-                'id': result[0][0],
-                'name': result[0][1],
-                'birth_date': result[0][2],
-                'height': result[0][3],
-                'weight_before_pregnancy': result[0][4],
-                'previous_pregnancies': result[0][5],
-                'cycle_length': result[0][6]
-            }
-        return None
+    def add_wishlist_item(self, title, description, category, price=None, priority=2, user_id=1):
+        return self._add_record(WishlistItem, title=title, description=description,
+                                category=category, price=price, priority=priority, user_id=user_id)
 
-    def update_user_profile(self, name, birth_date, height, weight_before_pregnancy, previous_pregnancies,
-                            cycle_length):
-        """Оновлює профіль користувача"""
-        logger.info(f"Оновлення профілю користувача: {name}")
-        return self.execute_update(
-            "UPDATE user_profile SET name=?, birth_date=?, height=?, weight_before_pregnancy=?, previous_pregnancies=?, cycle_length=? WHERE id=1",
-            (name, birth_date, height, weight_before_pregnancy, previous_pregnancies, cycle_length)
-        )
-
-    # Методи для роботи з дієтичними вподобаннями
-    def get_diet_preferences(self):
-        """Отримує список дієтичних вподобань"""
-        logger.info("Отримання дієтичних вподобань")
-        result = self.execute_query("SELECT preference FROM diet_preferences")
-        return [row[0] for row in result]
-
-    def update_diet_preferences(self, preferences):
-        """Оновлює список дієтичних вподобань"""
-        logger.info(f"Оновлення дієтичних вподобань: {preferences}")
-        # Спочатку видаляємо всі поточні записи
-        self.execute_update("DELETE FROM diet_preferences")
-
-        # Додаємо нові записи
-        for pref in preferences:
-            self.execute_insert("INSERT INTO diet_preferences (preference) VALUES (?)", (pref,))
-
-    # Методи для роботи з даними про вагітність
-    def get_pregnancy_data(self):
-        """Отримує дані про вагітність"""
-        logger.info("Отримання даних про вагітність")
-        result = self.execute_query("SELECT * FROM pregnancy_data WHERE id = 1")
-        if result:
-            return {
-                'id': result[0][0],
-                'last_period_date': result[0][1],
-                'due_date': result[0][2],
-                'conception_date': result[0][3],
-                'baby_gender': result[0][4],
-                'baby_name': result[0][5]
-            }
-        return None
-
-    def update_pregnancy_data(self, last_period_date, due_date, conception_date, baby_gender, baby_name):
-        """Оновлює дані про вагітність"""
-        logger.info("Оновлення даних про вагітність")
-        return self.execute_update(
-            "UPDATE pregnancy_data SET last_period_date=?, due_date=?, conception_date=?, baby_gender=?, baby_name=? WHERE id=1",
-            (last_period_date, due_date, conception_date, baby_gender, baby_name)
-        )
-
-    # Методи для роботи з вагою
-    def add_weight_record(self, date, weight):
-        """Додає новий запис про вагу"""
-        logger.info(f"Додавання запису про вагу: {weight} кг на дату {date}")
-        return self.execute_insert(
-            "INSERT INTO weight_records (date, weight) VALUES (?, ?)",
-            (date, weight)
-        )
-
-    def get_weight_records(self):
-        """Отримує всі записи про вагу"""
-        logger.info("Отримання записів про вагу")
-        result = self.execute_query("SELECT date, weight FROM weight_records ORDER BY date")
-        return [(row[0], row[1]) for row in result]
-
-    # Методи для роботи з календарем подій
-    def add_calendar_event(self, title, description, start_date, end_date, all_day=False, reminder=False,
-                           reminder_time=None, event_type='regular'):
-        """Додає нову подію до календаря"""
-        logger.info(f"Додавання події до календаря: {title} на дату {start_date}")
-        return self.execute_insert(
-            "INSERT INTO calendar_events (title, description, start_date, end_date, all_day, reminder, reminder_time, event_type) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-            (title, description, start_date, end_date, all_day, reminder, reminder_time, event_type)
-        )
-
-    def get_calendar_events(self, start_date=None, end_date=None):
-        """Отримує події з календаря у вказаному діапазоні дат"""
-        logger.info(f"Отримання подій календаря між {start_date} і {end_date}")
-        query = "SELECT * FROM calendar_events"
-        params = []
-
-        if start_date and end_date:
-            query += " WHERE start_date >= ? AND end_date <= ?"
-            params.extend([start_date, end_date])
-        elif start_date:
-            query += " WHERE start_date >= ?"
-            params.append(start_date)
-        elif end_date:
-            query += " WHERE end_date <= ?"
-            params.append(end_date)
-
-        result = self.execute_query(query, tuple(params))
-        events = []
-        for row in result:
-            events.append({
-                'id': row[0],
-                'title': row[1],
-                'description': row[2],
-                'start_date': row[3],
-                'end_date': row[4],
-                'all_day': bool(row[5]),
-                'reminder': bool(row[6]),
-                'reminder_time': row[7],
-                'event_type': row[8]
-            })
-        return events
-
-    # Методи для роботи з чеклістом медичних обстежень
-    def add_medical_check(self, title, description, trimester, is_custom=False):
-        """Додає новий пункт до чекліста медичних обстежень"""
-        logger.info(f"Додавання медичного обстеження: {title} для триместру {trimester}")
-        return self.execute_insert(
-            "INSERT INTO medical_checks (title, description, trimester, is_completed, is_custom) VALUES (?, ?, ?, 0, ?)",
-            (title, description, trimester, is_custom)
-        )
-
-    def get_medical_checks_by_trimester(self, trimester):
-        """Отримує список медичних обстежень для вказаного триместру"""
-        logger.info(f"Отримання медичних обстежень для триместру {trimester}")
-        result = self.execute_query(
-            "SELECT * FROM medical_checks WHERE trimester = ?",
-            (trimester,)
-        )
-        checks = []
-        for row in result:
-            checks.append({
-                'id': row[0],
-                'title': row[1],
-                'description': row[2],
-                'trimester': row[3],
-                'is_completed': bool(row[4]),
-                'completion_date': row[5],
-                'is_custom': bool(row[6])
-            })
-        return checks
-
-    def complete_medical_check(self, check_id, completion_date=None):
-        """Позначає медичне обстеження як виконане"""
-        if not completion_date:
-            completion_date = datetime.now().strftime('%Y-%m-%d')
-
-        logger.info(f"Позначення медичного обстеження {check_id} як виконаного")
-        return self.execute_update(
-            "UPDATE medical_checks SET is_completed = 1, completion_date = ? WHERE id = ?",
-            (completion_date, check_id)
-        )
-
-    # Методи для роботи зі списком бажань
-    def add_wishlist_item(self, title, description, category, price=None, priority=3):
-        """Додає новий товар до списку бажань"""
-        logger.info(f"Додавання товару до списку бажань: {title}")
-        return self.execute_insert(
-            "INSERT INTO wishlist (title, description, category, price, is_purchased, priority) VALUES (?, ?, ?, ?, 0, ?)",
-            (title, description, category, price, priority)
-        )
-
-    def get_wishlist_items(self, category=None):
-        """Отримує товари зі списку бажань, можливо за категорією"""
-        logger.info(f"Отримання товарів зі списку бажань (категорія: {category})")
-        query = "SELECT * FROM wishlist"
-        params = []
-
+    def get_wishlist_items(self, user_id=1, category=None):
+        query = self.session.query(WishlistItem).filter_by(user_id=user_id)
         if category:
-            query += " WHERE category = ?"
-            params.append(category)
+            query = query.filter_by(category=category)
 
-        result = self.execute_query(query, tuple(params))
-        items = []
-        for row in result:
-            items.append({
-                'id': row[0],
-                'title': row[1],
-                'description': row[2],
-                'category': row[3],
-                'price': row[4],
-                'is_purchased': bool(row[5]),
-                'purchase_date': row[6],
-                'priority': row[7]
-            })
-        return items
+        def format_item(i):
+            return {'id': i.id, 'title': i.title, 'description': i.description,
+                    'category': i.category, 'price': i.price, 'is_purchased': i.is_purchased,
+                    'purchase_date': i.purchase_date.strftime('%Y-%m-%d') if i.purchase_date else None,
+                    'priority': i.priority}
 
-    def mark_wishlist_item_purchased(self, item_id, purchase_date=None):
-        """Позначає товар зі списку бажань як придбаний"""
-        if not purchase_date:
-            purchase_date = datetime.now().strftime('%Y-%m-%d')
+        return [format_item(item) for item in query.all()]
 
-        logger.info(f"Позначення товару {item_id} як придбаного")
-        return self.execute_update(
-            "UPDATE wishlist SET is_purchased = 1, purchase_date = ? WHERE id = ?",
-            (purchase_date, item_id)
+    def _update_item(self, model_class, item_id, user_id=1, **updates):
+        item = self.session.query(model_class).filter_by(id=item_id, user_id=user_id).first()
+        if item:
+            for key, value in updates.items():
+                setattr(item, key, value)
+            self.session.commit()
+            return True
+        return False
+
+    def mark_wishlist_item_purchased(self, item_id, user_id=1, purchase_date=None):
+        return self._update_item(WishlistItem, item_id, user_id=user_id,
+                                 is_purchased=True,
+                                 purchase_date=purchase_date or date.today())
+
+    def update_wishlist_item(self, item_id, title, description, category, price, priority, is_purchased, user_id=1):
+        updates = {'title': title, 'description': description, 'category': category,
+                   'price': price, 'priority': priority, 'is_purchased': is_purchased}
+
+        if is_purchased:
+            item = self.session.query(WishlistItem).filter_by(id=item_id, user_id=user_id).first()
+            if item and not item.purchase_date:
+                updates['purchase_date'] = date.today()
+        else:
+            updates['purchase_date'] = None
+
+        return self._update_item(WishlistItem, item_id, user_id=user_id, **updates)
+
+    def delete_wishlist_item(self, item_id, user_id=1):
+        item = self.session.query(WishlistItem).filter_by(id=item_id, user_id=user_id).first()
+        if item:
+            self.session.delete(item)
+            self.session.commit()
+            return True
+        return False
+
+    def add_reminder(self, title, description, reminder_date, reminder_time, reminder_type='custom', user_id=1):
+        date_obj = self._parse_date_time(reminder_date)
+        time_obj = datetime.strptime(reminder_time, '%H:%M').time()
+        return self._add_record(Reminder, title=title, description=description,
+                                reminder_date=date_obj, reminder_time=time_obj,
+                                reminder_type=reminder_type, user_id=user_id)
+
+    def get_active_reminders(self, user_id=1):
+        def format_reminder(r):
+            return {'id': r.id, 'title': r.title, 'description': r.description,
+                    'reminder_date': r.reminder_date.strftime('%Y-%m-%d'),
+                    'reminder_time': r.reminder_time.strftime('%H:%M'),
+                    'reminder_type': r.reminder_type, 'is_completed': r.is_completed}
+
+        reminders = self.session.query(Reminder).filter_by(user_id=user_id, is_active=True).all()
+        return [format_reminder(r) for r in reminders]
+
+    def complete_reminder(self, reminder_id, user_id=1):
+        return self._update_item(Reminder, reminder_id, user_id=user_id, is_completed=True)
+
+    def commit(self):
+        self.session.commit()
+
+    def close(self):
+        self.session.close()
+
+    def add_calendar_event(self, title, description, start_date, start_time=None, end_time=None, event_type='regular',
+                           user_id=1):
+        date_obj = self._parse_date_time(start_date)
+
+        # Парсимо час якщо він переданий
+        start_time_obj = None
+        end_time_obj = None
+        all_day = True
+
+        if start_time:
+            if isinstance(start_time, str):
+                start_time_obj = datetime.strptime(start_time, '%H:%M').time()
+            else:
+                start_time_obj = start_time
+            all_day = False
+
+            # Якщо немає часу закінчення, додаємо годину до початку
+            if not end_time:
+                start_datetime = datetime.combine(date_obj, start_time_obj)
+                end_datetime = start_datetime + timedelta(hours=1)
+                end_time_obj = end_datetime.time()
+            elif isinstance(end_time, str):
+                end_time_obj = datetime.strptime(end_time, '%H:%M').time()
+            else:
+                end_time_obj = end_time
+
+        event = CalendarEvent(
+            user_id=user_id,
+            title=title,
+            description=description,
+            start_date=date_obj,
+            end_date=date_obj,
+            start_time=start_time_obj,
+            end_time=end_time_obj,
+            all_day=all_day,
+            event_type=event_type
         )
+        self.session.add(event)
+        self.session.commit()
+        return event.id
 
-    # Методи для нотаток про здоров'я
-    def add_health_note(self, date, content, title=""):
-        """Додає нотатку про здоров'я"""
-        logger.info(f"Додавання нотатки про здоров'я за дату {date}")
-        return self.execute_insert(
-            "INSERT INTO health_notes (date, content, title) VALUES (?, ?, ?)",
-            (date, content, title)
-        )
+    def get_events_for_date(self, date_str, user_id=1):
+        date_obj = self._parse_date_time(date_str)
+        events = self.session.query(CalendarEvent).filter_by(
+            user_id=user_id,
+            start_date=date_obj
+        ).all()
 
-    def get_health_notes(self):
-        """Отримує всі нотатки про здоров'я"""
-        logger.info("Отримання нотаток про здоров'я")
-        result = self.execute_query("SELECT id, date, content, title FROM health_notes ORDER BY date DESC")
-        return [{"id": row[0], "date": row[1], "content": row[2], "title": row[3]} for row in result]
+        result = []
+        for e in events:
+            event_dict = {
+                'id': e.id,
+                'title': e.title,
+                'description': e.description,
+                'event_type': e.event_type,
+                'all_day': e.all_day
+            }
 
-    # Методи для поштовхів дитини
-    def add_baby_kick(self, date, time, count):
-        """Додає запис про поштовхи дитини"""
-        logger.info(f"Додавання запису про поштовхи на дату {date}, час {time}")
-        return self.execute_insert(
-            "INSERT INTO baby_kicks (date, time, count) VALUES (?, ?, ?)",
-            (date, time, count)
-        )
+            # Додаємо час якщо подія не на весь день
+            if not e.all_day and e.start_time:
+                event_dict['time'] = e.start_time.strftime('%H:%M')
+                if e.end_time:
+                    event_dict['end_time'] = e.end_time.strftime('%H:%M')
+            else:
+                event_dict['time'] = 'Весь день'
 
-    def get_baby_kicks(self, days=7):
-        """Отримує записи про поштовхи за вказану кількість днів"""
-        from datetime import datetime, timedelta
-        current_date = datetime.now().date()
-        start_date = (current_date - timedelta(days=days)).strftime("%Y-%m-%d")
+            result.append(event_dict)
 
-        logger.info(f"Отримання поштовхів з {start_date}")
-        result = self.execute_query(
-            "SELECT id, date, time, count FROM baby_kicks WHERE date >= ? ORDER BY date DESC, time DESC",
-            (start_date,)
-        )
-        return [{"id": row[0], "date": row[1], "time": row[2], "count": row[3]} for row in result]
-
-    # Методи для переймів
-    def add_contraction(self, date, start_time, end_time, duration, intensity):
-        """Додає запис про перейми"""
-        logger.info(f"Додавання запису про перейми на дату {date}")
-        return self.execute_insert(
-            "INSERT INTO contractions (date, start_time, end_time, duration, intensity) VALUES (?, ?, ?, ?, ?)",
-            (date, start_time, end_time, duration, intensity)
-        )
-
-    def get_contractions(self, days=1):
-        """Отримує записи про перейми за вказану кількість днів"""
-        from datetime import datetime, timedelta
-        current_date = datetime.now().date()
-        start_date = (current_date - timedelta(days=days)).strftime("%Y-%m-%d")
-
-        logger.info(f"Отримання переймів з {start_date}")
-        result = self.execute_query(
-            "SELECT id, date, start_time, end_time, duration, intensity FROM contractions WHERE date >= ? ORDER BY date DESC, start_time DESC",
-            (start_date,)
-        )
-        return [{"id": row[0], "date": row[1], "start_time": row[2], "end_time": row[3], "duration": row[4],
-                 "intensity": row[5]} for row in result]
-
-    # Методи для показників тиску
-    def add_blood_pressure(self, date, time, systolic, diastolic, pulse=None, notes=""):
-        """Додає запис про артеріальний тиск"""
-        logger.info(f"Додавання запису про тиск на дату {date}")
-        return self.execute_insert(
-            "INSERT INTO blood_pressure (date, time, systolic, diastolic, pulse, notes) VALUES (?, ?, ?, ?, ?, ?)",
-            (date, time, systolic, diastolic, pulse, notes)
-        )
-
-    def get_blood_pressure(self, days=30):
-        """Отримує записи про тиск за вказану кількість днів"""
-        from datetime import datetime, timedelta
-        current_date = datetime.now().date()
-        start_date = (current_date - timedelta(days=days)).strftime("%Y-%m-%d")
-
-        logger.info(f"Отримання тиску з {start_date}")
-        result = self.execute_query(
-            "SELECT id, date, time, systolic, diastolic, pulse, notes FROM blood_pressure WHERE date >= ? ORDER BY date DESC, time DESC",
-            (start_date,)
-        )
-        return [{"id": row[0], "date": row[1], "time": row[2], "systolic": row[3], "diastolic": row[4], "pulse": row[5],
-                 "notes": row[6]} for row in result]
-
-    # Методи для розмірів живота
-    def add_belly_measurement(self, date, measurement, notes=""):
-        """Додає запис про розмір живота"""
-        logger.info(f"Додавання запису про розмір живота на дату {date}")
-        return self.execute_insert(
-            "INSERT INTO belly_measurements (date, measurement, notes) VALUES (?, ?, ?)",
-            (date, measurement, notes)
-        )
-
-    def get_belly_measurements(self):
-        """Отримує всі записи про розмір живота"""
-        logger.info("Отримання записів про розмір живота")
-        result = self.execute_query(
-            "SELECT id, date, measurement, notes FROM belly_measurements ORDER BY date DESC"
-        )
-        return [{"id": row[0], "date": row[1], "measurement": row[2], "notes": row[3]} for row in result]
+        return sorted(result, key=lambda x: x.get('time', ''))

@@ -6,19 +6,18 @@ from PyQt6.QtCore import Qt, QDate, QTime, QTimer
 from PyQt6.QtGui import QFont
 from controllers.data_controller import DataController
 from utils.logger import get_logger
+from styles.tools import ContractionCounterStyles, SliderStyles
+from styles.base import BaseStyles
 
 logger = get_logger('contraction_counter')
 
 
 class ContractionCounterScreen(QWidget):
-    """Екран для відстеження переймів"""
-
     def __init__(self, parent=None):
         super().__init__(parent)
         self.parent = parent
         self.data_controller = DataController()
 
-        # Ініціалізація змінних для лічильника
         self.timer = QTimer()
         self.timer.timeout.connect(self.update_timer)
 
@@ -30,51 +29,27 @@ class ContractionCounterScreen(QWidget):
         self.load_contractions()
 
     def setup_ui(self):
-        # Головний layout
         main_layout = QVBoxLayout(self)
         main_layout.setContentsMargins(20, 20, 20, 20)
         main_layout.setSpacing(15)
 
-        # Заголовок
         title = QLabel("Лічильник переймів")
         title.setFont(QFont('Arial', 22, QFont.Weight.Bold))
-        title.setStyleSheet("color: #2196F3;")
+        title.setStyleSheet("color: #2196F3; font-size: 22px; font-weight: bold;")
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         main_layout.addWidget(title)
 
-        # Створюємо віджет з вкладками
         tab_widget = QTabWidget()
-        tab_widget.setStyleSheet("""
-            QTabWidget::pane {
-                border: 1px solid #333333;
-                background-color: #222222;
-                border-radius: 8px;
-            }
-            QTabBar::tab {
-                background-color: #333333;
-                color: white;
-                padding: 8px 15px;
-                margin-right: 2px;
-                border-top-left-radius: 4px;
-                border-top-right-radius: 4px;
-            }
-            QTabBar::tab:selected {
-                background-color: #2196F3;
-                color: white;
-            }
-        """)
+        tab_widget.setStyleSheet(ContractionCounterStyles.tab_widget())
 
-        # Вкладка "Лічильник"
         timer_tab = QWidget()
         self.setup_timer_tab(timer_tab)
         tab_widget.addTab(timer_tab, "Лічильник")
 
-        # Вкладка "Ручний запис"
         manual_tab = QWidget()
         self.setup_manual_tab(manual_tab)
         tab_widget.addTab(manual_tab, "Ручний запис")
 
-        # Вкладка "Історія"
         history_tab = QWidget()
         self.setup_history_tab(history_tab)
         tab_widget.addTab(history_tab, "Історія")
@@ -82,12 +57,10 @@ class ContractionCounterScreen(QWidget):
         main_layout.addWidget(tab_widget)
 
     def setup_timer_tab(self, tab):
-        """Налаштування вкладки з таймером"""
         layout = QVBoxLayout(tab)
         layout.setContentsMargins(15, 15, 15, 15)
         layout.setSpacing(15)
 
-        # Інформація
         info_text = """
         <p>Використовуйте цей таймер для вимірювання тривалості та інтервалів переймів.</p>
         <p>Натисніть <b>"Почати перейму"</b>, коли відчуваєте початок перейми, і <b>"Зупинити перейму"</b>, 
@@ -96,75 +69,46 @@ class ContractionCounterScreen(QWidget):
         """
         info_label = QLabel(info_text)
         info_label.setWordWrap(True)
-        info_label.setStyleSheet("color: white; background-color: #333333; padding: 10px; border-radius: 5px;")
+        info_label.setStyleSheet(f"""
+            QLabel {{
+                color: white;
+                background-color: #333333;
+                padding: 10px;
+                border-radius: 5px;
+            }}
+        """)
         layout.addWidget(info_label)
 
-        # Таймер
         timer_frame = QFrame()
-        timer_frame.setStyleSheet("background-color: #333333; border-radius: 10px; padding: 15px;")
+        timer_frame.setStyleSheet(BaseStyles.card_frame())
         timer_layout = QVBoxLayout(timer_frame)
 
         self.timer_label = QLabel("00:00")
-        self.timer_label.setFont(QFont('Arial', 40, QFont.Weight.Bold))
-        self.timer_label.setStyleSheet("color: #2196F3;")
+        self.timer_label.setStyleSheet(ContractionCounterStyles.timer_display())
         self.timer_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         timer_layout.addWidget(self.timer_label)
 
-        # Прогрес-бар для наочності
         self.progress_bar = QProgressBar()
-        self.progress_bar.setRange(0, 180)  # Максимум 3 хвилини (180 секунд)
+        self.progress_bar.setRange(0, 180)
         self.progress_bar.setValue(0)
         self.progress_bar.setTextVisible(False)
-        self.progress_bar.setStyleSheet("""
-            QProgressBar {
-                background-color: #555555;
-                border-radius: 5px;
-                height: 15px;
-            }
-            QProgressBar::chunk {
-                background-color: #2196F3;
-                border-radius: 5px;
-            }
-        """)
+        self.progress_bar.setStyleSheet(ContractionCounterStyles.progress_bar())
         timer_layout.addWidget(self.progress_bar)
 
-        # Кнопки
         buttons_layout = QHBoxLayout()
 
         self.start_btn = QPushButton("Почати перейму")
-        self.start_btn.setStyleSheet("""
-            QPushButton {
-                background-color: #4CAF50;
-                color: white;
-                border-radius: 5px;
-                padding: 10px;
-                font-weight: bold;
-                font-size: 14px;
-            }
-            QPushButton:hover {
-                background-color: #388E3C;
-            }
-        """)
+        self.start_btn.setStyleSheet(BaseStyles.button_success())
         self.start_btn.clicked.connect(self.start_contraction)
 
         self.stop_btn = QPushButton("Зупинити перейму")
         self.stop_btn.setEnabled(False)
-        self.stop_btn.setStyleSheet("""
-            QPushButton {
-                background-color: #F44336;
-                color: white;
-                border-radius: 5px;
-                padding: 10px;
-                font-weight: bold;
-                font-size: 14px;
-            }
-            QPushButton:hover {
-                background-color: #D32F2F;
-            }
-            QPushButton:disabled {
+        self.stop_btn.setStyleSheet(f"""
+            {BaseStyles.button_error()}
+            QPushButton:disabled {{
                 background-color: #777777;
                 color: #AAAAAA;
-            }
+            }}
         """)
         self.stop_btn.clicked.connect(self.stop_contraction)
 
@@ -172,38 +116,19 @@ class ContractionCounterScreen(QWidget):
         buttons_layout.addWidget(self.stop_btn)
         timer_layout.addLayout(buttons_layout)
 
-        # Поле для інтенсивності
         intensity_layout = QHBoxLayout()
         intensity_label = QLabel("Інтенсивність:")
-        intensity_label.setStyleSheet("color: white;")
+        intensity_label.setStyleSheet(BaseStyles.text_primary())
 
         self.intensity_slider = QSlider(Qt.Orientation.Horizontal)
         self.intensity_slider.setRange(1, 10)
         self.intensity_slider.setValue(5)
         self.intensity_slider.setTickPosition(QSlider.TickPosition.TicksBelow)
         self.intensity_slider.setTickInterval(1)
-        self.intensity_slider.setStyleSheet("""
-            QSlider::groove:horizontal {
-                height: 8px;
-                background: #555555;
-                border-radius: 4px;
-            }
-            QSlider::handle:horizontal {
-                background: #2196F3;
-                border: 1px solid #2196F3;
-                width: 18px;
-                height: 18px;
-                margin: -5px 0;
-                border-radius: 9px;
-            }
-            QSlider::sub-page:horizontal {
-                background: #2196F3;
-                border-radius: 4px;
-            }
-        """)
+        self.intensity_slider.setStyleSheet(SliderStyles.horizontal_slider())
 
         self.intensity_value = QLabel("5")
-        self.intensity_value.setStyleSheet("color: white; font-weight: bold;")
+        self.intensity_value.setStyleSheet(f"color: #FFFFFF; font-weight: bold;")
         self.intensity_slider.valueChanged.connect(lambda v: self.intensity_value.setText(str(v)))
 
         intensity_layout.addWidget(intensity_label)
@@ -211,20 +136,8 @@ class ContractionCounterScreen(QWidget):
         intensity_layout.addWidget(self.intensity_value)
         timer_layout.addLayout(intensity_layout)
 
-        # Кнопка запису
         save_btn = QPushButton("Зберегти результат")
-        save_btn.setStyleSheet("""
-            QPushButton {
-                background-color: #2196F3;
-                color: white;
-                border-radius: 5px;
-                padding: 10px;
-                font-weight: bold;
-            }
-            QPushButton:hover {
-                background-color: #1976D2;
-            }
-        """)
+        save_btn.setStyleSheet(ContractionCounterStyles.contraction_button())
         save_btn.clicked.connect(self.save_timed_contraction)
         timer_layout.addWidget(save_btn)
 
@@ -232,118 +145,60 @@ class ContractionCounterScreen(QWidget):
         layout.addStretch()
 
     def setup_manual_tab(self, tab):
-        """Налаштування вкладки для ручного запису"""
         layout = QVBoxLayout(tab)
         layout.setContentsMargins(15, 15, 15, 15)
         layout.setSpacing(15)
 
         form_frame = QFrame()
-        form_frame.setStyleSheet("background-color: #333333; border-radius: 10px; padding: 15px;")
+        form_frame.setStyleSheet(BaseStyles.card_frame())
         form_layout = QGridLayout(form_frame)
         form_layout.setColumnStretch(1, 1)
 
-        # Дата
         date_label = QLabel("Дата:")
-        date_label.setStyleSheet("color: white;")
+        date_label.setStyleSheet(BaseStyles.text_primary())
         self.date_edit = QDateEdit()
         self.date_edit.setDate(QDate.currentDate())
         self.date_edit.setCalendarPopup(True)
-        self.date_edit.setStyleSheet("""
-            QDateEdit {
-                background-color: #444444;
-                border: none;
-                border-radius: 5px;
-                color: white;
-                padding: 5px;
-            }
-        """)
+        self.date_edit.setStyleSheet(BaseStyles.form_controls())
         form_layout.addWidget(date_label, 0, 0)
         form_layout.addWidget(self.date_edit, 0, 1)
 
-        # Час початку
         start_time_label = QLabel("Час початку:")
-        start_time_label.setStyleSheet("color: white;")
+        start_time_label.setStyleSheet(BaseStyles.text_primary())
         self.start_time_edit = QTimeEdit()
         self.start_time_edit.setTime(QTime.currentTime())
-        self.start_time_edit.setStyleSheet("""
-            QTimeEdit {
-                background-color: #444444;
-                border: none;
-                border-radius: 5px;
-                color: white;
-                padding: 5px;
-            }
-        """)
+        self.start_time_edit.setStyleSheet(BaseStyles.form_controls())
         form_layout.addWidget(start_time_label, 1, 0)
         form_layout.addWidget(self.start_time_edit, 1, 1)
 
-        # Час закінчення
         end_time_label = QLabel("Час закінчення:")
-        end_time_label.setStyleSheet("color: white;")
+        end_time_label.setStyleSheet(BaseStyles.text_primary())
         self.end_time_edit = QTimeEdit()
-        self.end_time_edit.setTime(QTime.currentTime().addSecs(60))  # +1 хвилина за замовчуванням
-        self.end_time_edit.setStyleSheet("""
-            QTimeEdit {
-                background-color: #444444;
-                border: none;
-                border-radius: 5px;
-                color: white;
-                padding: 5px;
-            }
-        """)
+        self.end_time_edit.setTime(QTime.currentTime().addSecs(60))
+        self.end_time_edit.setStyleSheet(BaseStyles.form_controls())
         form_layout.addWidget(end_time_label, 2, 0)
         form_layout.addWidget(self.end_time_edit, 2, 1)
 
-        # Тривалість (обчислюється автоматично)
         duration_label = QLabel("Тривалість (сек):")
-        duration_label.setStyleSheet("color: white;")
+        duration_label.setStyleSheet(BaseStyles.text_primary())
         self.duration_spin = QSpinBox()
-        self.duration_spin.setRange(1, 600)  # від 1 секунди до 10 хвилин
-        self.duration_spin.setValue(60)  # 1 хвилина за замовчуванням
-        self.duration_spin.setStyleSheet("""
-            QSpinBox {
-                background-color: #444444;
-                border: none;
-                border-radius: 5px;
-                color: white;
-                padding: 5px;
-            }
-        """)
+        self.duration_spin.setRange(1, 600)
+        self.duration_spin.setValue(60)
+        self.duration_spin.setStyleSheet(BaseStyles.form_controls())
         form_layout.addWidget(duration_label, 3, 0)
         form_layout.addWidget(self.duration_spin, 3, 1)
 
-        # Інтенсивність
         intensity_label = QLabel("Інтенсивність (1-10):")
-        intensity_label.setStyleSheet("color: white;")
+        intensity_label.setStyleSheet(BaseStyles.text_primary())
         self.manual_intensity_spin = QSpinBox()
         self.manual_intensity_spin.setRange(1, 10)
         self.manual_intensity_spin.setValue(5)
-        self.manual_intensity_spin.setStyleSheet("""
-            QSpinBox {
-                background-color: #444444;
-                border: none;
-                border-radius: 5px;
-                color: white;
-                padding: 5px;
-            }
-        """)
+        self.manual_intensity_spin.setStyleSheet(BaseStyles.form_controls())
         form_layout.addWidget(intensity_label, 4, 0)
         form_layout.addWidget(self.manual_intensity_spin, 4, 1)
 
-        # Кнопка збереження
         save_btn = QPushButton("Зберегти запис")
-        save_btn.setStyleSheet("""
-            QPushButton {
-                background-color: #2196F3;
-                color: white;
-                border-radius: 5px;
-                padding: 10px;
-                font-weight: bold;
-            }
-            QPushButton:hover {
-                background-color: #1976D2;
-            }
-        """)
+        save_btn.setStyleSheet(ContractionCounterStyles.contraction_button())
         save_btn.clicked.connect(self.save_manual_contraction)
         form_layout.addWidget(save_btn, 5, 0, 1, 2)
 
@@ -351,64 +206,28 @@ class ContractionCounterScreen(QWidget):
         layout.addStretch()
 
     def setup_history_tab(self, tab):
-        """Налаштування вкладки з історією переймів"""
         layout = QVBoxLayout(tab)
         layout.setContentsMargins(15, 15, 15, 15)
         layout.setSpacing(15)
 
-        # Список записів
         self.contractions_list = QListWidget()
-        self.contractions_list.setStyleSheet("""
-            QListWidget {
-                background-color: #333333;
-                border: none;
-                border-radius: 5px;
-                color: white;
-                padding: 5px;
-            }
-            QListWidget::item {
-                padding: 8px;
-                border-bottom: 1px solid #444444;
-            }
-            QListWidget::item:selected {
-                background-color: #2196F3;
-            }
-        """)
+        self.contractions_list.setStyleSheet(BaseStyles.list_widget())
         layout.addWidget(self.contractions_list)
 
-        # Кнопки
         buttons_layout = QHBoxLayout()
 
         refresh_btn = QPushButton("Оновити історію")
-        refresh_btn.setStyleSheet("""
-            QPushButton {
-                background-color: #333333;
-                color: white;
-                border-radius: 5px;
-                padding: 8px;
-            }
-            QPushButton:hover {
-                background-color: #444444;
-            }
-        """)
+        refresh_btn.setStyleSheet(BaseStyles.button_secondary())
         refresh_btn.clicked.connect(self.load_contractions)
 
         period_label = QLabel("Показати за:")
-        period_label.setStyleSheet("color: white;")
+        period_label.setStyleSheet(BaseStyles.text_primary())
 
         self.period_spin = QSpinBox()
         self.period_spin.setRange(1, 7)
         self.period_spin.setValue(1)
         self.period_spin.setSuffix(" день")
-        self.period_spin.setStyleSheet("""
-            QSpinBox {
-                background-color: #444444;
-                border: none;
-                border-radius: 5px;
-                color: white;
-                padding: 5px;
-            }
-        """)
+        self.period_spin.setStyleSheet(BaseStyles.form_controls())
         self.period_spin.valueChanged.connect(self.load_contractions)
 
         buttons_layout.addWidget(refresh_btn)
@@ -418,32 +237,26 @@ class ContractionCounterScreen(QWidget):
         layout.addLayout(buttons_layout)
 
     def update_timer(self):
-        """Оновлює відображення таймера"""
         if self.is_timing:
             self.current_seconds += 1
             minutes = self.current_seconds // 60
             seconds = self.current_seconds % 60
             self.timer_label.setText(f"{minutes:02d}:{seconds:02d}")
-
-            # Оновлюємо прогрес-бар (максимум 180 секунд = 3 хвилини)
             self.progress_bar.setValue(min(self.current_seconds, 180))
 
     def start_contraction(self):
-        """Запускає таймер для вимірювання тривалості перейми"""
         self.start_time = datetime.datetime.now()
         self.current_seconds = 0
         self.is_timing = True
-        self.timer.start(1000)  # 1 секунда
+        self.timer.start(1000)
 
         self.start_btn.setEnabled(False)
         self.stop_btn.setEnabled(True)
 
         self.timer_label.setText("00:00")
-
         logger.info("Почато відлік перейми")
 
     def stop_contraction(self):
-        """Зупиняє таймер"""
         self.is_timing = False
         self.timer.stop()
 
@@ -453,9 +266,7 @@ class ContractionCounterScreen(QWidget):
         logger.info(f"Зупинено відлік перейми. Тривалість: {self.current_seconds} секунд")
 
     def save_timed_contraction(self):
-        """Зберігає перейму, виміряну таймером"""
         try:
-            # Якщо таймер ще активний, зупиняємо його
             if self.is_timing:
                 self.stop_contraction()
 
@@ -469,21 +280,16 @@ class ContractionCounterScreen(QWidget):
                 duration = self.current_seconds
                 intensity = self.intensity_slider.value()
 
-                # Зберігаємо запис у базу
                 self.data_controller.db.add_contraction(date_str, start_time_str, end_time_str, duration, intensity)
 
-                # Скидаємо таймер
                 self.current_seconds = 0
                 self.timer_label.setText("00:00")
                 self.progress_bar.setValue(0)
 
-                # Оновлюємо історію
                 self.load_contractions()
 
                 QMessageBox.information(self, "Успіх", "Запис про перейму успішно збережено")
-                logger.info(
-                    f"Збережено перейму: {date_str}, {start_time_str}-{end_time_str}, {duration} сек, інтенсивність: {intensity}")
-
+                logger.info(f"Збережено перейму: {date_str}, {start_time_str}-{end_time_str}, {duration} сек, інтенсивність: {intensity}")
             else:
                 QMessageBox.warning(self, "Попередження", "Спочатку скористайтеся таймером для вимірювання перейми")
 
@@ -492,7 +298,6 @@ class ContractionCounterScreen(QWidget):
             logger.error(f"Помилка при збереженні перейми з таймера: {str(e)}")
 
     def save_manual_contraction(self):
-        """Зберігає перейму, введену вручну"""
         try:
             date_str = self.date_edit.date().toString("yyyy-MM-dd")
             start_time_str = self.start_time_edit.time().toString("HH:mm:ss")
@@ -500,25 +305,19 @@ class ContractionCounterScreen(QWidget):
             duration = self.duration_spin.value()
             intensity = self.manual_intensity_spin.value()
 
-            # Зберігаємо запис у базу
             self.data_controller.db.add_contraction(date_str, start_time_str, end_time_str, duration, intensity)
-
-            # Оновлюємо історію
             self.load_contractions()
 
             QMessageBox.information(self, "Успіх", "Запис про перейму успішно збережено")
-            logger.info(
-                f"Збережено перейму (ручний запис): {date_str}, {start_time_str}-{end_time_str}, {duration} сек, інтенсивність: {intensity}")
+            logger.info(f"Збережено перейму (ручний запис): {date_str}, {start_time_str}-{end_time_str}, {duration} сек, інтенсивність: {intensity}")
 
         except Exception as e:
             QMessageBox.critical(self, "Помилка", f"Не вдалося зберегти запис: {str(e)}")
             logger.error(f"Помилка при збереженні перейми вручну: {str(e)}")
 
     def load_contractions(self):
-        """Завантажує історію переймів з бази даних"""
         try:
             days = self.period_spin.value() if hasattr(self, 'period_spin') else 1
-
             contractions = self.data_controller.db.get_contractions(days)
 
             if hasattr(self, 'contractions_list'):

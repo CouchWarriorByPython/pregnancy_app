@@ -11,64 +11,55 @@ class BabyDevelopmentController:
         try:
             if os.path.exists(self.data_file):
                 with open(self.data_file, 'r', encoding='utf-8') as f:
-                    data = json.load(f)
-                return data
+                    return json.load(f)
         except Exception as e:
             print(f"Помилка при завантаженні даних про розвиток дитини: {e}")
-
         return {"weeks": {}}
 
     def get_week_data(self, week):
-        week_str = str(week)
-        if week_str in self.development_data.get("weeks", {}):
-            return self.development_data["weeks"][week_str]
-        return None
+        return self.development_data.get("weeks", {}).get(str(week))
+
+    def _get_week_info(self, week, field, default="Інформація відсутня"):
+        week_data = self.get_week_data(week)
+        return week_data.get(field, default) if week_data else default
 
     def get_fruit_comparison(self, week):
         week_data = self.get_week_data(week)
-        if week_data:
-            fruit_data = {
-                "fruit": week_data["size"]["fruit"],
-                "description": week_data["size"]["description"]
-            }
-            # Додаємо шлях до зображення, якщо він є
-            if "image" in week_data:
-                fruit_data["image"] = week_data["image"]
-            else:
-                # Генеруємо шлях за замовчуванням і перевіряємо його наявність
-                default_image = f"resources/images/fruits/{week}.png"
-                if os.path.exists(default_image):
-                    fruit_data["image"] = default_image
+        if not week_data:
+            return None
 
-            return fruit_data
-        return None
+        fruit_data = {
+            "fruit": week_data["size"]["fruit"],
+            "description": week_data["size"]["description"]
+        }
+
+        if "image" in week_data:
+            fruit_data["image"] = week_data["image"]
+        else:
+            default_image = f"resources/images/fruits/{week}.png"
+            if os.path.exists(default_image):
+                fruit_data["image"] = default_image
+
+        return fruit_data
 
     def get_baby_development_info(self, week, gender=None):
-        """Отримує інформацію про розвиток дитини з урахуванням статі"""
         week_data = self.get_week_data(week)
-        if week_data:
-            # Якщо стать відома, можемо показувати спеціальну інформацію
-            if gender in ["Хлопчик", "Дівчинка"]:
-                gender_key = "boy" if gender == "Хлопчик" else "girl"
-                gender_info = week_data.get(f"{gender_key}_development", "")
-                if gender_info:
-                    return gender_info
+        if not week_data:
+            return "Інформація відсутня"
 
-            # За замовчуванням показуємо загальну інформацію
-            return week_data.get("baby_development", "Інформація відсутня")
-        return "Інформація відсутня"
+        if gender in ["Хлопчик", "Дівчинка"]:
+            gender_key = "boy_development" if gender == "Хлопчик" else "girl_development"
+            gender_info = week_data.get(gender_key, "")
+            if gender_info:
+                return gender_info
+
+        return week_data.get("baby_development", "Інформація відсутня")
 
     def get_mother_changes_info(self, week):
-        week_data = self.get_week_data(week)
-        if week_data:
-            return week_data.get("mother_changes", "Інформація відсутня")
-        return "Інформація відсутня"
+        return self._get_week_info(week, "mother_changes")
 
     def get_nutrition_tips(self, week):
-        week_data = self.get_week_data(week)
-        if week_data:
-            return week_data.get("nutrition_tips", "Інформація відсутня")
-        return "Інформація відсутня"
+        return self._get_week_info(week, "nutrition_tips")
 
     def get_baby_size(self, week):
         week_data = self.get_week_data(week)

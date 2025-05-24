@@ -1,8 +1,8 @@
 import os
 import sys
-from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
-                             QHBoxLayout, QPushButton, QStackedWidget, QMessageBox, QSizePolicy)
-from PyQt6.QtCore import QSize, QEvent
+from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QStackedWidget, \
+    QMessageBox, QSizePolicy
+from PyQt6.QtCore import QSize
 from PyQt6.QtGui import QIcon
 
 from views.weeks.weeks_screen import WeeksScreen
@@ -13,315 +13,278 @@ from views.settings.settings_screen import SettingsScreen
 from views.onboarding.child_info_screen import ChildInfoScreen
 from views.onboarding.user_info_screen import UserInfoScreen
 from views.onboarding.pregnancy_info_screen import PregnancyInfoScreen
+from views.auth.login_screen import LoginScreen
+from views.auth.register_screen import RegisterScreen
+from views.auth.verification_screen import VerificationScreen
 
 from controllers.data_controller import DataController
+from controllers.auth_controller import AuthController
 from utils.logger import get_logger
-from datetime import datetime, timedelta
+from styles.navigation import NavigationStyles
+from styles.base import Colors
+from utils.reminder_service import ReminderService
+from datetime import datetime
 
-# Ініціалізація логування
 logger = get_logger('main')
 
 
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-
         logger.info("Запуск додатку 'Щоденник вагітності'")
+        self.current_user_id = None
+        self.current_user_email = None
+        self.data_controller = None
+        self.auth_controller = AuthController()
+        self.reminder_service = None
+        self._setup_window()
+        self._create_screens()
+        self._setup_navigation()
+        self._setup_layout()
+        self._handle_authentication()
 
-        # Ініціалізуємо контролер даних
-        self.data_controller = DataController()
-
-        # Налаштування головного вікна
-        self.init_ui()
-
-    def init_ui(self):
-        """Ініціалізація інтерфейсу користувача"""
-        # Параметри вікна
+    def _setup_window(self):
         self.setWindowTitle("Щоденник вагітності")
-
-        # Визначаємо розмір екрану (adaptive)
+        self.setStyleSheet(f"QMainWindow {{ background-color: {Colors.BACKGROUND}; }}")
         screen_size = QApplication.primaryScreen().availableSize()
-        window_width = min(390, screen_size.width() - 40)  # Не більше 390px або розмір екрану - 40px
-        window_height = min(844, screen_size.height() - 60)  # Не більше 844px або розмір екрану - 60px
+        self.resize(min(820, screen_size.width() - 40), min(900, screen_size.height() - 60))
+        self.setMinimumSize(800, 800)  # Встановлюємо мінімальний розмір вікна
 
-        # Встановлюємо розмір вікна з урахуванням екрану
-        self.resize(window_width, window_height)
-
-        # Головний віджет і layout
-        main_widget = QWidget()
-        self.main_layout = QVBoxLayout(main_widget)
-        self.main_layout.setContentsMargins(0, 0, 0, 0)
-        self.main_layout.setSpacing(0)
-
-        # Стек для перемикання між екранами
+    def _create_screens(self):
         self.stack_widget = QStackedWidget()
+        self.stack_widget.setStyleSheet(NavigationStyles.stack_widget())
 
-        # Додаємо екран інформації про дитину як перший екран
-        self.child_info_screen = ChildInfoScreen(self)
-        self.child_info_screen.proceed_signal.connect(self.on_child_info_completed)
-        self.stack_widget.addWidget(self.child_info_screen)
+        self.auth_screens = {
+            'login': LoginScreen(self),
+            'register': RegisterScreen(self),
+            'verification': VerificationScreen(parent=self)
+        }
 
-        # Додаємо екран інформації про користувача
-        self.user_info_screen = UserInfoScreen(self)
-        # Просто підключаємо сигнал без перевірки наявності
-        self.user_info_screen.proceed_signal.connect(self.on_user_info_completed)
-        logger.info("Сигнал UserInfoScreen підключено")
-        self.stack_widget.addWidget(self.user_info_screen)
+        self.main_screens = {
+            'child_info': ChildInfoScreen(self),
+            'user_info': UserInfoScreen(self),
+            'weeks': WeeksScreen(self),
+            'calendar': CalendarScreen(self),
+            'tools': ToolsScreen(self),
+            'checklist': ChecklistScreen(self),
+            'settings': SettingsScreen(self),
+            'pregnancy_info': PregnancyInfoScreen(self)
+        }
 
-        # Завантажуємо основні екрани
-        self.load_screens()
+        all_screens = {**self.auth_screens, **self.main_screens}
+        for screen in all_screens.values():
+            self.stack_widget.addWidget(screen)
 
-        # Додаємо стек до головного layout
-        self.main_layout.addWidget(self.stack_widget, 1)
+        self._connect_auth_signals()
+        self._connect_onboarding_signals()
 
-        # Створюємо нижню панель навігації
-        self.create_bottom_nav()
+    def _connect_auth_signals(self):
+        self.auth_screens['login'].login_success.connect(self.on_login_success)
+        self.auth_screens['login'].switch_to_register.connect(lambda: self.show_screen('register'))
 
-        # Встановлюємо головний віджет
-        self.setCentralWidget(main_widget)
+        self.auth_screens['register'].registration_success.connect(self.on_registration_success)
+        self.auth_screens['register'].switch_to_login.connect(lambda: self.show_screen('login'))
 
-        # Перевіряємо, чи це перший запуск додатку
-        if self.data_controller.is_first_launch():
-            logger.info("Виявлено перший запуск додатку. Показуємо екран введення даних дитини.")
-            self.stack_widget.setCurrentIndex(0)  # Показуємо екран з інформацією про дитину
-            self.hide_bottom_nav()  # Приховуємо нижню навігацію для екрану онбордингу
-        else:
-            logger.info("Не перший запуск. Показуємо основний екран.")
-            self.stack_widget.setCurrentIndex(2)  # Показуємо екран тижнів
+        self.auth_screens['verification'].verification_success.connect(self.on_verification_success)
+        self.auth_screens['verification'].back_to_register.connect(lambda: self.show_screen('register'))
 
-    def hide_bottom_nav(self):
-        """Приховує нижню навігацію"""
-        for i in range(self.main_layout.count()):
-            item = self.main_layout.itemAt(i)
-            if item and item.widget() and item.widget() != self.stack_widget:
-                item.widget().setVisible(False)
-                logger.debug("Приховано елемент нижньої навігації")
+    def _connect_onboarding_signals(self):
+        self.main_screens['child_info'].proceed_signal.connect(self.on_child_info_completed)
+        self.main_screens['user_info'].proceed_signal.connect(self.on_user_info_completed)
+        self.main_screens['pregnancy_info'].proceed_signal.connect(self.on_pregnancy_info_completed)
 
-    def show_bottom_nav(self):
-        """Показує нижню навігацію"""
-        for i in range(self.main_layout.count()):
-            item = self.main_layout.itemAt(i)
-            if item and item.widget():
-                item.widget().setVisible(True)
-                logger.debug("Показано елемент нижньої навігації")
-
-    def on_child_info_completed(self, child_data):
-        """Обробляє завершення введення інформації про дитину"""
-        logger.info("Отримана інформація про дитину, переходимо до екрану інформації про користувача")
-
-        # Зберігаємо дані
-        success = self.data_controller.save_child_info(child_data)
-
-        if success:
-            # Переходимо до екрану інформації про користувача
-            self.stack_widget.setCurrentIndex(1)  # UserInfoScreen
-            logger.info("Успішно перейшли до екрану інформації про користувача")
-        else:
-            # Повідомляємо про помилку
-            QMessageBox.critical(self, "Помилка", "Не вдалося зберегти інформацію про дитину")
-            logger.error("Не вдалося зберегти інформацію про дитину")
-
-    def on_user_info_completed(self, user_data):
-        """Обробляє завершення введення інформації про користувача"""
-        logger.info(f"Отримана інформація про користувача: {user_data}")
-
-        # Переходимо до екрану інформації про вагітність
-        stack_index = self.stack_widget.indexOf(self.pregnancy_info_screen)
-        if stack_index != -1:
-            logger.info(f"Переходимо на екран інформації про вагітність (індекс {stack_index})")
-            self.stack_widget.setCurrentIndex(stack_index)
-        else:
-            logger.error("Не вдалося знайти екран з інформацією про вагітність")
-            # Безпечний варіант - індекс 7, або можна використати константу
-            self.stack_widget.setCurrentIndex(7)
-
-        logger.info("Успішно перейшли до екрану інформації про вагітність")
-
-    def on_pregnancy_info_completed(self, pregnancy_data):
-        """Обробляє завершення введення інформації про вагітність"""
-        logger.info("Отримана інформація про вагітність, переходимо до основного екрану")
-
-        # Зберігаємо дані
-        # Конвертуємо рядки дат у об'єкти date
-        try:
-            last_period = datetime.strptime(pregnancy_data['last_period_date'], "%Y-%m-%d").date()
-            self.data_controller.pregnancy_data.last_period_date = last_period
-
-            conception = datetime.strptime(pregnancy_data['conception_date'], "%Y-%m-%d").date()
-            self.data_controller.pregnancy_data.conception_date = conception
-
-            # Автоматичний розрахунок очікуваної дати пологів
-            self.data_controller.pregnancy_data.due_date = last_period + timedelta(days=280)
-
-            # Зберігаємо зміни
-            self.data_controller.save_pregnancy_data()
-
-            # Показуємо нижню навігацію
-            self.show_bottom_nav()
-
-            # Переходимо до основного екрану
-            self.stack_widget.setCurrentIndex(2)  # WeeksScreen - індекс змінився
-            logger.info("Успішно перейшли до основного екрану")
-        except Exception as e:
-            # Повідомляємо про помилку
-            QMessageBox.critical(self, "Помилка", f"Не вдалося зберегти інформацію про вагітність: {str(e)}")
-            logger.error(f"Не вдалося зберегти інформацію про вагітність: {str(e)}")
-
-    def load_screens(self):
-        logger.info("Завантаження екранів")
-
-        try:
-            # Додаємо екрани до стеку
-            self.weeks_screen = WeeksScreen(self)
-            self.calendar_screen = CalendarScreen(self)
-            self.tools_screen = ToolsScreen(self)
-            self.checklist_screen = ChecklistScreen(self)
-            self.settings_screen = SettingsScreen(self)
-
-            # Додаємо новий екран для інформації про вагітність
-            self.pregnancy_info_screen = PregnancyInfoScreen(self)
-            self.pregnancy_info_screen.proceed_signal.connect(self.on_pregnancy_info_completed)
-
-            self.stack_widget.addWidget(self.weeks_screen)  # Індекс 2
-            self.stack_widget.addWidget(self.calendar_screen)  # Індекс 3
-            self.stack_widget.addWidget(self.tools_screen)  # Індекс 4
-            self.stack_widget.addWidget(self.checklist_screen)  # Індекс 5
-            self.stack_widget.addWidget(self.settings_screen)  # Індекс 6
-            self.stack_widget.addWidget(self.pregnancy_info_screen)  # Індекс 7
-
-            logger.info("Екрани успішно завантажені")
-
-        except Exception as e:
-            logger.error(f"Помилка завантаження екранів: {str(e)}")
-            QMessageBox.critical(self, "Помилка", f"Помилка завантаження екранів: {str(e)}")
-
-    def create_bottom_nav(self):
-        # Створюємо панель навігації
-        bottom_nav = QWidget()
-        bottom_nav.setObjectName("bottom_nav")
-        bottom_nav.setMinimumHeight(70)
-        bottom_nav.setStyleSheet("background-color: #121212;")
-
-        # Layout для кнопок
-        nav_layout = QHBoxLayout(bottom_nav)
-        nav_layout.setContentsMargins(5, 5, 5, 5)
-        nav_layout.setSpacing(2)  # Зменшуємо відстань між кнопками
-
-        # Створюємо кнопки навігації (повернуто пункт "Налаштування")
+    def _setup_navigation(self):
         nav_items = [
-            {"icon": "resources/images/icons/weeks.png", "text": "Тижні", "index": 2},
-            {"icon": "resources/images/icons/calendar.png", "text": "Календар", "index": 3},
-            {"icon": "resources/images/icons/tools.png", "text": "Інструменти", "index": 4},
-            {"icon": "resources/images/icons/checklist.png", "text": "Чекліст", "index": 5},
-            {"icon": "resources/images/icons/settings.png", "text": "Налаштування", "index": 6}
+            {"icon": "resources/images/icons/weeks.png", "text": "Тижні", "screen": "weeks"},
+            {"icon": "resources/images/icons/calendar.png", "text": "Календар", "screen": "calendar"},
+            {"icon": "resources/images/icons/tools.png", "text": "Інструменти", "screen": "tools"},
+            {"icon": "resources/images/icons/checklist.png", "text": "Чекліст", "screen": "checklist"},
+            {"icon": "resources/images/icons/settings.png", "text": "Налаштування", "screen": "settings"}
         ]
 
         self.nav_buttons = []
+        self.bottom_nav = QWidget()
+        self.bottom_nav.setMinimumHeight(70)
+        self.bottom_nav.setStyleSheet(NavigationStyles.bottom_nav())
+
+        nav_layout = QHBoxLayout(self.bottom_nav)
+        nav_layout.setContentsMargins(5, 5, 5, 5)
+        nav_layout.setSpacing(2)
 
         for item in nav_items:
-            button = QPushButton()
-            button.setObjectName(f"nav_{item['text'].lower()}")
-            button.setCheckable(True)
-            button.setFixedHeight(60)
-            button.setMinimumWidth(60)
-            button.setSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed)
-
-            if os.path.exists(item["icon"]):
-                button.setIcon(QIcon(item["icon"]))
-                button.setIconSize(QSize(22, 22))
-
-            button.setText(item["text"])
-            button.setStyleSheet("""
-                QPushButton {
-                    background-color: transparent;
-                    border: none;
-                    color: #888888;
-                    padding-top: 5px;
-                    font-size: 10px;
-                }
-                QPushButton:checked {
-                    color: #FF8C00;
-                }
-                QPushButton:hover {
-                    color: #AAAAAA;
-                }
-            """)
-
-            button.clicked.connect(lambda checked, idx=item["index"]: self.navigate_to(idx))
+            button = self._create_nav_button(item)
             nav_layout.addWidget(button)
             self.nav_buttons.append(button)
 
-        self.main_layout.addWidget(bottom_nav)
+    def _create_nav_button(self, item):
+        button = QPushButton()
+        button.setCheckable(True)
+        button.setFixedHeight(60)
+        button.setMinimumWidth(60)
+        button.setSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed)
 
-    def navigate_to(self, screen_index):
-        logger.info(f"Перехід на екран з індексом {screen_index}")
-        self.stack_widget.setCurrentIndex(screen_index)
+        if os.path.exists(item["icon"]):
+            button.setIcon(QIcon(item["icon"]))
+            button.setIconSize(QSize(22, 22))
 
-        # Оновлюємо вигляд кнопок навігації
+        button.setText(item["text"])
+        button.setStyleSheet(NavigationStyles.nav_button())
+        button.clicked.connect(lambda: self.navigate_to(item["screen"]))
+        return button
+
+    def _setup_layout(self):
+        main_widget = QWidget()
+        main_widget.setStyleSheet(NavigationStyles.main_layout())
+        self.main_layout = QVBoxLayout(main_widget)
+        self.main_layout.setContentsMargins(0, 0, 0, 0)
+        self.main_layout.setSpacing(0)
+        self.main_layout.addWidget(self.stack_widget, 1)
+        self.main_layout.addWidget(self.bottom_nav)
+        self.setCentralWidget(main_widget)
+
+    def _handle_authentication(self):
+        session_data = self.auth_controller.load_session()
+        if session_data:
+            logger.info(f"Відновлена сесія для користувача {session_data['email']}")
+            self.current_user_id = session_data['user_id']
+            self.current_user_email = session_data['email']
+            self.data_controller = DataController(self.current_user_id)
+            self._init_reminder_service()
+
+            if self.data_controller.is_first_launch():
+                logger.info("Перший запуск для користувача. Показуємо онбординг.")
+                self.show_screen('child_info')
+                self.bottom_nav.setVisible(False)
+            else:
+                logger.info("Користувач авторизований. Показуємо головний екран.")
+                self._update_screens_with_user_data()
+                self.bottom_nav.setVisible(True)
+                self.show_screen('weeks')
+        else:
+            self.bottom_nav.setVisible(False)
+            self.show_screen('login')
+
+    def show_screen(self, screen_name):
+        if screen_name in self.auth_screens:
+            screen = self.auth_screens[screen_name]
+        else:
+            screen = self.main_screens[screen_name]
+        self.stack_widget.setCurrentWidget(screen)
+
+    def on_login_success(self, user_data):
+        logger.info(f"Успішний вхід користувача {user_data['email']}")
+        self.current_user_id = user_data['user_id']
+        self.current_user_email = user_data['email']
+        self.data_controller = DataController(self.current_user_id)
+        self._init_reminder_service()
+
+        if self.data_controller.is_first_launch():
+            logger.info("Перший запуск для користувача. Показуємо онбординг.")
+            self.show_screen('child_info')
+            self.bottom_nav.setVisible(False)
+        else:
+            logger.info("Користувач авторизований. Показуємо головний екран.")
+            self._update_screens_with_user_data()
+            self.bottom_nav.setVisible(True)
+            self.show_screen('weeks')
+
+    def on_registration_success(self, email):
+        logger.info(f"Успішна реєстрація користувача {email}")
+        verification_screen = self.auth_screens['verification']
+        verification_screen.set_email(email)
+        self.show_screen('verification')
+
+    def on_verification_success(self, user_data):
+        logger.info(f"Успішне підтвердження пошти {user_data['email']}")
+        self.current_user_id = user_data['user_id']
+        self.current_user_email = user_data['email']
+        self.data_controller = DataController(self.current_user_id)
+        self._init_reminder_service()
+        self.show_screen('child_info')
+        self.bottom_nav.setVisible(False)
+
+    def _init_reminder_service(self):
+        if self.data_controller:
+            self.reminder_service = ReminderService(
+                self.data_controller.db,
+                self.current_user_id,
+                self.current_user_email
+            )
+            self.reminder_service.start()
+
+    def _update_screens_with_user_data(self):
+        for screen_name, screen in self.main_screens.items():
+            if hasattr(screen, 'data_controller'):
+                screen.data_controller = DataController(self.current_user_id)
+            if hasattr(screen, 'parent'):
+                screen.parent = self
+
+    def navigate_to(self, screen_name):
+        logger.info(f"Перехід на екран: {screen_name}")
+        self.show_screen(screen_name)
+
+        screen_indices = list(self.main_screens.keys())
+        main_screens = ['weeks', 'calendar', 'tools', 'checklist', 'settings']
+
         for i, button in enumerate(self.nav_buttons):
-            # Враховуємо, що індекси екранів зміщені через додавання екранів онбордингу
-            button.setChecked(i + 2 == screen_index)  # +2 замість +1 через додавання UserInfoScreen
+            button.setChecked(main_screens[i] == screen_name)
 
-        # Невелика візуальна анімація для показу зміни екрану
-        QApplication.processEvents()
+    def on_child_info_completed(self, child_data):
+        logger.info("Отримана інформація про дитину, переходимо до екрану інформації про користувача")
+        if self.data_controller and self.data_controller.save_child_info(child_data):
+            self.show_screen('user_info')
+        else:
+            QMessageBox.critical(self, "Помилка", "Не вдалося зберегти інформацію про дитину")
+
+    def on_user_info_completed(self, user_data):
+        logger.info(f"Отримана інформація про користувача: {user_data}")
+        self.show_screen('pregnancy_info')
+
+    def on_pregnancy_info_completed(self, pregnancy_data):
+        logger.info("Отримана інформація про вагітність, переходимо до основного екрану")
+        try:
+            last_period = datetime.strptime(pregnancy_data['last_period_date'], "%Y-%m-%d").date()
+            conception = datetime.strptime(pregnancy_data['conception_date'], "%Y-%m-%d").date()
+
+            if last_period > conception:
+                QMessageBox.warning(self, "Помилка", "Дата останньої менструації не може бути пізніше дати зачаття")
+                return
+
+            if self.data_controller:
+                self.data_controller.pregnancy_data.last_period_date = last_period
+                self.data_controller.pregnancy_data.conception_date = conception
+                self.data_controller.save_pregnancy_data()
+
+                self._update_screens_with_user_data()
+                self.bottom_nav.setVisible(True)
+                self.show_screen('weeks')
+        except Exception as e:
+            QMessageBox.critical(self, "Помилка", f"Не вдалося зберегти інформацію про вагітність: {str(e)}")
+
+    def logout(self):
+        self.auth_controller.logout()
+        self.current_user_id = None
+        self.current_user_email = None
+        self.data_controller = None
+        if self.reminder_service:
+            self.reminder_service.stop()
+            self.reminder_service = None
+
+        self.bottom_nav.setVisible(False)
+        self.show_screen('login')
+        logger.info("Користувач вийшов з системи")
 
     def closeEvent(self, event):
+        if self.reminder_service:
+            self.reminder_service.stop()
         logger.info("Завершення роботи додатку")
         event.accept()
 
 
-def setup_event_logging():
-    # Клас для моніторингу подій PyQt
-    original_notify = QApplication.notify
-
-    def notify_wrapper(receiver, event):
-        # Перехоплюємо події кліку на кнопки
-        if event.type() == QEvent.Type.MouseButtonPress:
-            try:
-                if hasattr(receiver, 'text') and callable(receiver.text):
-                    button_text = receiver.text()
-                    if button_text:
-                        logger.info(f"Клік на кнопку: {button_text}")
-                elif hasattr(receiver, 'objectName') and receiver.objectName():
-                    logger.info(f"Клік на об'єкт: {receiver.objectName()}")
-                else:
-                    # Для всіх інших віджетів логуємо тип об'єкта
-                    logger.debug(f"Клік на {type(receiver).__name__}")
-            except:
-                pass  # Ігноруємо помилки під час логування
-
-        # Передаємо подію оригінальному обробнику
-        return original_notify(QApplication.instance(), receiver, event)
-
-    # Правильна функція-обгортка для QApplication.notify
-    def patched_notify(self, receiver, event):
-        return notify_wrapper(receiver, event)
-
-    # Підміняємо метод notify
-    QApplication.notify = patched_notify
-
-
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-
-    # Налаштування моніторингу подій
-    setup_event_logging()
-
-    # Застосовуємо темну тему
     app.setStyle("Fusion")
 
-    # Завантаження та застосування стилів
-    style_file = os.path.join("resources", "styles", "dark_theme.qss")
-    try:
-        with open(style_file, 'r') as f:
-            style = f.read()
-            app.setStyleSheet(style)
-            logger.info("Стилі успішно застосовані")
-    except Exception as e:
-        logger.error(f"Помилка застосування стилів: {str(e)}")
-
-    # Створюємо та запускаємо додаток
     window = MainWindow()
     window.show()
-
     sys.exit(app.exec())

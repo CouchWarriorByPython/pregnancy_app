@@ -1,4 +1,4 @@
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QStackedWidget, QLabel
+from PyQt6.QtWidgets import QWidget, QVBoxLayout, QStackedWidget
 from PyQt6.QtCore import pyqtSignal
 from utils.logger import get_logger
 from .child_info_screen import ChildInfoScreen
