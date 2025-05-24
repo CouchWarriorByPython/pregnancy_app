@@ -16,8 +16,15 @@ class DataController:
             self.pregnancy_data = self.db.get_pregnancy_data(user_id)
         else:
             # Створюємо тимчасові об'єкти для неавторизованих користувачів
-            self.user_profile = None
-            self.pregnancy_data = None
+            self.user_profile = type('obj', (object,), {
+                'name': 'Користувач',
+                'email': '',
+                'weight_before_pregnancy': 60.0,
+                'height': 165,
+                'previous_pregnancies': 0,
+                'cycle_length': 28
+            })
+            self.pregnancy_data = self.db.get_pregnancy_data(1)  # Використовуємо демо-дані
 
     def get_current_week(self):
         if self.pregnancy_data and self.pregnancy_data.last_period_date:

@@ -55,7 +55,11 @@ class WeightMonitorScreen(QWidget):
         weight_layout.addWidget(self.weight_spin)
         form_frame.layout.addLayout(weight_layout)
 
-        initial_weight = self.data_controller.user_profile.weight_before_pregnancy
+        # Додаємо перевірку на наявність user_profile
+        initial_weight = 60.0  # Значення за замовчуванням
+        if self.data_controller.user_profile:
+            initial_weight = self.data_controller.user_profile.weight_before_pregnancy or 60.0
+
         initial_weight_label = QLabel(f"Вага до вагітності: {initial_weight} кг")
         initial_weight_label.setStyleSheet(BaseStyles.text_secondary())
         form_frame.layout.addWidget(initial_weight_label)
@@ -75,6 +79,7 @@ class WeightMonitorScreen(QWidget):
         list_frame = StyledCard("Історія ваги")
         list_frame.setStyleSheet(WeightMonitorStyles.monitor_card())
 
+        # Важливо: правильно створюємо та ініціалізуємо атрибут weight_list
         self.weight_list = StyledListWidget()
         list_frame.layout.addWidget(self.weight_list)
 
@@ -90,6 +95,12 @@ class WeightMonitorScreen(QWidget):
     def load_weight_records(self):
         try:
             records = self.data_controller.db.get_weight_records()
+
+            # Перевірка, чи існує атрибут weight_list
+            if not hasattr(self, 'weight_list'):
+                logger.warning("Атрибут weight_list не ініціалізований")
+                return
+
             self.weight_list.clear()
 
             for date, weight in records:
@@ -108,7 +119,10 @@ class WeightMonitorScreen(QWidget):
             weight = self.weight_spin.value()
 
             self.data_controller.db.add_weight_record(date_str, weight)
-            self.load_weight_records()
+
+            # Перевірка, чи існує атрибут weight_list
+            if hasattr(self, 'weight_list'):
+                self.load_weight_records()
 
             QMessageBox.information(self, "Успіх", "Запис успішно збережено")
             logger.info(f"Збережено новий запис ваги: {date_str}, {weight} кг")

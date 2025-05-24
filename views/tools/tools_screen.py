@@ -5,7 +5,7 @@ from PyQt6.QtGui import QFont, QPixmap
 
 from controllers.data_controller import DataController
 from styles.tools import ToolsStyles
-from styles.base import BaseStyles
+from styles.base import BaseStyles, Colors
 
 from .health_report import HealthReportScreen
 from .kegel_exercises import KegelExercisesScreen
@@ -22,72 +22,130 @@ class ToolCard(QFrame):
         super().__init__(parent)
         self.screen_class = screen_class
         self.parent = parent
-        self._setup_ui(title, description, icon_path, accent_color)
+        self.accent_color = accent_color
+        self.title = title
+        self.description = description
+        self._setup_ui()
+        self.setMouseTracking(True)
 
-    def _setup_ui(self, title, description, icon_path, accent_color):
-        self.setStyleSheet(ToolsStyles.tool_card_base())
+    def _setup_ui(self):
+        # Встановлюємо стиль для всього зовнішнього контейнера
+        self.setStyleSheet(f"""
+            QFrame {{
+                background: {Colors.GLASS_SURFACE};
+                border: 1px solid {Colors.GLASS_BORDER};
+                border-radius: 24px;
+                padding: 0px;
+                margin: 0px;
+            }}
+            QLabel {{
+                background: transparent;
+                border: none;
+            }}
+        """)
+
+        # Зменшуємо розмір картки
+        self.setFixedHeight(120)
+
+        # Єдиний layout для всього вмісту
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(15, 15, 15, 15)
+        layout.setContentsMargins(20, 20, 20, 20)
+        layout.setSpacing(8)
 
-        header_layout = QHBoxLayout()
-        icon_label = self._create_icon(icon_path, accent_color)
-        title_label = self._create_title(title, accent_color)
-
-        header_layout.addWidget(icon_label)
-        header_layout.addWidget(title_label)
-        header_layout.addStretch()
-
-        desc_label = QLabel(description)
-        desc_label.setWordWrap(True)
-        desc_label.setStyleSheet(ToolsStyles.tool_card_description())
-        desc_label.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-
-        layout.addLayout(header_layout)
-        layout.addWidget(desc_label)
-        layout.addStretch()
-        self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-
-    def _create_icon(self, icon_path, accent_color):
-        icon_label = QLabel()
-        try:
-            pixmap = QPixmap(icon_path)
-            if not pixmap.isNull():
-                icon_label.setPixmap(pixmap.scaled(40, 40, Qt.AspectRatioMode.KeepAspectRatio,
-                                                   Qt.TransformationMode.SmoothTransformation))
-                icon_label.setFixedSize(40, 40)
-                icon_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-                return icon_label
-        except Exception:
-            pass
-
-        icon_label.setText("🔧")
-        icon_label.setStyleSheet(ToolsStyles.tool_icon_fallback(accent_color))
-        icon_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        return icon_label
-
-    def _create_title(self, title, accent_color):
-        title_label = QLabel(title)
-        title_label.setObjectName("titleLabel")
+        # Заголовок
+        title_label = QLabel(self.title)
         title_label.setFont(QFont('Arial', 16, QFont.Weight.Bold))
-        title_label.setStyleSheet(ToolsStyles.tool_card_title(accent_color))
-        return title_label
+        title_label.setStyleSheet(f"color: {self.accent_color}; font-weight: 700; background: transparent;")
+        layout.addWidget(title_label)
+
+        # Опис
+        description_label = QLabel(self.description)
+        description_label.setWordWrap(True)
+        description_label.setFont(QFont('Arial', 13))
+        description_label.setStyleSheet(f"color: {Colors.TEXT_PRIMARY}; font-weight: 500; background: transparent;")
+        layout.addWidget(description_label)
+
+    def enterEvent(self, event):
+        self.is_hover = True
+        self.setStyleSheet(f"""
+            QFrame {{
+                background: {Colors.SURFACE_HOVER};
+                border: 1px solid {Colors.GLASS_BORDER};
+                border-radius: 24px;
+                padding: 0px;
+                margin: 0px;
+            }}
+            QLabel {{
+                background: transparent;
+                border: none;
+            }}
+        """)
+        super().enterEvent(event)
+
+    def leaveEvent(self, event):
+        self.is_hover = False
+        self.setStyleSheet(f"""
+            QFrame {{
+                background: {Colors.GLASS_SURFACE};
+                border: 1px solid {Colors.GLASS_BORDER};
+                border-radius: 24px;
+                padding: 0px;
+                margin: 0px;
+            }}
+            QLabel {{
+                background: transparent;
+                border: none;
+            }}
+        """)
+        super().leaveEvent(event)
 
     def mousePressEvent(self, event):
+        if event.button() == Qt.MouseButton.LeftButton:
+            self.setStyleSheet(f"""
+                QFrame {{
+                    background: rgba(255, 255, 255, 0.25);
+                    border: 1px solid {Colors.GLASS_BORDER};
+                    border-radius: 24px;
+                    padding: 0px;
+                    margin: 0px;
+                }}
+                QLabel {{
+                    background: transparent;
+                    border: none;
+                }}
+            """)
         super().mousePressEvent(event)
-        if not self.screen_class:
-            return
 
-        try:
-            tool_screen = self.screen_class(self.parent)
-            main_stack = self._find_main_stack()
+    def mouseReleaseEvent(self, event):
+        if event.button() == Qt.MouseButton.LeftButton:
+            style = f"""
+                QFrame {{
+                    background: {Colors.SURFACE_HOVER if self.is_hover else Colors.GLASS_SURFACE};
+                    border: 1px solid {Colors.GLASS_BORDER};
+                    border-radius: 24px;
+                    padding: 0px;
+                    margin: 0px;
+                }}
+                QLabel {{
+                    background: transparent;
+                    border: none;
+                }}
+            """
+            self.setStyleSheet(style)
 
-            if main_stack:
-                index = main_stack.addWidget(tool_screen)
-                main_stack.setCurrentIndex(index)
-            else:
-                QMessageBox.warning(self, "Помилка", "Не вдалося відкрити інструмент")
-        except Exception as e:
-            QMessageBox.critical(self, "Помилка", f"Не вдалося відкрити інструмент: {str(e)}")
+            if self.screen_class:
+                try:
+                    tool_screen = self.screen_class(self.parent)
+                    main_stack = self._find_main_stack()
+
+                    if main_stack:
+                        index = main_stack.addWidget(tool_screen)
+                        main_stack.setCurrentIndex(index)
+                    else:
+                        QMessageBox.warning(self, "Помилка", "Не вдалося відкрити інструмент")
+                except Exception as e:
+                    QMessageBox.critical(self, "Помилка", f"Не вдалося відкрити інструмент: {str(e)}")
+        super().mouseReleaseEvent(event)
 
     def _find_main_stack(self):
         if hasattr(self.parent, 'parent') and self.parent.parent:
@@ -122,6 +180,7 @@ class ToolsScreen(QWidget):
         tools_label = QLabel("Інструменти")
         tools_label.setFont(QFont('Arial', 18, QFont.Weight.Bold))
         tools_label.setStyleSheet(BaseStyles.text_accent())
+        tools_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         header_layout.addWidget(tools_label)
 
         return header

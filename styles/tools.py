@@ -12,14 +12,14 @@ class ToolsStyles:
             QFrame {{
                 background: {Colors.GLASS_SURFACE};
                 border: 1px solid {Colors.GLASS_BORDER};
-                border-radius: 20px;
-                min-height: 180px;
+                border-radius: 15px;
                 padding: 20px;
                 margin: 8px;
+                min-height: 100px;
             }}
             QFrame:hover {{
                 background: {Colors.SURFACE_HOVER};
-                border: 2px solid {Colors.PRIMARY};
+                border: 1px solid {Colors.PRIMARY};
             }}
         """
 
@@ -29,6 +29,7 @@ class ToolsStyles:
             color: {accent_color}; 
             font-weight: 700;
             font-size: 16px;
+            margin-bottom: 5px;
         """
 
     @staticmethod
@@ -37,8 +38,7 @@ class ToolsStyles:
             color: {Colors.TEXT_SECONDARY};
             font-size: 13px;
             font-weight: 500;
-            line-height: 1.5;
-            margin-top: 8px;
+            line-height: 1.3;
         """
 
     @staticmethod
