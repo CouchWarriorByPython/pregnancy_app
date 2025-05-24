@@ -13,12 +13,13 @@ class ChecklistStyles:
                 background: rgba(255, 255, 255, 0.05);
                 color: {Colors.TEXT_SECONDARY};
                 border: none;
-                font-size: 14px;
+                font-size: 16px;
                 font-weight: 500;
-                padding: 16px 24px;
+                padding: 20px 30px;
                 text-align: center;
                 border-radius: 12px;
                 margin: 4px;
+                min-height: 30px;
             }}
             QPushButton:checked {{
                 background: {Colors.PRIMARY_GRADIENT};
@@ -39,7 +40,7 @@ class ChecklistStyles:
                 background: rgba(255, 255, 255, 0.1);
                 border: 1px solid {Colors.GLASS_BORDER};
                 border-radius: 16px;
-                padding: 4px;
+                padding: 12px;
                 text-align: center;
                 color: white;
                 font-weight: 600;
@@ -57,7 +58,7 @@ class ChecklistStyles:
                     stop:{progress_percent / 100} rgba(255, 255, 255, 0.1), stop:1 rgba(255, 255, 255, 0.1));
                 border: 1px solid {Colors.GLASS_BORDER};
                 border-radius: 16px;
-                padding: 4px;
+                padding: 12px;
                 text-align: center;
                 color: white;
                 font-weight: 600;
@@ -99,6 +100,7 @@ class ChecklistStyles:
                 padding: 8px;
                 border-radius: 8px;
                 margin: 2px 0;
+                background: transparent;
             }}
             QCheckBox:hover {{
                 background: rgba(255, 255, 255, 0.05);
@@ -108,7 +110,7 @@ class ChecklistStyles:
                 height: 24px;
                 border-radius: 8px;
                 border: 2px solid {Colors.GLASS_BORDER};
-                background: {Colors.GLASS_SURFACE};
+                background: transparent;
             }}
             QCheckBox::indicator:checked {{
                 background: {Colors.PRIMARY_GRADIENT};
