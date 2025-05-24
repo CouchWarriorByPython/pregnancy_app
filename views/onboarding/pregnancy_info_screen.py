@@ -44,25 +44,28 @@ class PregnancyInfoScreen(QWidget):
         form_layout.addWidget(last_period_label)
 
         self.last_period_edit = StyledDateEdit()
-        self.last_period_edit.setDate(QDate.currentDate().addDays(-30))
+        # Встановлюємо дату 40 тижнів тому (стандартний термін вагітності)
+        self.last_period_edit.setDate(QDate.currentDate().addDays(-280))
         self.last_period_edit.setMinimumHeight(60)
         self.last_period_edit.setStyleSheet(OnboardingStyles.onboarding_input())
+        self.last_period_edit.dateChanged.connect(self.update_conception_date)
         form_layout.addWidget(self.last_period_edit)
 
         # Дата зачаття
-        conception_label = QLabel("Дата зачаття:")
+        conception_label = QLabel("Дата зачаття (приблизно):")
         conception_label.setStyleSheet(OnboardingStyles.field_label())
         conception_label.setFont(QFont('Arial', 14))
         form_layout.addWidget(conception_label)
 
         self.conception_edit = StyledDateEdit()
-        self.conception_edit.setDate(QDate.currentDate().addDays(-14))
+        # Встановлюємо дату 38 тижнів тому (2 тижні після останніх місячних)
+        self.conception_edit.setDate(QDate.currentDate().addDays(-266))
         self.conception_edit.setMinimumHeight(60)
         self.conception_edit.setStyleSheet(OnboardingStyles.onboarding_input())
         form_layout.addWidget(self.conception_edit)
 
         # Пояснювальний текст
-        info_label = QLabel("Дата пологів буде розрахована автоматично на основі дати зачаття")
+        info_label = QLabel("Дата пологів буде розрахована автоматично на основі дати останньої менструації (додається 280 днів)")
         info_label.setStyleSheet(OnboardingStyles.field_label())
         info_label.setWordWrap(True)
         info_label.setFont(QFont('Arial', 13))
@@ -78,6 +81,11 @@ class PregnancyInfoScreen(QWidget):
         main_layout.addWidget(next_btn)
 
         main_layout.addItem(QSpacerItem(20, 20, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed))
+
+    def update_conception_date(self, date):
+        # Автоматично оновлюємо дату зачаття на 14 днів після останніх місячних
+        new_conception_date = date.addDays(14)
+        self.conception_edit.setDate(new_conception_date)
 
     def _get_current_user_id(self):
         if hasattr(self.parent, 'current_user_id'):
@@ -103,8 +111,15 @@ class PregnancyInfoScreen(QWidget):
         if last_period_date_obj > conception_date_obj:
             QMessageBox.warning(self, "Помилка",
                                 "Дата останньої менструації не може бути пізніше дати зачаття.\n"
-                                "Будь ласка, перевірте введені дати.")
+                                "Зачаття зазвичай відбувається приблизно через 14 днів після початку останньої менструації.")
             return
+
+        # Перевіряємо що дата зачаття не занадто пізня (більше 4 тижнів після місячних)
+        days_diff = (conception_date_obj - last_period_date_obj).days
+        if days_diff > 28:
+            QMessageBox.warning(self, "Увага",
+                                "Дата зачаття виглядає занадто пізньою.\n"
+                                "Зазвичай зачаття відбувається протягом 2-3 тижнів після початку останньої менструації.")
 
         pregnancy_data = {
             "last_period_date": last_period_date.toString("yyyy-MM-dd"),
