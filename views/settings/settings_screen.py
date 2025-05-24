@@ -1,5 +1,6 @@
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QMessageBox
 from PyQt6.QtGui import QFont
+from PyQt6.QtCore import Qt
 from controllers.data_controller import DataController
 from styles.settings import SettingsStyles
 from styles.base import BaseStyles
@@ -50,13 +51,14 @@ class SettingsScreen(QWidget):
         label = QLabel("Налаштування")
         label.setFont(QFont('Arial', 18, QFont.Weight.Bold))
         label.setStyleSheet(BaseStyles.text_accent())
+        label.setAlignment(Qt.AlignmentFlag.AlignCenter)  # Центрування заголовку
         layout.addWidget(label)
 
         return header
 
     def _create_tab_selector(self):
         tab_selector = QWidget()
-        tab_selector.setFixedHeight(50)
+        tab_selector.setFixedHeight(70)  # Збільшено висоту
         tab_selector.setStyleSheet("background-color: #181818;")
 
         layout = QHBoxLayout(tab_selector)
@@ -67,7 +69,7 @@ class SettingsScreen(QWidget):
         for i, (name, _) in enumerate(self.editors):
             btn = QPushButton(name)
             btn.setCheckable(True)
-            btn.setFixedHeight(50)
+            btn.setFixedHeight(70)  # Збільшено висоту кнопок
             btn.setStyleSheet(SettingsStyles.tab_button())
             btn.clicked.connect(lambda checked, idx=i: self.set_tab(idx))
             layout.addWidget(btn)
@@ -114,11 +116,19 @@ class SettingsScreen(QWidget):
                 self.parent.logout()
 
     def set_tab(self, index):
+        # Запам'ятаємо поточний розмір вікна
+        if self.window():
+            current_size = self.window().size()
+
         for i, btn in enumerate(self.tab_buttons):
             btn.setChecked(i == index)
 
         for i, (_, editor) in enumerate(self.editors):
             editor.setVisible(i == index)
+
+        # Відновимо розмір вікна, якщо він змінився
+        if self.window() and self.window().size() != current_size:
+            self.window().resize(current_size)
 
     @property
     def current_user_id(self):

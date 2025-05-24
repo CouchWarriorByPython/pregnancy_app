@@ -204,14 +204,14 @@ class BaseStyles:
                 width: 20px;
             }}
             QSpinBox::up-arrow, QDoubleSpinBox::up-arrow {{
-                image: none;
-                border: 4px solid transparent;
-                border-bottom: 6px solid {Colors.TEXT_PRIMARY};
+                image: url(resources/images/icons/plus.png);
+                width: 16px;
+                height: 16px;
             }}
             QSpinBox::down-arrow, QDoubleSpinBox::down-arrow {{
-                image: none;
-                border: 4px solid transparent;
-                border-top: 6px solid {Colors.TEXT_PRIMARY};
+                image: url(resources/images/icons/minus.png);
+                width: 16px;
+                height: 16px;
             }}
         """
 
@@ -344,15 +344,15 @@ class BaseStyles:
 
     @staticmethod
     def text_primary():
-        return f"color: {Colors.TEXT_PRIMARY}; font-weight: 500;"
+        return f"color: {Colors.TEXT_PRIMARY}; font-weight: 500; background: transparent; border: none;"
 
     @staticmethod
     def text_secondary():
-        return f"color: {Colors.TEXT_SECONDARY}; font-weight: 400;"
+        return f"color: {Colors.TEXT_SECONDARY}; font-weight: 400; background: transparent; border: none;"
 
     @staticmethod
     def text_accent():
-        return f"color: {Colors.TEXT_ACCENT}; font-weight: 600;"
+        return f"color: {Colors.TEXT_ACCENT}; font-weight: 600; background: transparent; border: none;"
 
     @staticmethod
     def dialog_base():

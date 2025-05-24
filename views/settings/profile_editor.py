@@ -69,7 +69,7 @@ class ProfileEditor(QWidget):
         for label, widget in fields:
             widget.setMinimumHeight(40)
             label_widget = QLabel(label)
-            label_widget.setStyleSheet(BaseStyles.text_primary())
+            label_widget.setStyleSheet(BaseStyles.text_primary())  # Тепер стиль не має фону
             self.form_layout.addRow(label_widget, widget)
 
     def _get_current_user_id(self):
