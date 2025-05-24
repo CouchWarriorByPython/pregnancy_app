@@ -3,6 +3,7 @@ from sqlalchemy.orm import sessionmaker
 from .base import Base, UserProfile, PregnancyData, WeightRecord, \
     WishlistItem, HealthNote, BabyKick, Contraction, BloodPressure, BellyMeasurement, Reminder
 from datetime import datetime, date, timedelta
+from models.base import CalendarEvent
 
 
 class Database:
@@ -208,3 +209,73 @@ class Database:
 
     def close(self):
         self.session.close()
+
+    def add_calendar_event(self, title, description, start_date, start_time=None, end_time=None, event_type='regular',
+                           user_id=1):
+        date_obj = self._parse_date_time(start_date)
+
+        # Парсимо час якщо він переданий
+        start_time_obj = None
+        end_time_obj = None
+        all_day = True
+
+        if start_time:
+            if isinstance(start_time, str):
+                start_time_obj = datetime.strptime(start_time, '%H:%M').time()
+            else:
+                start_time_obj = start_time
+            all_day = False
+
+            # Якщо немає часу закінчення, додаємо годину до початку
+            if not end_time:
+                start_datetime = datetime.combine(date_obj, start_time_obj)
+                end_datetime = start_datetime + timedelta(hours=1)
+                end_time_obj = end_datetime.time()
+            elif isinstance(end_time, str):
+                end_time_obj = datetime.strptime(end_time, '%H:%M').time()
+            else:
+                end_time_obj = end_time
+
+        event = CalendarEvent(
+            user_id=user_id,
+            title=title,
+            description=description,
+            start_date=date_obj,
+            end_date=date_obj,
+            start_time=start_time_obj,
+            end_time=end_time_obj,
+            all_day=all_day,
+            event_type=event_type
+        )
+        self.session.add(event)
+        self.session.commit()
+        return event.id
+
+    def get_events_for_date(self, date_str, user_id=1):
+        date_obj = self._parse_date_time(date_str)
+        events = self.session.query(CalendarEvent).filter_by(
+            user_id=user_id,
+            start_date=date_obj
+        ).all()
+
+        result = []
+        for e in events:
+            event_dict = {
+                'id': e.id,
+                'title': e.title,
+                'description': e.description,
+                'event_type': e.event_type,
+                'all_day': e.all_day
+            }
+
+            # Додаємо час якщо подія не на весь день
+            if not e.all_day and e.start_time:
+                event_dict['time'] = e.start_time.strftime('%H:%M')
+                if e.end_time:
+                    event_dict['end_time'] = e.end_time.strftime('%H:%M')
+            else:
+                event_dict['time'] = 'Весь день'
+
+            result.append(event_dict)
+
+        return sorted(result, key=lambda x: x.get('time', ''))

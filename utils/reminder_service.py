@@ -1,8 +1,11 @@
 from PyQt6.QtCore import QTimer, QObject, pyqtSignal
+from PyQt6.QtGui import QIcon
 from PyQt6.QtWidgets import QMessageBox, QSystemTrayIcon
 from datetime import datetime, date
 from utils.logger import get_logger
 from utils.email_service import EmailService
+import os
+
 
 logger = get_logger('reminder_service')
 
@@ -57,32 +60,65 @@ class ReminderService(QObject):
             title = reminder['title']
             description = reminder.get('description', '')
 
-            # Показуємо системне сповіщення
-            if QSystemTrayIcon.isSystemTrayAvailable():
-                tray_icon = QSystemTrayIcon()
-                tray_icon.showMessage(
-                    f"Нагадування: {title}",
-                    description,
-                    QSystemTrayIcon.MessageIcon.Information,
-                    5000
-                )
-            else:
-                QMessageBox.information(
-                    None,
-                    f"Нагадування: {title}",
-                    description
-                )
+            # Створюємо системний трей якщо його немає
+            if not hasattr(self, 'tray_icon'):
+                self.tray_icon = QSystemTrayIcon()
+                icon_path = "resources/images/icons/calendar.png"
+                if os.path.exists(icon_path):
+                    self.tray_icon.setIcon(QIcon(icon_path))
+                else:
+                    # Використовуємо стандартну іконку
+                    self.tray_icon.setIcon(self.parent.windowIcon() if self.parent else QIcon())
+                self.tray_icon.show()
 
-            # Відправляємо email нагадування якщо є email
+            # Показуємо системне сповіщення
+            self.tray_icon.showMessage(
+                title,
+                description,
+                QSystemTrayIcon.MessageIcon.Information,
+                10000  # 10 секунд
+            )
+
+            # Також показуємо діалогове вікно для надійності
+            if self.parent and hasattr(self.parent, 'isActiveWindow'):
+                msg = QMessageBox(self.parent)
+                msg.setWindowTitle("Нагадування")
+                msg.setText(title)
+                msg.setInformativeText(description)
+                msg.setIcon(QMessageBox.Icon.Information)
+                msg.setStyleSheet("""
+                    QMessageBox {
+                        background-color: #1E1B4B;
+                        color: white;
+                    }
+                    QMessageBox QPushButton {
+                        background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #8B5CF6, stop:1 #EC4899);
+                        color: white;
+                        border: none;
+                        border-radius: 8px;
+                        padding: 8px 16px;
+                        font-weight: 600;
+                        min-width: 80px;
+                    }
+                    QMessageBox QPushButton:hover {
+                        background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #7C3AED, stop:1 #DB2777);
+                    }
+                """)
+                msg.exec()
+
+            # Відправляємо email якщо є адреса
             if self.user_email:
-                user_profile = self.db.get_user_profile(self.user_id)
-                user_name = user_profile.name if user_profile else "Користувач"
-                self.email_service.send_reminder_email(
-                    self.user_email,
-                    user_name,
-                    title,
-                    description
-                )
+                try:
+                    user_profile = self.db.get_user_profile(self.user_id)
+                    user_name = user_profile.name if user_profile else "Користувач"
+                    self.email_service.send_reminder_email(
+                        self.user_email,
+                        user_name,
+                        title,
+                        description
+                    )
+                except Exception as e:
+                    logger.error(f"Помилка відправки email: {str(e)}")
 
             logger.info(f"Показано нагадування: {title}")
             self.reminder_triggered.emit(reminder)
