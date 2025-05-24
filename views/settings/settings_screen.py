@@ -14,9 +14,31 @@ class SettingsScreen(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.parent = parent
-        self.data_controller = DataController()
+        self.data_controller = None
+        self._init_data_controller()
         self._init_editors()
         self._setup_ui()
+
+    def _init_data_controller(self):
+        # Ініціалізуємо DataController з current_user_id
+        user_id = self._get_current_user_id()
+        if user_id:
+            self.data_controller = DataController(user_id)
+        else:
+            self.data_controller = DataController()
+
+    def _get_current_user_id(self):
+        # Спочатку перевіряємо parent
+        if hasattr(self.parent, 'current_user_id') and self.parent.current_user_id:
+            return self.parent.current_user_id
+
+        # Потім перевіряємо parent.parent (MainWindow)
+        if (hasattr(self.parent, 'parent') and
+                hasattr(self.parent.parent, 'current_user_id') and
+                self.parent.parent.current_user_id):
+            return self.parent.parent.current_user_id
+
+        return None
 
     def _init_editors(self):
         self.editors = [
@@ -51,14 +73,14 @@ class SettingsScreen(QWidget):
         label = QLabel("Налаштування")
         label.setFont(QFont('Arial', 18, QFont.Weight.Bold))
         label.setStyleSheet(BaseStyles.text_accent())
-        label.setAlignment(Qt.AlignmentFlag.AlignCenter)  # Центрування заголовку
+        label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(label)
 
         return header
 
     def _create_tab_selector(self):
         tab_selector = QWidget()
-        tab_selector.setFixedHeight(70)  # Збільшено висоту
+        tab_selector.setFixedHeight(70)
         tab_selector.setStyleSheet("background-color: #181818;")
 
         layout = QHBoxLayout(tab_selector)
@@ -69,7 +91,7 @@ class SettingsScreen(QWidget):
         for i, (name, _) in enumerate(self.editors):
             btn = QPushButton(name)
             btn.setCheckable(True)
-            btn.setFixedHeight(70)  # Збільшено висоту кнопок
+            btn.setFixedHeight(70)
             btn.setStyleSheet(SettingsStyles.tab_button())
             btn.clicked.connect(lambda checked, idx=i: self.set_tab(idx))
             layout.addWidget(btn)
@@ -116,9 +138,7 @@ class SettingsScreen(QWidget):
                 self.parent.logout()
 
     def set_tab(self, index):
-        # Запам'ятаємо поточний розмір вікна
-        if self.window():
-            current_size = self.window().size()
+        current_size = self.window().size() if self.window() else None
 
         for i, btn in enumerate(self.tab_buttons):
             btn.setChecked(i == index)
@@ -126,10 +146,9 @@ class SettingsScreen(QWidget):
         for i, (_, editor) in enumerate(self.editors):
             editor.setVisible(i == index)
 
-        # Відновимо розмір вікна, якщо він змінився
-        if self.window() and self.window().size() != current_size:
+        if self.window() and current_size and self.window().size() != current_size:
             self.window().resize(current_size)
 
     @property
     def current_user_id(self):
-        return getattr(self.parent, 'current_user_id', None)
+        return self._get_current_user_id()

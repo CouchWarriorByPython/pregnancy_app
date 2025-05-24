@@ -45,23 +45,27 @@ class PregnancyEditor(QWidget):
     def _create_form_frame(self):
         form_frame = QFrame()
         form_frame.setStyleSheet(BaseStyles.card_frame())
-        form_layout = QFormLayout(form_frame)
-        form_layout.setSpacing(15)
-        form_layout.setContentsMargins(15, 15, 15, 15)
+        form_layout = QVBoxLayout(form_frame)
+        form_layout.setSpacing(20)
+        form_layout.setContentsMargins(20, 20, 20, 20)
 
         # Дата останньої менструації
         last_period_label = QLabel("Дата останньої менструації:")
-        last_period_label.setStyleSheet(f"color: white; font-weight: 500; font-size: 14px;")
-        last_period_label.setMinimumHeight(20)
-        self.last_period_edit.setMinimumHeight(40)
-        form_layout.addRow(last_period_label, self.last_period_edit)
+        last_period_label.setStyleSheet(BaseStyles.text_primary())
+        last_period_label.setFont(QFont('Arial', 14))
+        form_layout.addWidget(last_period_label)
+
+        self.last_period_edit.setMinimumHeight(50)
+        form_layout.addWidget(self.last_period_edit)
 
         # Дата зачаття
         conception_label = QLabel("Дата зачаття:")
-        conception_label.setStyleSheet(f"color: white; font-weight: 500; font-size: 14px;")
-        conception_label.setMinimumHeight(20)
-        self.conception_edit.setMinimumHeight(40)
-        form_layout.addRow(conception_label, self.conception_edit)
+        conception_label.setStyleSheet(BaseStyles.text_primary())
+        conception_label.setFont(QFont('Arial', 14))
+        form_layout.addWidget(conception_label)
+
+        self.conception_edit.setMinimumHeight(50)
+        form_layout.addWidget(self.conception_edit)
 
         return form_frame
 
@@ -69,22 +73,24 @@ class PregnancyEditor(QWidget):
         info_frame = QFrame()
         info_frame.setStyleSheet(BaseStyles.card_frame())
         info_layout = QVBoxLayout(info_frame)
-        info_layout.setContentsMargins(15, 15, 15, 15)
-        info_layout.setSpacing(10)
+        info_layout.setContentsMargins(20, 20, 20, 20)
+        info_layout.setSpacing(15)
 
         info_title = QLabel("Поточна інформація")
         info_title.setFont(QFont('Arial', 16, QFont.Weight.Bold))
-        info_title.setStyleSheet("color: #8B5CF6; font-weight: 700;")
+        info_title.setStyleSheet(BaseStyles.text_accent())
         info_layout.addWidget(info_title)
 
         self.week_label.setFont(QFont('Arial', 14))
-        self.week_label.setStyleSheet("color: white; font-weight: 500;")
+        self.week_label.setStyleSheet(BaseStyles.text_primary())
         info_layout.addWidget(self.week_label)
 
-        self.due_date_label.setStyleSheet("color: white; font-weight: 500;")
+        self.due_date_label.setFont(QFont('Arial', 14))
+        self.due_date_label.setStyleSheet(BaseStyles.text_primary())
         info_layout.addWidget(self.due_date_label)
 
-        self.days_left_label.setStyleSheet("color: white; font-weight: 500;")
+        self.days_left_label.setFont(QFont('Arial', 14))
+        self.days_left_label.setStyleSheet(BaseStyles.text_primary())
         info_layout.addWidget(self.days_left_label)
 
         return info_frame
