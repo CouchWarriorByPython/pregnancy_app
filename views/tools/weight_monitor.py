@@ -4,8 +4,7 @@ from controllers.data_controller import DataController
 from utils.logger import get_logger
 from utils.base_widgets import (StyledCard, StyledDateEdit, StyledDoubleSpinBox,
                                StyledButton, StyledListWidget, TitleLabel)
-from styles.tools import WeightMonitorStyles
-from styles.base import BaseStyles
+from styles import WeightMonitorStyles, BaseStyles
 
 logger = get_logger('weight_monitor')
 
@@ -55,8 +54,7 @@ class WeightMonitorScreen(QWidget):
         weight_layout.addWidget(self.weight_spin)
         form_frame.layout.addLayout(weight_layout)
 
-        # Додаємо перевірку на наявність user_profile
-        initial_weight = 60.0  # Значення за замовчуванням
+        initial_weight = 60.0
         if self.data_controller.user_profile:
             initial_weight = self.data_controller.user_profile.weight_before_pregnancy or 60.0
 
@@ -79,7 +77,6 @@ class WeightMonitorScreen(QWidget):
         list_frame = StyledCard("Історія ваги")
         list_frame.setStyleSheet(WeightMonitorStyles.monitor_card())
 
-        # Важливо: правильно створюємо та ініціалізуємо атрибут weight_list
         self.weight_list = StyledListWidget()
         list_frame.layout.addWidget(self.weight_list)
 
@@ -96,7 +93,6 @@ class WeightMonitorScreen(QWidget):
         try:
             records = self.data_controller.db.get_weight_records()
 
-            # Перевірка, чи існує атрибут weight_list
             if not hasattr(self, 'weight_list'):
                 logger.warning("Атрибут weight_list не ініціалізований")
                 return
@@ -118,9 +114,12 @@ class WeightMonitorScreen(QWidget):
             date_str = self.date_edit.date().toString("yyyy-MM-dd")
             weight = self.weight_spin.value()
 
+            if weight < 30.0 or weight > 300.0:
+                QMessageBox.warning(self, "Помилка", "Введіть реальне значення ваги")
+                return
+
             self.data_controller.db.add_weight_record(date_str, weight)
 
-            # Перевірка, чи існує атрибут weight_list
             if hasattr(self, 'weight_list'):
                 self.load_weight_records()
 

@@ -2,15 +2,15 @@ import datetime
 from reportlab.lib.pagesizes import A4
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
 from reportlab.lib.styles import getSampleStyleSheet
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QTextEdit, QHBoxLayout, QSplitter, QLabel
+from PyQt6.QtWidgets import QWidget, QVBoxLayout, QTextEdit, QHBoxLayout, QSplitter, QLabel, QMessageBox
 from PyQt6.QtCore import QDate
 from controllers.data_controller import DataController
 from utils.logger import get_logger
 from utils.base_widgets import StyledCard, StyledInput, StyledDateEdit, StyledButton, StyledListWidget, TitleLabel
-from styles.tools import HealthReportStyles
-from styles.base import BaseStyles
+from styles import HealthReportStyles, BaseStyles
 
 logger = get_logger('health_report')
+
 
 class HealthReportScreen(QWidget):
     def __init__(self, parent=None):
@@ -108,6 +108,7 @@ class HealthReportScreen(QWidget):
 
             logger.info(f"Завантажено {len(notes)} нотаток про здоров'я")
         except Exception as e:
+            QMessageBox.critical(self, "Помилка", f"Не вдалося завантажити нотатки: {str(e)}")
             logger.error(f"Помилка при завантаженні нотаток: {str(e)}")
 
     def save_note(self):
@@ -117,6 +118,7 @@ class HealthReportScreen(QWidget):
             content = self.content_edit.toPlainText().strip()
 
             if not content:
+                QMessageBox.warning(self, "Помилка", "Введіть текст нотатки")
                 return
 
             self.data_controller.db.add_health_note(date_str, content, title)
@@ -125,14 +127,17 @@ class HealthReportScreen(QWidget):
             self.content_edit.clear()
             self.load_notes()
 
+            QMessageBox.information(self, "Успіх", "Нотатку збережено")
             logger.info(f"Збережено нову нотатку про здоров'я: {date_str}, {title}")
         except Exception as e:
+            QMessageBox.critical(self, "Помилка", f"Не вдалося зберегти нотатку: {str(e)}")
             logger.error(f"Помилка при збереженні нотатки: {str(e)}")
 
     def export_to_pdf(self):
         try:
             notes = self.data_controller.db.get_health_notes()
             if not notes:
+                QMessageBox.information(self, "Інформація", "Немає нотаток для експорту")
                 return
 
             today = datetime.date.today().strftime("%Y-%m-%d")
@@ -142,7 +147,8 @@ class HealthReportScreen(QWidget):
             current_week = self.data_controller.get_current_week() or "невідомо"
             user_profile = self.data_controller.user_profile
 
-            document = SimpleDocTemplate(file_name, pagesize=A4, rightMargin=72, leftMargin=72, topMargin=72, bottomMargin=72)
+            document = SimpleDocTemplate(file_name, pageSize=A4, rightMargin=72, leftMargin=72, topMargin=72,
+                                         bottomMargin=72)
 
             styles = getSampleStyleSheet()
             title_style = styles["Heading1"]
@@ -158,7 +164,8 @@ class HealthReportScreen(QWidget):
             content.append(Paragraph(f"Ім'я: {user_profile.name}", normal_style))
             content.append(Paragraph(f"Поточний тиждень: {current_week}", normal_style))
             if pregnancy_data.due_date:
-                content.append(Paragraph(f"Очікувана дата пологів: {pregnancy_data.due_date.strftime('%d.%m.%Y')}", normal_style))
+                content.append(
+                    Paragraph(f"Очікувана дата пологів: {pregnancy_data.due_date.strftime('%d.%m.%Y')}", normal_style))
             content.append(Spacer(1, 12))
 
             content.append(Paragraph("Нотатки про здоров'я", subtitle_style))
@@ -174,6 +181,9 @@ class HealthReportScreen(QWidget):
                 content.append(Spacer(1, 12))
 
             document.build(content)
+
+            QMessageBox.information(self, "Успіх", f"PDF-звіт збережено як {file_name}")
             logger.info(f"Експортовано PDF-звіт: {file_name}")
         except Exception as e:
+            QMessageBox.critical(self, "Помилка", f"Не вдалося експортувати PDF: {str(e)}")
             logger.error(f"Помилка при експорті PDF: {str(e)}")

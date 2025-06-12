@@ -1,9 +1,5 @@
-"""Tools module for the pregnancy diary application."""
-
-# Import screens
 from .tools_screen import ToolsScreen
 
-# Import tool screens
 from .health_report import HealthReportScreen
 from .kegel_exercises import KegelExercisesScreen
 from .weight_monitor import WeightMonitorScreen

@@ -2,12 +2,13 @@
 Стилі для екранів авторизації
 """
 
-from .base import Colors
+from ..base import Colors
 
 
-class AuthStyles:
+class AuthScreenStyles:
     @staticmethod
     def main_container():
+        """Основний контейнер для всіх екранів авторизації"""
         return f"""
             QWidget {{
                 background: {Colors.BACKGROUND_GRADIENT};
@@ -17,6 +18,7 @@ class AuthStyles:
 
     @staticmethod
     def title_label():
+        """Заголовок екранів авторизації"""
         return f"""
             QLabel {{
                 color: white;
@@ -32,6 +34,7 @@ class AuthStyles:
 
     @staticmethod
     def subtitle_label():
+        """Підзаголовок екранів авторизації"""
         return f"""
             QLabel {{
                 color: {Colors.TEXT_SECONDARY};
@@ -48,6 +51,7 @@ class AuthStyles:
 
     @staticmethod
     def auth_input():
+        """Поля введення для авторизації"""
         return f"""
             QLineEdit {{
                 background: {Colors.GLASS_SURFACE};
@@ -71,6 +75,7 @@ class AuthStyles:
 
     @staticmethod
     def auth_button_large():
+        """Великі кнопки авторизації"""
         return f"""
             QPushButton {{
                 background: {Colors.PRIMARY_GRADIENT};
@@ -94,6 +99,7 @@ class AuthStyles:
 
     @staticmethod
     def switch_button():
+        """Кнопки перемикання між екранами"""
         return f"""
             QPushButton {{
                 background: transparent;
@@ -113,6 +119,7 @@ class AuthStyles:
 
     @staticmethod
     def verification_code_input():
+        """Поле для коду підтвердження"""
         return f"""
             QLineEdit {{
                 background: {Colors.GLASS_SURFACE};
@@ -133,7 +140,25 @@ class AuthStyles:
         """
 
     @staticmethod
+    def code_description():
+        """Опис коду підтвердження"""
+        return f"""
+            QLabel {{
+                color: {Colors.TEXT_SECONDARY};
+                font-size: 16px;
+                font-weight: 500;
+                text-align: center;
+                line-height: 1.5;
+                margin: 16px 0;
+                background: transparent;
+                border: none;
+                padding: 0px;
+            }}
+        """
+
+    @staticmethod
     def resend_button():
+        """Кнопка повторного надсилання"""
         return f"""
             QPushButton {{
                 background: {Colors.SURFACE};
@@ -152,6 +177,7 @@ class AuthStyles:
 
     @staticmethod
     def back_button():
+        """Кнопка назад"""
         return f"""
             QPushButton {{
                 background: transparent;
@@ -166,106 +192,5 @@ class AuthStyles:
                 color: {Colors.TEXT_PRIMARY};
                 border-color: {Colors.TEXT_PRIMARY};
                 background: rgba(255, 255, 255, 0.05);
-            }}
-        """
-
-
-class LoginStyles(AuthStyles):
-    @staticmethod
-    def login_form():
-        return f"""
-            QWidget {{
-                background: {Colors.GLASS_SURFACE};
-                border: 1px solid {Colors.GLASS_BORDER};
-                border-radius: 24px;
-                padding: 32px;
-            }}
-        """
-
-    @staticmethod
-    def forgot_password_link():
-        return f"""
-            QLabel {{
-                color: {Colors.PRIMARY};
-                text-decoration: underline;
-                font-weight: 500;
-                background: transparent;
-                border: none;
-                padding: 0px;
-                margin: 0px;
-            }}
-            QLabel:hover {{
-                color: {Colors.PRIMARY_HOVER};
-            }}
-        """
-
-
-class RegisterStyles(AuthStyles):
-    @staticmethod
-    def register_form():
-        return f"""
-            QWidget {{
-                background: {Colors.GLASS_SURFACE};
-                border: 1px solid {Colors.GLASS_BORDER};
-                border-radius: 24px;
-                padding: 32px;
-            }}
-        """
-
-    @staticmethod
-    def password_strength_indicator():
-        return f"""
-            QLabel {{
-                color: {Colors.TEXT_SECONDARY};
-                font-size: 12px;
-                font-weight: 500;
-                padding: 8px 12px;
-                background: rgba(255, 255, 255, 0.05);
-                border-radius: 8px;
-                border: 1px solid {Colors.GLASS_BORDER};
-            }}
-        """
-
-
-class VerificationStyles(AuthStyles):
-    @staticmethod
-    def verification_form():
-        return f"""
-            QWidget {{
-                background: {Colors.GLASS_SURFACE};
-                border: 1px solid {Colors.GLASS_BORDER};
-                border-radius: 24px;
-                padding: 32px;
-            }}
-        """
-
-    @staticmethod
-    def code_description():
-        return f"""
-            QLabel {{
-                color: {Colors.TEXT_SECONDARY};
-                font-size: 16px;
-                font-weight: 500;
-                text-align: center;
-                line-height: 1.5;
-                margin: 16px 0;
-                background: transparent;
-                border: none;
-                padding: 0px;
-            }}
-        """
-
-    @staticmethod
-    def timer_label():
-        return f"""
-            QLabel {{
-                color: {Colors.WARNING};
-                font-size: 13px;
-                font-weight: 600;
-                text-align: center;
-                background: rgba(245, 158, 11, 0.1);
-                padding: 8px 16px;
-                border-radius: 8px;
-                border: 1px solid rgba(245, 158, 11, 0.3);
             }}
         """

@@ -4,8 +4,7 @@ from controllers.data_controller import DataController
 from utils.logger import get_logger
 from utils.base_widgets import (StyledCard, StyledDateEdit, StyledDoubleSpinBox,
                                StyledInput, StyledButton, StyledListWidget, TitleLabel)
-from styles.tools import BellyTrackerStyles
-from styles.base import BaseStyles
+from styles import BellyTrackerStyles, BaseStyles
 
 logger = get_logger('belly_tracker')
 
@@ -53,7 +52,7 @@ class BellyTrackerScreen(QWidget):
         self.date_edit.setDate(QDate.currentDate())
         input_form.addRow("Дата:", self.date_edit)
 
-        self.measurement_spin = StyledDoubleSpinBox(50.0, 150.0, 1, " см")
+        self.measurement_spin = StyledDoubleSpinBox(60.0, 160.0, 1, " см")
         self.measurement_spin.setValue(80.0)
         input_form.addRow("Розмір живота:", self.measurement_spin)
 
@@ -112,11 +111,15 @@ class BellyTrackerScreen(QWidget):
             measurement = self.measurement_spin.value()
             notes = self.notes_edit.text().strip()
 
+            if measurement < 60.0 or measurement > 160.0:
+                QMessageBox.warning(self, "Помилка", "Введіть реальний розмір живота")
+                return
+
             self.data_controller.db.add_belly_measurement(date_str, measurement, notes)
             self.notes_edit.clear()
             self.load_measurements()
 
-            QMessageBox.information(self, "Успіх", "Запис про розмір живота успішно збережено")
+            QMessageBox.information(self, "Успіх", "Запис збережено")
             logger.info(f"Збережено новий запис про розмір живота: {date_str}, {measurement} см")
 
         except Exception as e:

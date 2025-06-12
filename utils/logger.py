@@ -1,7 +1,6 @@
 import logging
 import os
 
-# Перевірка наявності директорії для логів
 if not os.path.exists('logs'):
     os.makedirs('logs')
 

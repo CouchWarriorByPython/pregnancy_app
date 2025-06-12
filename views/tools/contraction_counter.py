@@ -6,7 +6,7 @@ from PyQt6.QtCore import Qt, QDate, QTime, QTimer
 from PyQt6.QtGui import QFont
 from controllers.data_controller import DataController
 from utils.logger import get_logger
-from styles.tools import ContractionCounterStyles, SliderStyles
+from styles import ContractionCounterStyles, SliderStyles
 from styles.base import BaseStyles
 
 logger = get_logger('contraction_counter')
@@ -69,14 +69,7 @@ class ContractionCounterScreen(QWidget):
         """
         info_label = QLabel(info_text)
         info_label.setWordWrap(True)
-        info_label.setStyleSheet(f"""
-            QLabel {{
-                color: white;
-                background-color: #333333;
-                padding: 10px;
-                border-radius: 5px;
-            }}
-        """)
+        info_label.setStyleSheet(ContractionCounterStyles.info_label())
         layout.addWidget(info_label)
 
         timer_frame = QFrame()
@@ -103,13 +96,7 @@ class ContractionCounterScreen(QWidget):
 
         self.stop_btn = QPushButton("Зупинити перейму")
         self.stop_btn.setEnabled(False)
-        self.stop_btn.setStyleSheet(f"""
-            {BaseStyles.button_error()}
-            QPushButton:disabled {{
-                background-color: #777777;
-                color: #AAAAAA;
-            }}
-        """)
+        self.stop_btn.setStyleSheet(f"{BaseStyles.button_error()}\n{ContractionCounterStyles.disabled_button()}")
         self.stop_btn.clicked.connect(self.stop_contraction)
 
         buttons_layout.addWidget(self.start_btn)
@@ -128,7 +115,7 @@ class ContractionCounterScreen(QWidget):
         self.intensity_slider.setStyleSheet(SliderStyles.horizontal_slider())
 
         self.intensity_value = QLabel("5")
-        self.intensity_value.setStyleSheet(f"color: #FFFFFF; font-weight: bold;")
+        self.intensity_value.setStyleSheet("color: #FFFFFF; font-weight: bold;")
         self.intensity_slider.valueChanged.connect(lambda v: self.intensity_value.setText(str(v)))
 
         intensity_layout.addWidget(intensity_label)

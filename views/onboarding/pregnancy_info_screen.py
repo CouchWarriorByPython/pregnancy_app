@@ -3,8 +3,7 @@ from PyQt6.QtCore import pyqtSignal, QDate
 from PyQt6.QtCore import Qt
 from utils.logger import get_logger
 from utils.base_widgets import StyledButton, TitleLabel, QDateEdit
-from styles.onboarding import OnboardingStyles
-from styles.base import Colors
+from styles import OnboardingScreenStyles
 from datetime import datetime
 
 logger = get_logger('pregnancy_info_screen')
@@ -19,7 +18,7 @@ class PregnancyInfoScreen(QWidget):
         self.setup_ui()
 
     def setup_ui(self):
-        self.setStyleSheet(OnboardingStyles.main_container())
+        self.setStyleSheet(OnboardingScreenStyles.main_container())
 
         main_layout = QVBoxLayout(self)
         main_layout.setContentsMargins(40, 40, 40, 40)
@@ -28,101 +27,20 @@ class PregnancyInfoScreen(QWidget):
         main_layout.addItem(QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding))
 
         title = TitleLabel("Інформація про вагітність", 28)
-        title.setStyleSheet(f"""
-            QLabel {{
-                color: white;
-                font-size: 28px;
-                font-weight: 700;
-                text-align: center;
-            }}
-        """)
+        title.setStyleSheet(OnboardingScreenStyles.step_title())
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         main_layout.addWidget(title)
 
         subtitle = QLabel("Вкажіть дати для розрахунку терміну вагітності")
-        subtitle.setStyleSheet(f"""
-            QLabel {{
-                color: {Colors.TEXT_SECONDARY};
-                font-size: 16px;
-                font-weight: 500;
-                text-align: center;
-                line-height: 1.4;
-            }}
-        """)
+        subtitle.setStyleSheet(OnboardingScreenStyles.field_label())
         subtitle.setAlignment(Qt.AlignmentFlag.AlignCenter)
         subtitle.setWordWrap(True)
         main_layout.addWidget(subtitle)
 
         main_layout.addItem(QSpacerItem(20, 30, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed))
 
-        # Стиль для DateEdit віджетів
-        date_edit_style = """
-            QDateEdit {
-                background-color: rgba(255, 255, 255, 0.1);
-                border: 1px solid rgba(255, 255, 255, 0.2);
-                border-radius: 16px;
-                padding: 16px 20px;
-                color: white;
-                font-size: 14px;
-                min-height: 20px;
-            }
-            QDateEdit:focus {
-                border: 2px solid #8B5CF6;
-                background: rgba(255, 255, 255, 0.12);
-            }
-            QDateEdit::drop-down {
-                border: none;
-                width: 30px;
-                background: transparent;
-            }
-            QDateEdit::down-arrow {
-                image: none;
-                border: 5px solid transparent;
-                border-top: 8px solid white;
-                margin-right: 10px;
-            }
-            QCalendarWidget {
-                background-color: #1E1B4B;
-                color: white;
-                border: 1px solid rgba(255, 255, 255, 0.2);
-                border-radius: 8px;
-            }
-            QCalendarWidget QToolButton {
-                color: white;
-                background-color: transparent;
-                border: none;
-                border-radius: 4px;
-                padding: 4px;
-            }
-            QCalendarWidget QToolButton:hover {
-                background-color: rgba(255, 255, 255, 0.1);
-            }
-            QCalendarWidget QMenu {
-                background-color: #1E1B4B;
-                color: white;
-            }
-            QCalendarWidget QSpinBox {
-                background-color: transparent;
-                color: white;
-                border: none;
-            }
-            QCalendarWidget QAbstractItemView {
-                background-color: #1E1B4B;
-                color: white;
-                selection-background-color: #8B5CF6;
-                selection-color: white;
-            }
-        """
-
-        # Дата останньої менструації
         last_period_label = QLabel("Дата останньої менструації:")
-        last_period_label.setStyleSheet(f"""
-            QLabel {{
-                color: {Colors.TEXT_PRIMARY};
-                font-size: 16px;
-                font-weight: 600;
-            }}
-        """)
+        last_period_label.setStyleSheet(OnboardingScreenStyles.field_label())
         main_layout.addWidget(last_period_label)
 
         self.last_period_edit = QDateEdit()
@@ -130,31 +48,18 @@ class PregnancyInfoScreen(QWidget):
         self.last_period_edit.setMinimumHeight(50)
         self.last_period_edit.setDisplayFormat("dd.MM.yyyy")
         self.last_period_edit.setCalendarPopup(True)
-        self.last_period_edit.setStyleSheet(date_edit_style)
+        self.last_period_edit.setStyleSheet(OnboardingScreenStyles.pregnancy_info_date_edit())
         self.last_period_edit.dateChanged.connect(self.update_due_date)
         main_layout.addWidget(self.last_period_edit)
 
         last_period_hint = QLabel("Перший день останнього менструального циклу")
-        last_period_hint.setStyleSheet(f"""
-            QLabel {{
-                color: {Colors.TEXT_SECONDARY};
-                font-size: 13px;
-                font-weight: 400;
-            }}
-        """)
+        last_period_hint.setStyleSheet(OnboardingScreenStyles.field_label())
         main_layout.addWidget(last_period_hint)
 
         main_layout.addItem(QSpacerItem(20, 20, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed))
 
-        # Очікувана дата пологів
         due_date_label = QLabel("Очікувана дата пологів (розраховується автоматично):")
-        due_date_label.setStyleSheet(f"""
-            QLabel {{
-                color: {Colors.TEXT_PRIMARY};
-                font-size: 16px;
-                font-weight: 600;
-            }}
-        """)
+        due_date_label.setStyleSheet(OnboardingScreenStyles.field_label())
         main_layout.addWidget(due_date_label)
 
         self.due_date_label_value = QLabel()
@@ -173,15 +78,8 @@ class PregnancyInfoScreen(QWidget):
 
         main_layout.addItem(QSpacerItem(20, 20, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed))
 
-        # Дата зачаття
         conception_label = QLabel("Дата зачаття (якщо відома):")
-        conception_label.setStyleSheet(f"""
-            QLabel {{
-                color: {Colors.TEXT_PRIMARY};
-                font-size: 16px;
-                font-weight: 600;
-            }}
-        """)
+        conception_label.setStyleSheet(OnboardingScreenStyles.field_label())
         main_layout.addWidget(conception_label)
 
         self.conception_edit = QDateEdit()
@@ -189,30 +87,23 @@ class PregnancyInfoScreen(QWidget):
         self.conception_edit.setMinimumHeight(50)
         self.conception_edit.setDisplayFormat("dd.MM.yyyy")
         self.conception_edit.setCalendarPopup(True)
-        self.conception_edit.setStyleSheet(date_edit_style)
+        self.conception_edit.setStyleSheet(OnboardingScreenStyles.pregnancy_info_date_edit())
         main_layout.addWidget(self.conception_edit)
 
         conception_hint = QLabel("Зазвичай відбувається через 14 днів після початку менструації")
-        conception_hint.setStyleSheet(f"""
-            QLabel {{
-                color: {Colors.TEXT_SECONDARY};
-                font-size: 13px;
-                font-weight: 400;
-            }}
-        """)
+        conception_hint.setStyleSheet(OnboardingScreenStyles.field_label())
         main_layout.addWidget(conception_hint)
 
         main_layout.addItem(QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding))
 
         next_btn = StyledButton("Продовжити")
         next_btn.setMinimumHeight(60)
-        next_btn.setStyleSheet(OnboardingStyles.onboarding_button())
+        next_btn.setStyleSheet(OnboardingScreenStyles.onboarding_button())
         next_btn.clicked.connect(self.on_next_clicked)
         main_layout.addWidget(next_btn)
 
         main_layout.addItem(QSpacerItem(20, 20, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed))
 
-        # Встановлюємо початкову дату пологів
         self.update_due_date()
 
     def update_due_date(self):
@@ -220,7 +111,6 @@ class PregnancyInfoScreen(QWidget):
         due_date = last_period_date.addDays(280)
         self.due_date_label_value.setText(due_date.toString("dd.MM.yyyy"))
 
-        # Оновлюємо дату зачаття на 14 днів після місячних
         conception_date = last_period_date.addDays(14)
         self.conception_edit.setDate(conception_date)
 
@@ -251,7 +141,6 @@ class PregnancyInfoScreen(QWidget):
                                 "Зачаття зазвичай відбувається приблизно через 14 днів після початку останньої менструації.")
             return
 
-        # Перевіряємо що дата зачаття не занадто пізня (більше 4 тижнів після місячних)
         days_diff = (conception_date_obj - last_period_date_obj).days
         if days_diff > 28:
             QMessageBox.warning(self, "Увага",

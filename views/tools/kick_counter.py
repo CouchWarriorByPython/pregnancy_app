@@ -1,11 +1,10 @@
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QHBoxLayout,QMessageBox, QSplitter
+from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QHBoxLayout, QMessageBox, QSplitter
 from PyQt6.QtCore import Qt, QDate, QTime
 from controllers.data_controller import DataController
 from utils.logger import get_logger
 from utils.base_widgets import (StyledCard, StyledDateEdit, StyledTimeEdit, StyledSpinBox,
                                StyledButton, StyledListWidget, TitleLabel)
-from styles.tools import KickCounterStyles
-from styles.base import BaseStyles
+from styles import KickCounterStyles, BaseStyles
 
 logger = get_logger('kick_counter')
 
@@ -122,6 +121,10 @@ class KickCounterScreen(QWidget):
             date_str = self.date_edit.date().toString("yyyy-MM-dd")
             time_str = self.time_edit.time().toString("HH:mm")
             count = self.kicks_spin.value()
+
+            if count < 1:
+                QMessageBox.warning(self, "Помилка", "Кількість поштовхів повинна бути більше 0")
+                return
 
             self.data_controller.db.add_baby_kick(date_str, time_str, count)
             self.load_kicks()

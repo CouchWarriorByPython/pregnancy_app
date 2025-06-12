@@ -4,7 +4,7 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont
 
 from controllers.data_controller import DataController
-from styles.base import BaseStyles, Colors
+from styles import BaseStyles, ToolsScreenStyles
 
 from .health_report import HealthReportScreen
 from .kegel_exercises import KegelExercisesScreen
@@ -17,120 +17,57 @@ from .wishlist import WishlistScreen
 
 
 class ToolCard(QFrame):
-    def __init__(self, title, description, icon_path, screen_class, accent_color="#FF8C00", parent=None):
+    def __init__(self, title, description, screen_class, accent_color="#FF8C00", parent=None):
         super().__init__(parent)
         self.screen_class = screen_class
         self.parent = parent
         self.accent_color = accent_color
         self.title = title
         self.description = description
+        self.is_hover = False
         self._setup_ui()
         self.setMouseTracking(True)
 
     def _setup_ui(self):
-        # Встановлюємо стиль для всього зовнішнього контейнера
-        self.setStyleSheet(f"""
-            QFrame {{
-                background: {Colors.GLASS_SURFACE};
-                border: 1px solid {Colors.GLASS_BORDER};
-                border-radius: 24px;
-                padding: 0px;
-                margin: 0px;
-            }}
-            QLabel {{
-                background: transparent;
-                border: none;
-            }}
-        """)
-
-        # Зменшуємо розмір картки
+        self.setStyleSheet(ToolsScreenStyles.tool_card())
         self.setFixedHeight(120)
 
-        # Єдиний layout для всього вмісту
         layout = QVBoxLayout(self)
         layout.setContentsMargins(20, 20, 20, 20)
         layout.setSpacing(8)
 
-        # Заголовок
         title_label = QLabel(self.title)
         title_label.setFont(QFont('Arial', 16, QFont.Weight.Bold))
-        title_label.setStyleSheet(f"color: {self.accent_color}; font-weight: 700; background: transparent;")
+        title_label.setStyleSheet(ToolsScreenStyles.tool_card_title(self.accent_color))
         layout.addWidget(title_label)
 
-        # Опис
         description_label = QLabel(self.description)
         description_label.setWordWrap(True)
         description_label.setFont(QFont('Arial', 13))
-        description_label.setStyleSheet(f"color: {Colors.TEXT_PRIMARY}; font-weight: 500; background: transparent;")
+        description_label.setStyleSheet(ToolsScreenStyles.tool_card_description())
         layout.addWidget(description_label)
 
     def enterEvent(self, event):
         self.is_hover = True
-        self.setStyleSheet(f"""
-            QFrame {{
-                background: {Colors.SURFACE_HOVER};
-                border: 1px solid {Colors.GLASS_BORDER};
-                border-radius: 24px;
-                padding: 0px;
-                margin: 0px;
-            }}
-            QLabel {{
-                background: transparent;
-                border: none;
-            }}
-        """)
+        self.setStyleSheet(ToolsScreenStyles.tool_card_hover())
         super().enterEvent(event)
 
     def leaveEvent(self, event):
         self.is_hover = False
-        self.setStyleSheet(f"""
-            QFrame {{
-                background: {Colors.GLASS_SURFACE};
-                border: 1px solid {Colors.GLASS_BORDER};
-                border-radius: 24px;
-                padding: 0px;
-                margin: 0px;
-            }}
-            QLabel {{
-                background: transparent;
-                border: none;
-            }}
-        """)
+        self.setStyleSheet(ToolsScreenStyles.tool_card())
         super().leaveEvent(event)
 
     def mousePressEvent(self, event):
         if event.button() == Qt.MouseButton.LeftButton:
-            self.setStyleSheet(f"""
-                QFrame {{
-                    background: rgba(255, 255, 255, 0.25);
-                    border: 1px solid {Colors.GLASS_BORDER};
-                    border-radius: 24px;
-                    padding: 0px;
-                    margin: 0px;
-                }}
-                QLabel {{
-                    background: transparent;
-                    border: none;
-                }}
-            """)
+            self.setStyleSheet(ToolsScreenStyles.tool_card_pressed())
         super().mousePressEvent(event)
 
     def mouseReleaseEvent(self, event):
         if event.button() == Qt.MouseButton.LeftButton:
-            style = f"""
-                QFrame {{
-                    background: {Colors.SURFACE_HOVER if self.is_hover else Colors.GLASS_SURFACE};
-                    border: 1px solid {Colors.GLASS_BORDER};
-                    border-radius: 24px;
-                    padding: 0px;
-                    margin: 0px;
-                }}
-                QLabel {{
-                    background: transparent;
-                    border: none;
-                }}
-            """
-            self.setStyleSheet(style)
+            if self.is_hover:
+                self.setStyleSheet(ToolsScreenStyles.tool_card_hover())
+            else:
+                self.setStyleSheet(ToolsScreenStyles.tool_card())
 
             if self.screen_class:
                 try:
@@ -207,26 +144,18 @@ class ToolsScreen(QWidget):
         cards_grid.setSpacing(15)
 
         tools_data = [
-            ("Звіт про здоров'я в PDF", "Створіть PDF-звіт із усіма показниками вашого здоров'я за вибраний період.",
-             "resources/images/tools/health_report.png", "#FF5252", HealthReportScreen),
-            ("Вправи Кегеля", "Інструкції та таймер для виконання вправ Кегеля протягом вагітності.",
-             "resources/images/tools/kegel.png", "#9C27B0", KegelExercisesScreen),
-            ("Монітор ваги", "Відстежуйте зміни ваги протягом вагітності. Поточна вага: 65.1 кг",
-             "resources/images/tools/weight_monitor.png", "#757575", WeightMonitorScreen),
-            ("Лічильник поштовхів", "Рахуйте і записуйте поштовхи дитини для моніторингу її активності.",
-             "resources/images/tools/kick_counter.png", "#4CAF50", KickCounterScreen),
-            ("Лічильник переймів", "Вимірюйте частоту та тривалість переймів під час підготовки до пологів.",
-             "resources/images/tools/contraction_counter.png", "#2196F3", ContractionCounterScreen),
-            ("Відстеження розміру живота", "Записуйте зміни розміру живота, щоб відстежувати ріст дитини.",
-             "resources/images/tools/belly_growth.png", "#FF9800", BellyTrackerScreen),
-            ("Монітор тиску", "Контролюйте артеріальний тиск протягом вагітності.",
-             "resources/images/tools/pressure_monitor.png", "#E91E63", BloodPressureMonitorScreen),
-            ("Список бажань", "Створіть список речей, які потрібно придбати для вас та дитини.",
-             "resources/images/tools/wishlist.png", "#673AB7", WishlistScreen)
+            ("Звіт про здоров'я", "Створіть PDF-звіт із усіма показниками вашого здоров'я за період", "#FF5252", HealthReportScreen),
+            ("Вправи Кегеля", "Інструкції та таймер для виконання вправ Кегеля протягом вагітності", "#9C27B0", KegelExercisesScreen),
+            ("Монітор ваги", "Відстежуйте зміни ваги протягом вагітності", "#757575", WeightMonitorScreen),
+            ("Лічильник поштовхів", "Рахуйте і записуйте поштовхи дитини для моніторингу активності", "#4CAF50", KickCounterScreen),
+            ("Лічильник переймів", "Вимірюйте частоту та тривалість переймів під час підготовки до пологів", "#2196F3", ContractionCounterScreen),
+            ("Розмір живота", "Записуйте зміни розміру живота, щоб відстежувати ріст дитини", "#FF9800", BellyTrackerScreen),
+            ("Монітор тиску", "Контролюйте артеріальний тиск протягом вагітності", "#E91E63", BloodPressureMonitorScreen),
+            ("Список бажань", "Створіть список речей, які потрібно придбати для вас та дитини", "#673AB7", WishlistScreen)
         ]
 
-        for i, (title, description, icon, color, screen_class) in enumerate(tools_data):
-            card = ToolCard(title, description, icon, screen_class, color, self)
+        for i, (title, description, color, screen_class) in enumerate(tools_data):
+            card = ToolCard(title, description, screen_class, color, self)
             cards_grid.addWidget(card, i // 2, i % 2)
 
         return cards_grid

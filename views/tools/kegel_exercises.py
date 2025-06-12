@@ -4,7 +4,7 @@ import platform
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QMessageBox, QHBoxLayout, QSpacerItem, QSizePolicy
 from utils.logger import get_logger
 from utils.base_widgets import TitleLabel, StyledButton
-from styles.tools import KegelExercisesStyles
+from styles import KegelExercisesStyles
 
 logger = get_logger('kegel_exercises')
 
@@ -64,7 +64,7 @@ class KegelExercisesScreen(QWidget):
 
             if not os.path.exists(pdf_path):
                 QMessageBox.warning(self, "Файл не знайдено",
-                                    f"Файл {pdf_path} не знайдено.\nБудь ласка, перевірте наявність файлу в папці ресурсів.")
+                                    f"Файл {pdf_path} не знайдено.\nПеревірте наявність файлу в папці ресурсів.")
                 logger.error(f"Файл не знайдено: {pdf_path}")
                 return
 

@@ -1,11 +1,9 @@
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QHBoxLayout, QCalendarWidget, QDialog, QCheckBox, QMessageBox, QFrame
 from PyQt6.QtGui import QFont
-from PyQt6.QtCore import Qt, pyqtSignal
+from PyQt6.QtCore import Qt
 from utils.base_widgets import StyledButton, StyledInput, StyledComboBox, StyledTimeEdit, StyledCard
-from styles.calendar import CalendarStyles
-from styles.base import BaseStyles, Colors
+from styles import CalendarScreenStyles, BaseStyles, Colors
 from controllers.data_controller import DataController
-from utils.reminder_service import ReminderService
 from utils.logger import get_logger
 
 logger = get_logger('calendar_screen')
@@ -20,7 +18,7 @@ class EventDialog(QDialog):
     def _setup_ui(self):
         self.setWindowTitle("Додати подію")
         self.setFixedSize(500, 600)
-        self.setStyleSheet(CalendarStyles.event_dialog())
+        self.setStyleSheet(CalendarScreenStyles.event_dialog())
 
         layout = QVBoxLayout(self)
         layout.setSpacing(15)
@@ -44,61 +42,30 @@ class EventDialog(QDialog):
 
         for label_text, widget in fields:
             label = QLabel(label_text)
-            label.setStyleSheet(f"color: {Colors.TEXT_PRIMARY}; font-weight: 500; margin-top: 10px;")
+            label.setStyleSheet(CalendarScreenStyles.event_dialog_field_label())
             layout.addWidget(label)
             layout.addWidget(widget)
             setattr(self, f"{widget.__class__.__name__.lower().replace('styled', '')}_edit", widget)
 
     def _add_reminder_section(self, layout):
-        # Основний контейнер для секції нагадувань
         reminder_container = QWidget()
         reminder_container.setStyleSheet("background: transparent;")
         container_layout = QVBoxLayout(reminder_container)
         container_layout.setContentsMargins(0, 10, 0, 0)
         container_layout.setSpacing(0)
 
-        # Фрейм для нагадувань
         reminder_frame = QFrame()
-        reminder_frame.setStyleSheet(f"""
-            QFrame {{
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:1, 
-                    stop:0 rgba(139, 92, 246, 0.1), 
-                    stop:1 rgba(236, 72, 153, 0.1));
-                border: 1px solid rgba(139, 92, 246, 0.3);
-                border-radius: 16px;
-            }}
-        """)
+        reminder_frame.setStyleSheet(CalendarScreenStyles.event_dialog_reminder_frame())
 
         frame_layout = QVBoxLayout(reminder_frame)
         frame_layout.setContentsMargins(20, 15, 20, 15)
         frame_layout.setSpacing(12)
 
-        # Чекбокс
         self.reminder_checkbox = QCheckBox("Додати нагадування")
-        self.reminder_checkbox.setStyleSheet(f"""
-            QCheckBox {{
-                color: {Colors.TEXT_PRIMARY};
-                font-size: 15px;
-                font-weight: 600;
-                spacing: 12px;
-            }}
-            QCheckBox::indicator {{
-                width: 24px;
-                height: 24px;
-                border-radius: 8px;
-                border: 2px solid rgba(139, 92, 246, 0.5);
-                background: rgba(255, 255, 255, 0.1);
-            }}
-            QCheckBox::indicator:checked {{
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:1, 
-                    stop:0 #8B5CF6, stop:1 #EC4899);
-                border: 2px solid #8B5CF6;
-            }}
-        """)
+        self.reminder_checkbox.setStyleSheet(CalendarScreenStyles.event_dialog_reminder_checkbox())
         self.reminder_checkbox.toggled.connect(self._toggle_reminder_options)
         frame_layout.addWidget(self.reminder_checkbox)
 
-        # Контейнер для опцій
         self.reminder_options = QWidget()
         self.reminder_options.setVisible(False)
         self.reminder_options.setStyleSheet("background: transparent;")
@@ -107,7 +74,7 @@ class EventDialog(QDialog):
         options_layout.setSpacing(8)
 
         reminder_label = QLabel("Нагадати за:")
-        reminder_label.setStyleSheet(f"color: {Colors.TEXT_PRIMARY}; font-size: 14px; font-weight: 500;")
+        reminder_label.setStyleSheet(CalendarScreenStyles.event_dialog_field_label())
         options_layout.addWidget(reminder_label)
 
         self.reminder_time_combo = StyledComboBox([
@@ -121,7 +88,7 @@ class EventDialog(QDialog):
         options_layout.addWidget(self.reminder_time_combo)
 
         hint_label = QLabel("💡 Нагадування прийде як системне сповіщення")
-        hint_label.setStyleSheet(f"color: rgba(255, 255, 255, 0.6); font-size: 12px; margin-top: 5px;")
+        hint_label.setStyleSheet(CalendarScreenStyles.event_dialog_hint_label())
         hint_label.setWordWrap(True)
         options_layout.addWidget(hint_label)
 
@@ -202,7 +169,7 @@ class CalendarScreen(QWidget):
         content_layout.setContentsMargins(10, 10, 10, 10)
 
         self.calendar = QCalendarWidget()
-        self.calendar.setStyleSheet(CalendarStyles.calendar_widget())
+        self.calendar.setStyleSheet(CalendarScreenStyles.calendar_widget())
         self.calendar.setGridVisible(True)
         self.calendar.clicked.connect(self.date_clicked)
         content_layout.addWidget(self.calendar)
@@ -212,7 +179,7 @@ class CalendarScreen(QWidget):
         content_layout.addWidget(add_event_btn)
 
         events_frame = StyledCard("Події на вибраний день:")
-        events_frame.setStyleSheet(CalendarStyles.events_card())
+        events_frame.setStyleSheet(CalendarScreenStyles.events_card())
         self.events_list = QLabel("Виберіть день, щоб побачити заплановані події")
         self.events_list.setWordWrap(True)
         self.events_list.setStyleSheet(BaseStyles.text_primary())
@@ -253,13 +220,11 @@ class CalendarScreen(QWidget):
             for event in events:
                 time_str = event.get('time', 'Весь день')
 
-                # Форматуємо час більш зрозуміло
                 if time_str != 'Весь день' and 'end_time' in event:
                     time_str = f"{time_str} - {event['end_time']}"
 
                 events_text += f"• {time_str} - {event['title']} ({event['event_type']})\n"
 
-                # Додаємо індикатор нагадування якщо є
                 if event.get('description') and 'Нагадування' in event['description']:
                     events_text += "  🔔 З нагадуванням\n"
 
@@ -289,16 +254,14 @@ class CalendarScreen(QWidget):
             date_str = event_data['date'].toString("yyyy-MM-dd")
             time_str = event_data['time'].toString("HH:mm")
 
-            # Зберігаємо подію в календар з часом
             event_id = self.data_controller.db.add_calendar_event(
                 title=event_data['name'],
                 description=f"Тип: {event_data['type']}",
                 start_date=date_str,
-                start_time=time_str,  # Передаємо час
+                start_time=time_str,
                 event_type=event_data['type']
             )
 
-            # Якщо ввімкнено нагадування, створюємо його
             if event_data['reminder_enabled'] and self.reminder_service:
                 reminder_time = self._calculate_reminder_time(
                     event_data['date'],
@@ -347,7 +310,6 @@ class CalendarScreen(QWidget):
         offset = offset_map.get(reminder_offset, timedelta(minutes=15))
         reminder_datetime = event_datetime - offset
 
-        # Для тестування: якщо час нагадування в минулому, встановлюємо його через 1 хвилину
         if reminder_datetime <= datetime.now():
             reminder_datetime = datetime.now() + timedelta(minutes=1)
             logger.info(f"Час нагадування був у минулому, встановлено на {reminder_datetime}")

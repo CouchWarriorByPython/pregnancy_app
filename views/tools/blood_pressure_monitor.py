@@ -5,8 +5,7 @@ from controllers.data_controller import DataController
 from utils.logger import get_logger
 from utils.base_widgets import (StyledCard, StyledDateEdit, StyledTimeEdit, StyledSpinBox,
                                StyledInput, StyledButton, StyledListWidget, TitleLabel)
-from styles.tools import BloodPressureStyles
-from styles.base import BaseStyles
+from styles import BloodPressureStyles, BaseStyles
 
 logger = get_logger('blood_pressure_monitor')
 
@@ -39,8 +38,7 @@ class BloodPressureMonitorScreen(QWidget):
         form_frame.setStyleSheet(BloodPressureStyles.pressure_card())
 
         info_text = """
-        <p>Регулярне вимірювання артеріального тиску важливе під час вагітності для раннього виявлення 
-        можливих ускладнень.</p>
+        <p>Регулярне вимірювання артеріального тиску важливе під час вагітності для раннього виявлення можливих ускладнень.</p>
         <p>Нормальний тиск під час вагітності: 110-120/70-80 мм рт.ст.</p>
         <p>Підвищений тиск може бути ознакою прееклампсії і потребує консультації лікаря.</p>
         """
@@ -148,15 +146,15 @@ class BloodPressureMonitorScreen(QWidget):
             notes = self.notes_edit.text().strip()
 
             if systolic <= diastolic:
-                QMessageBox.warning(self, "Попередження",
-                                    "Верхній тиск повинен бути більшим за нижній.\nПеревірте правильність введених значень.")
+                QMessageBox.warning(self, "Помилка валідації",
+                                    "Верхній тиск повинен бути більшим за нижній.")
                 return
 
             self.data_controller.db.add_blood_pressure(date_str, time_str, systolic, diastolic, pulse, notes)
             self.notes_edit.clear()
             self.load_pressure_records()
 
-            QMessageBox.information(self, "Успіх", "Запис тиску успішно збережено")
+            QMessageBox.information(self, "Успіх", "Запис збережено")
             logger.info(f"Збережено новий запис тиску: {date_str} {time_str}, {systolic}/{diastolic}, пульс: {pulse}")
 
             if systolic >= 140 or diastolic >= 90:

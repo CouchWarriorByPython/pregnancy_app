@@ -2,7 +2,7 @@ from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QSpacerItem, QSizePoli
 from PyQt6.QtCore import pyqtSignal, Qt
 from PyQt6.QtGui import QFont
 from utils.base_widgets import StyledInput, StyledButton, TitleLabel
-from styles.auth import VerificationStyles
+from styles import AuthScreenStyles
 from controllers.auth_controller import AuthController
 from utils.logger import get_logger
 
@@ -20,7 +20,7 @@ class VerificationScreen(QWidget):
         self.setup_ui()
 
     def setup_ui(self):
-        self.setStyleSheet(VerificationStyles.main_container())
+        self.setStyleSheet(AuthScreenStyles.main_container())
 
         main_layout = QVBoxLayout(self)
         main_layout.setContentsMargins(40, 40, 40, 40)
@@ -30,12 +30,12 @@ class VerificationScreen(QWidget):
 
         title = TitleLabel("Підтвердження пошти", 24)
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        title.setStyleSheet(VerificationStyles.title_label())
+        title.setStyleSheet(AuthScreenStyles.title_label())
         main_layout.addWidget(title)
 
         self.subtitle = QLabel(f"Код підтвердження надіслано на\n{self.email or 'вашу пошту'}")
         self.subtitle.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.subtitle.setStyleSheet(VerificationStyles.code_description())
+        self.subtitle.setStyleSheet(AuthScreenStyles.code_description())
         self.subtitle.setFont(QFont('Arial', 14))
         main_layout.addWidget(self.subtitle)
 
@@ -44,20 +44,20 @@ class VerificationScreen(QWidget):
         self.code_input = StyledInput("Введіть 6-значний код")
         self.code_input.setMinimumHeight(50)
         self.code_input.setMaxLength(6)
-        self.code_input.setStyleSheet(VerificationStyles.verification_code_input())
+        self.code_input.setStyleSheet(AuthScreenStyles.verification_code_input())
         main_layout.addWidget(self.code_input)
 
         main_layout.addItem(QSpacerItem(20, 30, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed))
 
         verify_btn = StyledButton("Підтвердити")
         verify_btn.setMinimumHeight(55)
-        verify_btn.setStyleSheet(VerificationStyles.auth_button_large())
+        verify_btn.setStyleSheet(AuthScreenStyles.auth_button_large())
         verify_btn.clicked.connect(self.verify)
         main_layout.addWidget(verify_btn)
 
         resend_btn = StyledButton("Надіслати код повторно", "secondary")
         resend_btn.setMinimumHeight(45)
-        resend_btn.setStyleSheet(VerificationStyles.resend_button())
+        resend_btn.setStyleSheet(AuthScreenStyles.resend_button())
         resend_btn.clicked.connect(self.resend_code)
         main_layout.addWidget(resend_btn)
 
@@ -65,7 +65,7 @@ class VerificationScreen(QWidget):
 
         back_btn = StyledButton("Назад", "secondary")
         back_btn.setMinimumHeight(40)
-        back_btn.setStyleSheet(VerificationStyles.back_button())
+        back_btn.setStyleSheet(AuthScreenStyles.back_button())
         back_btn.clicked.connect(self.back_to_register.emit)
         main_layout.addWidget(back_btn)
 

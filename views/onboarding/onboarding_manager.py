@@ -25,14 +25,11 @@ class OnboardingManager(QWidget):
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
 
-        # Стек для перемикання між екранами
         self.stack = QStackedWidget()
 
-        # Екран інформації про дитину
         self.child_info_screen = ChildInfoScreen(self)
         self.child_info_screen.proceed_signal.connect(self.on_child_info_completed)
 
-        # Екран інформації про користувача
         self.user_info_screen = UserInfoScreen(self)
         self.user_info_screen.proceed_signal.connect(self.on_user_info_completed)
 
@@ -47,7 +44,6 @@ class OnboardingManager(QWidget):
         logger.info(f"Отримана інформація про дитину: {data}")
         self.child_data = data
 
-        # Переходимо до наступного екрану
         self.stack.setCurrentIndex(1)
 
     def on_user_info_completed(self, data):
@@ -55,9 +51,7 @@ class OnboardingManager(QWidget):
         logger.info(f"Отримана інформація про користувача: {data}")
         self.user_data = data
 
-        # Об'єднуємо дані
         complete_data = self.child_data.copy()
         complete_data["user_data"] = self.user_data
 
-        # Відправляємо сигнал із повними даними
         self.proceed_signal.emit(complete_data)

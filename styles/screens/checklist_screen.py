@@ -2,12 +2,13 @@
 Стилі для екрану чекліста
 """
 
-from .base import Colors
+from ..base import Colors
 
 
-class ChecklistStyles:
+class ChecklistScreenStyles:
     @staticmethod
     def tab_button():
+        """Кнопки табів триместрів"""
         return f"""
             QPushButton {{
                 background: rgba(255, 255, 255, 0.05);
@@ -35,6 +36,7 @@ class ChecklistStyles:
 
     @staticmethod
     def progress_bar():
+        """Базовий прогрес бар"""
         return f"""
             QLabel {{
                 background: rgba(255, 255, 255, 0.1);
@@ -51,11 +53,13 @@ class ChecklistStyles:
 
     @staticmethod
     def progress_bar_dynamic(progress_percent):
+        """Динамічний прогрес бар з відсотками"""
         return f"""
             QLabel {{
                 background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
                     stop:0 {Colors.PRIMARY}, stop:{progress_percent / 100} {Colors.SECONDARY},
-                    stop:{progress_percent / 100} rgba(255, 255, 255, 0.1), stop:1 rgba(255, 255, 255, 0.1));
+                    stop:{progress_percent / 100} rgba(255, 255, 255, 0.1), 
+                    stop:1 rgba(255, 255, 255, 0.1));
                 border: 1px solid {Colors.GLASS_BORDER};
                 border-radius: 16px;
                 padding: 12px;
@@ -69,6 +73,7 @@ class ChecklistStyles:
 
     @staticmethod
     def section_title():
+        """Заголовки секцій чекліста"""
         return f"""
             font-family: 'Segoe UI', Arial; 
             font-size: 18px; 
@@ -79,6 +84,7 @@ class ChecklistStyles:
 
     @staticmethod
     def checklist_frame():
+        """Фрейм для секцій чекліста"""
         return f"""
             QFrame {{
                 background: {Colors.GLASS_SURFACE};
@@ -91,6 +97,7 @@ class ChecklistStyles:
 
     @staticmethod
     def check_item():
+        """Елементи чекліста"""
         return f"""
             QCheckBox {{
                 color: {Colors.TEXT_PRIMARY};

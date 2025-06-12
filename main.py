@@ -48,7 +48,7 @@ class MainWindow(QMainWindow):
         self.setStyleSheet(f"QMainWindow {{ background-color: {Colors.BACKGROUND}; }}")
         screen_size = QApplication.primaryScreen().availableSize()
         self.resize(min(820, screen_size.width() - 40), min(900, screen_size.height() - 60))
-        self.setMinimumSize(800, 800)  # Встановлюємо мінімальний розмір вікна
+        self.setMinimumSize(800, 800)
 
     def _create_screens(self):
         self.stack_widget = QStackedWidget()

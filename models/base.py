@@ -61,8 +61,8 @@ class CalendarEvent(Base):
     description = Column(Text)
     start_date = Column(Date)
     end_date = Column(Date)
-    start_time = Column(Time)  # Додано поле для часу початку
-    end_time = Column(Time)    # Додано поле для часу закінчення
+    start_time = Column(Time)
+    end_time = Column(Time)
     all_day = Column(Boolean, default=False)
     reminder = Column(Boolean, default=False)
     reminder_time = Column(String(10))

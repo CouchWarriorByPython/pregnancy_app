@@ -1,4 +1,3 @@
-"""Утиліти для роботи з даними"""
 import os
 import json
 from utils.logger import get_logger

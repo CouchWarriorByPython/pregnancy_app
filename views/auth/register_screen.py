@@ -2,7 +2,7 @@ from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QHBoxLayout, QSpacerIt
 from PyQt6.QtCore import pyqtSignal, Qt
 from PyQt6.QtGui import QFont
 from utils.base_widgets import StyledInput, StyledButton, TitleLabel
-from styles.auth import RegisterStyles
+from styles import AuthScreenStyles
 from controllers.auth_controller import AuthController
 from utils.logger import get_logger
 
@@ -19,7 +19,7 @@ class RegisterScreen(QWidget):
         self.setup_ui()
 
     def setup_ui(self):
-        self.setStyleSheet(RegisterStyles.main_container())
+        self.setStyleSheet(AuthScreenStyles.main_container())
 
         main_layout = QVBoxLayout(self)
         main_layout.setContentsMargins(40, 40, 40, 40)
@@ -29,12 +29,12 @@ class RegisterScreen(QWidget):
 
         title = TitleLabel("Реєстрація", 24)
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        title.setStyleSheet(RegisterStyles.title_label())
+        title.setStyleSheet(AuthScreenStyles.title_label())
         main_layout.addWidget(title)
 
         subtitle = QLabel("Створіть новий акаунт")
         subtitle.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        subtitle.setStyleSheet(RegisterStyles.subtitle_label())
+        subtitle.setStyleSheet(AuthScreenStyles.subtitle_label())
         subtitle.setFont(QFont('Arial', 14))
         main_layout.addWidget(subtitle)
 
@@ -42,31 +42,31 @@ class RegisterScreen(QWidget):
 
         self.email_input = StyledInput("Електронна пошта")
         self.email_input.setMinimumHeight(50)
-        self.email_input.setStyleSheet(RegisterStyles.auth_input())
+        self.email_input.setStyleSheet(AuthScreenStyles.auth_input())
         main_layout.addWidget(self.email_input)
 
         self.name_input = StyledInput("Ваше ім'я")
         self.name_input.setMinimumHeight(50)
-        self.name_input.setStyleSheet(RegisterStyles.auth_input())
+        self.name_input.setStyleSheet(AuthScreenStyles.auth_input())
         main_layout.addWidget(self.name_input)
 
         self.password_input = StyledInput("Пароль")
         self.password_input.setMinimumHeight(50)
         self.password_input.setEchoMode(self.password_input.EchoMode.Password)
-        self.password_input.setStyleSheet(RegisterStyles.auth_input())
+        self.password_input.setStyleSheet(AuthScreenStyles.auth_input())
         main_layout.addWidget(self.password_input)
 
         self.password_confirm_input = StyledInput("Підтвердіть пароль")
         self.password_confirm_input.setMinimumHeight(50)
         self.password_confirm_input.setEchoMode(self.password_confirm_input.EchoMode.Password)
-        self.password_confirm_input.setStyleSheet(RegisterStyles.auth_input())
+        self.password_confirm_input.setStyleSheet(AuthScreenStyles.auth_input())
         main_layout.addWidget(self.password_confirm_input)
 
         main_layout.addItem(QSpacerItem(20, 20, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed))
 
         register_btn = StyledButton("Зареєструватись")
         register_btn.setMinimumHeight(55)
-        register_btn.setStyleSheet(RegisterStyles.auth_button_large())
+        register_btn.setStyleSheet(AuthScreenStyles.auth_button_large())
         register_btn.clicked.connect(self.register)
         main_layout.addWidget(register_btn)
 
@@ -76,11 +76,11 @@ class RegisterScreen(QWidget):
         switch_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         switch_text = QLabel("Вже є акаунт?")
-        switch_text.setStyleSheet(RegisterStyles.subtitle_label())
+        switch_text.setStyleSheet(AuthScreenStyles.subtitle_label())
 
         switch_btn = StyledButton("Увійти", "secondary")
         switch_btn.setMinimumHeight(40)
-        switch_btn.setStyleSheet(RegisterStyles.switch_button())
+        switch_btn.setStyleSheet(AuthScreenStyles.switch_button())
         switch_btn.clicked.connect(self.switch_to_login.emit)
 
         switch_layout.addWidget(switch_text)

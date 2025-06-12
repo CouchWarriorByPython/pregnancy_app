@@ -1,9 +1,10 @@
 from PyQt6.QtCore import QDate
 from PyQt6.QtGui import QFont
 from controllers.data_controller import DataController
-from datetime import datetime, timedelta
+from datetime import datetime
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton, QDateEdit, QFrame, QMessageBox
 from utils.base_widgets import TitleLabel
+from styles import PregnancyEditorStyles
 
 
 class PregnancyEditor(QWidget):
@@ -15,179 +16,86 @@ class PregnancyEditor(QWidget):
 
     def setup_ui(self):
         main_layout = QVBoxLayout(self)
-        main_layout.setContentsMargins(10, 10, 10, 10)
-        main_layout.setSpacing(10)
+        main_layout.setContentsMargins(20, 20, 20, 20)
+        main_layout.setSpacing(20)
 
-        title = TitleLabel("Інформація про вагітність", 18)
-        main_layout.addWidget(title)
+        title_container = QWidget()
+        title_container.setStyleSheet(PregnancyEditorStyles.title_container())
+
+        title_layout = QVBoxLayout(title_container)
+        title = TitleLabel("🤰 Інформація про вагітність", 20)
+        title.setStyleSheet(PregnancyEditorStyles.section_title())
+        title_layout.addWidget(title)
+
+        subtitle = QLabel("Терміни та важливі дати")
+        subtitle.setStyleSheet(PregnancyEditorStyles.section_subtitle())
+        title_layout.addWidget(subtitle)
+
+        main_layout.addWidget(title_container)
 
         form_frame = QFrame()
-        form_frame.setStyleSheet("""
-            QFrame {
-                background-color: rgba(255, 255, 255, 0.08);
-                border: 1px solid rgba(255, 255, 255, 0.2);
-                border-radius: 20px;
-                padding: 0px;
-            }
-        """)
+        form_frame.setStyleSheet(PregnancyEditorStyles.form_frame())
         form_layout = QVBoxLayout(form_frame)
-        form_layout.setContentsMargins(20, 15, 20, 15)
-        form_layout.setSpacing(12)
+        form_layout.setSpacing(20)
 
-        label_style = """
-            color: #FFFFFF;
-            font-size: 15px;
-            font-weight: 600;
-            background: transparent;
-            border: none;
-            padding: 0px;
-            margin: 0px;
-        """
-
-        date_edit_style = """
-            QDateEdit {
-                background-color: rgba(255, 255, 255, 0.1);
-                border: 1px solid rgba(255, 255, 255, 0.2);
-                border-radius: 16px;
-                padding: 16px 20px;
-                color: white;
-                font-size: 14px;
-                min-height: 20px;
-            }
-            QDateEdit:focus {
-                border: 2px solid #8B5CF6;
-                background: rgba(255, 255, 255, 0.12);
-            }
-            QDateEdit::drop-down {
-                border: none;
-                width: 30px;
-                background: transparent;
-            }
-            QDateEdit::down-arrow {
-                image: none;
-                border: 5px solid transparent;
-                border-top: 8px solid white;
-                margin-right: 10px;
-            }
-            QCalendarWidget {
-                background-color: #1E1B4B;
-                color: white;
-                border: 1px solid rgba(255, 255, 255, 0.2);
-                border-radius: 8px;
-            }
-            QCalendarWidget QToolButton {
-                color: white;
-                background-color: transparent;
-                border: none;
-                border-radius: 4px;
-                padding: 4px;
-            }
-            QCalendarWidget QToolButton:hover {
-                background-color: rgba(255, 255, 255, 0.1);
-            }
-            QCalendarWidget QMenu {
-                background-color: #1E1B4B;
-                color: white;
-            }
-            QCalendarWidget QSpinBox {
-                background-color: transparent;
-                color: white;
-                border: none;
-            }
-            QCalendarWidget QAbstractItemView {
-                background-color: #1E1B4B;
-                color: white;
-                selection-background-color: #8B5CF6;
-                selection-color: white;
-            }
-        """
-
-        last_period_label = QLabel("Дата останньої менструації:")
-        last_period_label.setStyleSheet(label_style)
+        last_period_label = QLabel("📅 Дата останньої менструації:")
+        last_period_label.setStyleSheet(PregnancyEditorStyles.field_label())
         form_layout.addWidget(last_period_label)
 
         self.last_period_edit = QDateEdit()
-        self.last_period_edit.setMinimumHeight(50)
+        self.last_period_edit.setMinimumHeight(56)
         self.last_period_edit.setDisplayFormat("dd.MM.yyyy")
         self.last_period_edit.setCalendarPopup(True)
-        self.last_period_edit.setStyleSheet(date_edit_style)
+        self.last_period_edit.setStyleSheet(PregnancyEditorStyles.date_edit())
         form_layout.addWidget(self.last_period_edit)
 
-        due_date_label = QLabel("Очікувана дата пологів (розраховується автоматично):")
-        due_date_label.setStyleSheet(label_style)
+        due_date_label = QLabel("🍼 Очікувана дата пологів (розраховується автоматично):")
+        due_date_label.setStyleSheet(PregnancyEditorStyles.field_label())
         form_layout.addWidget(due_date_label)
 
         self.due_date_label_value = QLabel()
-        self.due_date_label_value.setMinimumHeight(50)
-        self.due_date_label_value.setStyleSheet("""
-            QLabel {
-                background-color: rgba(255, 255, 255, 0.05);
-                border: 1px solid rgba(255, 255, 255, 0.1);
-                border-radius: 16px;
-                padding: 16px 20px;
-                color: rgba(255, 255, 255, 0.7);
-                font-size: 14px;
-            }
-        """)
+        self.due_date_label_value.setMinimumHeight(56)
+        self.due_date_label_value.setStyleSheet(PregnancyEditorStyles.due_date_label())
         form_layout.addWidget(self.due_date_label_value)
 
-        conception_label = QLabel("Дата зачаття (якщо відома):")
-        conception_label.setStyleSheet(label_style)
+        conception_label = QLabel("💫 Дата зачаття (якщо відома):")
+        conception_label.setStyleSheet(PregnancyEditorStyles.field_label())
         form_layout.addWidget(conception_label)
 
         self.conception_edit = QDateEdit()
-        self.conception_edit.setMinimumHeight(50)
+        self.conception_edit.setMinimumHeight(56)
         self.conception_edit.setDisplayFormat("dd.MM.yyyy")
         self.conception_edit.setCalendarPopup(True)
-        self.conception_edit.setStyleSheet(date_edit_style)
+        self.conception_edit.setStyleSheet(PregnancyEditorStyles.date_edit())
         form_layout.addWidget(self.conception_edit)
 
         main_layout.addWidget(form_frame)
 
         info_frame = QFrame()
-        info_frame.setStyleSheet("""
-            QFrame {
-                background-color: rgba(255, 255, 255, 0.08);
-                border: 1px solid rgba(255, 255, 255, 0.2);
-                border-radius: 20px;
-                padding: 0px;
-            }
-        """)
+        info_frame.setStyleSheet(PregnancyEditorStyles.info_frame())
         info_layout = QVBoxLayout(info_frame)
-        info_layout.setContentsMargins(20, 15, 20, 15)
-        info_layout.setSpacing(8)
+        info_layout.setSpacing(12)
 
-        self.week_label = QLabel("Поточний термін: не визначено")
-        self.week_label.setFont(QFont('Arial', 16, QFont.Weight.Normal))
-        self.week_label.setStyleSheet("color: #FFFFFF; background: transparent; border: none; font-weight: 500;")
+        info_title = QLabel("📊 Поточна інформація")
+        info_title.setFont(QFont('Segoe UI', 16, QFont.Weight.Bold))
+        info_title.setStyleSheet(PregnancyEditorStyles.info_title())
+        info_layout.addWidget(info_title)
+
+        self.week_label = QLabel("⏱️ Поточний термін: не визначено")
+        self.week_label.setFont(QFont('Segoe UI', 15, QFont.Weight.Normal))
+        self.week_label.setStyleSheet(PregnancyEditorStyles.info_label())
         info_layout.addWidget(self.week_label)
 
-        self.days_left_label = QLabel("До пологів: не визначено")
-        self.days_left_label.setFont(QFont('Arial', 16, QFont.Weight.Normal))
-        self.days_left_label.setStyleSheet("color: #FFFFFF; background: transparent; border: none; font-weight: 500;")
+        self.days_left_label = QLabel("⏳ До пологів: не визначено")
+        self.days_left_label.setFont(QFont('Segoe UI', 15, QFont.Weight.Normal))
+        self.days_left_label.setStyleSheet(PregnancyEditorStyles.info_label())
         info_layout.addWidget(self.days_left_label)
 
         main_layout.addWidget(info_frame)
 
-        save_btn = QPushButton("Зберегти зміни")
-        save_btn.setMinimumHeight(55)
-        save_btn.setStyleSheet("""
-            QPushButton {
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #8B5CF6, stop:1 #EC4899);
-                color: white;
-                border: none;
-                border-radius: 20px;
-                padding: 15px 25px;
-                font-weight: 600;
-                font-size: 14px;
-            }
-            QPushButton:hover {
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #7C3AED, stop:1 #DB2777);
-            }
-            QPushButton:pressed {
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #6D28D9, stop:1 #BE185D);
-            }
-        """)
+        save_btn = QPushButton("💾 Зберегти зміни")
+        save_btn.setMinimumHeight(58)
+        save_btn.setStyleSheet(PregnancyEditorStyles.save_button())
         save_btn.clicked.connect(self.save_pregnancy_data)
         main_layout.addWidget(save_btn)
 
@@ -211,7 +119,7 @@ class PregnancyEditor(QWidget):
     def update_due_date(self):
         conception_date = self.conception_edit.date()
         due_date = conception_date.addDays(266)
-        self.due_date_label_value.setText(due_date.toString("dd.MM.yyyy"))
+        self.due_date_label_value.setText(f"🎯 {due_date.toString('dd.MM.yyyy')}")
 
     def validate_dates(self):
         last_period_date = self.last_period_edit.date()
@@ -221,16 +129,16 @@ class PregnancyEditor(QWidget):
         conception_py = datetime(conception_date.year(), conception_date.month(), conception_date.day()).date()
 
         if last_period_py > conception_py:
-            QMessageBox.warning(self, "Помилка",
-                                "Дата останньої менструації не може бути пізніше дати зачаття.\n"
-                                "Зачаття зазвичай відбувається приблизно через 14 днів після початку останньої менструації.")
+            QMessageBox.warning(self, "⚠️ Помилка дат",
+                                "Дата останньої менструації не може бути пізніше дати зачаття.\n\n"
+                                "💡 Зачаття зазвичай відбувається приблизно через 14 днів після початку останньої менструації.")
             return False
 
         days_diff = (conception_py - last_period_py).days
         if days_diff > 28:
-            result = QMessageBox.question(self, "Увага",
-                                          "Дата зачаття виглядає занадто пізньою.\n"
-                                          "Зазвичай зачаття відбувається протягом 2-3 тижнів після початку останньої менструації.\n"
+            result = QMessageBox.question(self, "🤔 Перевірте дати",
+                                          "Дата зачаття виглядає занадто пізньою.\n\n"
+                                          "💡 Зазвичай зачаття відбувається протягом 2-3 тижнів після початку останньої менструації.\n\n"
                                           "Продовжити зі збереженням?",
                                           QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
             if result == QMessageBox.StandardButton.No:
@@ -244,8 +152,8 @@ class PregnancyEditor(QWidget):
             self.last_period_edit.setDate(QDate.currentDate().addDays(-280))
             self.conception_edit.setDate(QDate.currentDate().addDays(-266))
             self.update_due_date()
-            self.week_label.setText("Поточний термін: не визначено")
-            self.days_left_label.setText("До пологів: не визначено")
+            self.week_label.setText("⏱️ Поточний термін: не визначено")
+            self.days_left_label.setText("⏳ До пологів: не визначено")
             return
 
         self.data_controller = DataController(user_id)
@@ -274,8 +182,8 @@ class PregnancyEditor(QWidget):
             if user_id:
                 self.data_controller = DataController(user_id)
             else:
-                self.week_label.setText("Поточний термін: не визначено")
-                self.days_left_label.setText("До пологів: не визначено")
+                self.week_label.setText("⏱️ Поточний термін: не визначено")
+                self.days_left_label.setText("⏳ До пологів: не визначено")
                 return
 
         current_week = self.data_controller.get_current_week()
@@ -286,18 +194,18 @@ class PregnancyEditor(QWidget):
         days_left = (due_date_py - datetime.now().date()).days
 
         if current_week:
-            self.week_label.setText(f"Поточний термін: {current_week} тижнів")
+            self.week_label.setText(f"⏱️ Поточний термін: {current_week} тижнів")
         else:
-            self.week_label.setText("Поточний термін: не визначено")
+            self.week_label.setText("⏱️ Поточний термін: не визначено")
 
         if days_left >= 0:
-            self.days_left_label.setText(f"До пологів залишилось: {days_left} днів")
+            self.days_left_label.setText(f"⏳ До пологів залишилось: {days_left} днів")
         else:
-            self.days_left_label.setText("До пологів: не визначено")
+            self.days_left_label.setText("⏳ До пологів: не визначено")
 
     def save_pregnancy_data(self):
         if not self.data_controller or not self.data_controller.pregnancy_data:
-            QMessageBox.warning(self, "Помилка", "Неможливо зберегти дані - користувач не авторизований")
+            QMessageBox.warning(self, "❌ Помилка", "Неможливо зберегти дані - користувач не авторизований")
             return
 
         if not self.validate_dates():
@@ -314,9 +222,9 @@ class PregnancyEditor(QWidget):
         try:
             self.data_controller.save_pregnancy_data()
             self.update_pregnancy_info()
-            QMessageBox.information(self, "Успіх", "Дані про вагітність успішно збережено")
+            QMessageBox.information(self, "✅ Успіх", "Дані про вагітність успішно збережено!")
         except Exception as e:
-            QMessageBox.critical(self, "Помилка", f"Помилка збереження: {str(e)}")
+            QMessageBox.critical(self, "❌ Помилка", f"Помилка збереження: {str(e)}")
 
     def showEvent(self, event):
         super().showEvent(event)

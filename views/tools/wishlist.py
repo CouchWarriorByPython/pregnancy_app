@@ -6,8 +6,7 @@ from controllers.data_controller import DataController
 from utils.logger import get_logger
 from utils.base_widgets import (StyledCard, StyledInput, StyledComboBox, StyledDoubleSpinBox,
                                 StyledCheckBox, StyledButton, StyledListWidget, TitleLabel)
-from styles.tools import WishlistStyles
-from styles.base import BaseStyles
+from styles import WishlistStyles, BaseStyles
 
 logger = get_logger('wishlist')
 

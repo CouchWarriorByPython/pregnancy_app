@@ -3,7 +3,7 @@ from PyQt6.QtCore import pyqtSignal
 from PyQt6.QtGui import QFont
 from utils.logger import get_logger
 from utils.base_widgets import StyledInput, StyledCheckBox, StyledButton, TitleLabel, StyledScrollArea
-from styles.onboarding import ChildInfoStyles
+from styles import OnboardingScreenStyles
 
 logger = get_logger('child_info_screen')
 
@@ -19,15 +19,15 @@ class ChildInfoScreen(QWidget):
 
     def _init_controls(self):
         self.name_input = StyledInput("Залиште поле порожнім, якщо ви ще не обрали ім'я")
-        self.name_input.setStyleSheet(ChildInfoStyles.onboarding_input())
+        self.name_input.setStyleSheet(OnboardingScreenStyles.onboarding_input())
 
         self.first_labour_checkbox = StyledCheckBox("Це мої перші пологи")
-        self.first_labour_checkbox.setStyleSheet(ChildInfoStyles.first_labour_checkbox())
+        self.first_labour_checkbox.setStyleSheet(OnboardingScreenStyles.first_labour_checkbox())
 
         self.gender_group = QButtonGroup(self)
 
     def _setup_ui(self):
-        self.setStyleSheet(ChildInfoStyles.main_container())
+        self.setStyleSheet(OnboardingScreenStyles.main_container())
 
         main_layout = QVBoxLayout(self)
         main_layout.setContentsMargins(20, 20, 20, 20)
@@ -40,7 +40,7 @@ class ChildInfoScreen(QWidget):
         form_layout.setSpacing(20)
 
         title = TitleLabel("Інформація про дитину")
-        title.setStyleSheet(ChildInfoStyles.step_title())
+        title.setStyleSheet(OnboardingScreenStyles.step_title())
         form_layout.addWidget(title)
 
         form_layout.addWidget(self._create_name_section())
@@ -49,7 +49,7 @@ class ChildInfoScreen(QWidget):
         form_layout.addStretch(1)
 
         next_btn = StyledButton("Далі")
-        next_btn.setStyleSheet(ChildInfoStyles.onboarding_button())
+        next_btn.setStyleSheet(OnboardingScreenStyles.onboarding_button())
         next_btn.clicked.connect(self._on_next_clicked)
         form_layout.addWidget(next_btn)
 
@@ -58,12 +58,12 @@ class ChildInfoScreen(QWidget):
 
     def _create_name_section(self):
         section = QWidget()
-        section.setStyleSheet(ChildInfoStyles.form_section())
+        section.setStyleSheet(OnboardingScreenStyles.form_section())
         layout = QVBoxLayout(section)
         layout.setSpacing(10)
 
         name_label = QLabel("Ім'я дитини")
-        name_label.setStyleSheet(ChildInfoStyles.field_label())
+        name_label.setStyleSheet(OnboardingScreenStyles.field_label())
         layout.addWidget(name_label)
         layout.addWidget(self.name_input)
 
@@ -71,20 +71,20 @@ class ChildInfoScreen(QWidget):
 
     def _create_gender_section(self):
         section = QWidget()
-        section.setStyleSheet(ChildInfoStyles.gender_section())
+        section.setStyleSheet(OnboardingScreenStyles.gender_section())
         layout = QVBoxLayout(section)
         layout.setSpacing(10)
 
         gender_label = QLabel("Стать дитини")
         gender_label.setFont(QFont('Arial', 16))
-        gender_label.setStyleSheet(ChildInfoStyles.section_label())
+        gender_label.setStyleSheet(OnboardingScreenStyles.field_label())
         layout.addWidget(gender_label)
 
         gender_options = [("♂ Хлопчик", "Хлопчик"), ("♀ Дівчинка", "Дівчинка"), ("⚥ Ще не знаю", "Невідомо")]
 
         for i, (text, value) in enumerate(gender_options):
             radio = QRadioButton(text)
-            radio.setStyleSheet(ChildInfoStyles.gender_radio())
+            radio.setStyleSheet(OnboardingScreenStyles.gender_radio())
             radio.gender_value = value
             self.gender_group.addButton(radio, i)
             layout.addWidget(radio)

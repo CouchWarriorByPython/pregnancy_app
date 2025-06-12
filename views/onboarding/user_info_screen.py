@@ -5,6 +5,7 @@ from utils.base_widgets import (StyledInput, StyledDateEdit, StyledDoubleSpinBox
                                 StyledButton, TitleLabel, StyledScrollArea)
 from datetime import datetime
 from controllers.data_controller import DataController
+from styles import OnboardingScreenStyles
 
 logger = get_logger('user_info_screen')
 
@@ -34,6 +35,8 @@ class UserInfoScreen(QWidget):
         self.cycle_spin.setValue(28)
 
     def _setup_ui(self):
+        self.setStyleSheet(OnboardingScreenStyles.main_container())
+
         main_layout = QVBoxLayout(self)
         main_layout.setContentsMargins(20, 20, 20, 20)
         main_layout.setSpacing(20)
@@ -45,6 +48,7 @@ class UserInfoScreen(QWidget):
         form_layout.setSpacing(20)
 
         title = TitleLabel("Інформація про вас")
+        title.setStyleSheet(OnboardingScreenStyles.step_title())
         form_layout.addWidget(title)
 
         profile_form = self._create_profile_form()
@@ -53,6 +57,7 @@ class UserInfoScreen(QWidget):
 
         finish_btn = StyledButton("Завершити")
         finish_btn.setMinimumHeight(50)
+        finish_btn.setStyleSheet(OnboardingScreenStyles.onboarding_button())
         finish_btn.clicked.connect(self._on_finish_clicked)
         form_layout.addWidget(finish_btn)
 
@@ -77,7 +82,6 @@ class UserInfoScreen(QWidget):
         return form
 
     def _get_current_user_id(self):
-        """Отримуємо ID поточного користувача"""
         if hasattr(self.parent, 'current_user_id'):
             if callable(self.parent.current_user_id):
                 return self.parent.current_user_id()
@@ -86,7 +90,6 @@ class UserInfoScreen(QWidget):
         return None
 
     def _load_user_data(self):
-        """Завантажуємо дані користувача якщо вони є"""
         user_id = self._get_current_user_id()
         if not user_id:
             logger.info("Користувач не авторизований, залишаємо дефолтні значення")
@@ -134,7 +137,6 @@ class UserInfoScreen(QWidget):
         }
 
         try:
-            # Ініціалізуємо DataController з правильним user_id
             if not self.data_controller:
                 self.data_controller = DataController(user_id)
 
@@ -143,7 +145,6 @@ class UserInfoScreen(QWidget):
                 QMessageBox.critical(self, "Помилка", "Не вдалося знайти профіль користувача")
                 return
 
-            # Оновлюємо дані профілю
             profile.name = user_data["name"]
             profile.birth_date = birth_date_obj
             profile.weight_before_pregnancy = user_data["weight_before_pregnancy"]
