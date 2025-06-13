@@ -1,16 +1,16 @@
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QFormLayout, QLabel, QMessageBox
 from PyQt6.QtCore import QDate
-from controllers.data_controller import DataController
 from datetime import datetime
 from utils.logger import get_logger
 from utils.base_widgets import (StyledInput, StyledDateEdit, StyledSpinBox, StyledDoubleSpinBox,
                                 StyledButton, StyledScrollArea, TitleLabel)
 from styles import ProfileEditorStyles
+from utils.user_mixin import UserMixin
 
 logger = get_logger('profile_editor')
 
 
-class ProfileEditor(QWidget):
+class ProfileEditor(QWidget, UserMixin):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.parent = parent
@@ -89,23 +89,11 @@ class ProfileEditor(QWidget):
 
             self.form_layout.addRow(label_widget, widget)
 
-    def _get_current_user_id(self):
-        if hasattr(self.parent, 'current_user_id'):
-            if callable(self.parent.current_user_id):
-                return self.parent.current_user_id()
-            else:
-                return self.parent.current_user_id
-        if hasattr(self.parent, 'parent') and hasattr(self.parent.parent, 'current_user_id'):
-            return self.parent.parent.current_user_id
-        return None
-
     def load_profile_data(self):
-        user_id = self._get_current_user_id()
-        if not user_id:
-            logger.warning("Користувач не авторизований")
+        if not self.init_data_controller():
+            logger.warning("Не вдалося ініціалізувати DataController")
             return
 
-        self.data_controller = DataController(user_id)
         profile = self.data_controller.user_profile
 
         if not profile:

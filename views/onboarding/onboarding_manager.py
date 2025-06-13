@@ -1,57 +1,111 @@
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QStackedWidget
-from PyQt6.QtCore import pyqtSignal
+from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QSpacerItem, QSizePolicy, QMessageBox
+from PyQt6.QtCore import pyqtSignal, Qt
+from PyQt6.QtGui import QFont
+from utils.base_widgets import StyledInput, StyledButton, TitleLabel
+from utils.user_mixin import UserMixin
+from styles import AuthScreenStyles
+from controllers.auth_controller import AuthController
 from utils.logger import get_logger
-from .child_info_screen import ChildInfoScreen
-from .user_info_screen import UserInfoScreen
 
-logger = get_logger('onboarding_manager')
+logger = get_logger('verification_screen')
 
 
-class OnboardingManager(QWidget):
-    """Менеджер екранів онбордингу, який керує послідовністю екранів"""
+class VerificationScreen(QWidget, UserMixin):
+    verification_success = pyqtSignal(dict)
+    back_to_register = pyqtSignal()
 
-    proceed_signal = pyqtSignal(dict)  # Сигнал для переходу далі з даними
-
-    def __init__(self, parent=None):
+    def __init__(self, email=None, parent=None):
         super().__init__(parent)
-        self.parent = parent
-        self.child_data = {}
-        self.user_data = {}
-
+        self.email = email
+        self.auth_controller = AuthController()
         self.setup_ui()
 
     def setup_ui(self):
-        layout = QVBoxLayout(self)
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(0)
+        self.setStyleSheet(AuthScreenStyles.main_container())
 
-        self.stack = QStackedWidget()
+        main_layout = QVBoxLayout(self)
+        main_layout.setContentsMargins(40, 40, 40, 40)
+        main_layout.setSpacing(30)
 
-        self.child_info_screen = ChildInfoScreen(self)
-        self.child_info_screen.proceed_signal.connect(self.on_child_info_completed)
+        main_layout.addItem(QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding))
 
-        self.user_info_screen = UserInfoScreen(self)
-        self.user_info_screen.proceed_signal.connect(self.on_user_info_completed)
+        title = TitleLabel("Підтвердження пошти", 24)
+        title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        title.setStyleSheet(AuthScreenStyles.title_label())
+        main_layout.addWidget(title)
 
-        # Додаємо екрани до стеку
-        self.stack.addWidget(self.child_info_screen)
-        self.stack.addWidget(self.user_info_screen)
+        self.subtitle = QLabel(f"Код підтвердження надіслано на\n{self.email or 'вашу пошту'}")
+        self.subtitle.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.subtitle.setStyleSheet(AuthScreenStyles.code_description())
+        self.subtitle.setFont(QFont('Arial', 14))
+        main_layout.addWidget(self.subtitle)
 
-        layout.addWidget(self.stack)
+        main_layout.addItem(QSpacerItem(20, 20, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed))
 
-    def on_child_info_completed(self, data):
-        """Обробка завершення введення інформації про дитину"""
-        logger.info(f"Отримана інформація про дитину: {data}")
-        self.child_data = data
+        self.code_input = StyledInput("Введіть 6-значний код")
+        self.code_input.setMinimumHeight(50)
+        self.code_input.setMaxLength(6)
+        self.code_input.setStyleSheet(AuthScreenStyles.verification_code_input())
+        main_layout.addWidget(self.code_input)
 
-        self.stack.setCurrentIndex(1)
+        main_layout.addItem(QSpacerItem(20, 30, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed))
 
-    def on_user_info_completed(self, data):
-        """Обробка завершення введення інформації про користувача"""
-        logger.info(f"Отримана інформація про користувача: {data}")
-        self.user_data = data
+        verify_btn = StyledButton("Підтвердити")
+        verify_btn.setMinimumHeight(55)
+        verify_btn.setStyleSheet(AuthScreenStyles.auth_button_large())
+        verify_btn.clicked.connect(self.verify)
+        main_layout.addWidget(verify_btn)
 
-        complete_data = self.child_data.copy()
-        complete_data["user_data"] = self.user_data
+        resend_btn = StyledButton("Надіслати код повторно", "secondary")
+        resend_btn.setMinimumHeight(45)
+        resend_btn.setStyleSheet(AuthScreenStyles.resend_button())
+        resend_btn.clicked.connect(self.resend_code)
+        main_layout.addWidget(resend_btn)
 
-        self.proceed_signal.emit(complete_data)
+        main_layout.addItem(QSpacerItem(20, 20, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed))
+
+        back_btn = StyledButton("Назад", "secondary")
+        back_btn.setMinimumHeight(40)
+        back_btn.setStyleSheet(AuthScreenStyles.back_button())
+        back_btn.clicked.connect(self.back_to_register.emit)
+        main_layout.addWidget(back_btn)
+
+        main_layout.addItem(QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding))
+
+    def set_email(self, email):
+        self.email = email
+        self.subtitle.setText(f"Код підтвердження надіслано на\n{email}")
+
+    def verify(self):
+        code = self.code_input.text().strip()
+
+        if not code:
+            QMessageBox.warning(self, "Помилка", "Введіть код підтвердження")
+            return
+
+        if len(code) != 6:
+            QMessageBox.warning(self, "Помилка", "Код повинен містити 6 цифр")
+            return
+
+        try:
+            user = self.auth_controller.verify_email(self.email, code)
+            if user:
+                self.verification_success.emit({"user_id": user.id, "email": user.email})
+                logger.info(f"Успішне підтвердження пошти {self.email}")
+            else:
+                QMessageBox.warning(self, "Помилка", "Невірний код підтвердження")
+        except Exception as e:
+            QMessageBox.critical(self, "Помилка", f"Помилка підтвердження: {str(e)}")
+            logger.error(f"Помилка підтвердження: {str(e)}")
+
+    def resend_code(self):
+        try:
+            success = self.auth_controller.resend_verification_code(self.email)
+            if success:
+                QMessageBox.information(self, "Успіх", "Код підтвердження надіслано повторно")
+                logger.info(f"Повторне надсилання коду для {self.email}")
+            else:
+                QMessageBox.warning(self, "Помилка", "Не вдалося надіслати код повторно")
+        except Exception as e:
+            QMessageBox.critical(self, "Помилка", f"Помилка відправки коду: {str(e)}")
+            logger.error(f"Помилка відправки коду: {str(e)}")

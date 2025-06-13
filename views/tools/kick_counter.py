@@ -1,21 +1,20 @@
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QHBoxLayout, QMessageBox, QSplitter
 from PyQt6.QtCore import Qt, QDate, QTime
-from controllers.data_controller import DataController
 from utils.logger import get_logger
 from utils.base_widgets import (StyledCard, StyledDateEdit, StyledTimeEdit, StyledSpinBox,
-                               StyledButton, StyledListWidget, TitleLabel)
+                                StyledButton, StyledListWidget, TitleLabel)
 from styles import KickCounterStyles, BaseStyles
+from utils.user_mixin import UserMixin
 
 logger = get_logger('kick_counter')
 
 
-class KickCounterScreen(QWidget):
+class KickCounterScreen(QWidget, UserMixin):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.parent = parent
-        self.data_controller = DataController()
+        self.data_controller = None
         self.setup_ui()
-        self.load_kicks()
 
     def setup_ui(self):
         main_layout = QVBoxLayout(self)
@@ -101,23 +100,38 @@ class KickCounterScreen(QWidget):
 
         main_layout.addWidget(splitter)
 
+    def showEvent(self, event):
+        super().showEvent(event)
+        if self.init_data_controller():
+            self.load_kicks()
+
     def load_kicks(self):
+        if not self.init_data_controller():
+            QMessageBox.warning(self, "Помилка", "Необхідно увійти в систему для перегляду записів")
+            return
+
         try:
-            kicks = self.data_controller.db.get_baby_kicks()
+            user_id = self.get_current_user_id()
+            kicks = self.data_controller.db.get_baby_kicks(user_id)
             self.kicks_list.clear()
 
             for kick in kicks:
                 item_text = f"{kick['date']} {kick['time']}: {kick['count']} поштовхів"
                 self.kicks_list.addItem(item_text)
 
-            logger.info(f"Завантажено {len(kicks)} записів поштовхів")
+            logger.info(f"Завантажено {len(kicks)} записів поштовхів для користувача {user_id}")
 
         except Exception as e:
             QMessageBox.critical(self, "Помилка", f"Не вдалося завантажити історію поштовхів: {str(e)}")
-            logger.error(f"Помилка при завантаженні поштовхів: {str(e)}")
+            logger.error(f"Помилка при завантаженні поштовхів для користувача {user_id}: {str(e)}")
 
     def save_kicks(self):
+        if not self.init_data_controller():
+            QMessageBox.warning(self, "Помилка", "Необхідно увійти в систему для збереження записів")
+            return
+
         try:
+            user_id = self.get_current_user_id()
             date_str = self.date_edit.date().toString("yyyy-MM-dd")
             time_str = self.time_edit.time().toString("HH:mm")
             count = self.kicks_spin.value()
@@ -126,12 +140,13 @@ class KickCounterScreen(QWidget):
                 QMessageBox.warning(self, "Помилка", "Кількість поштовхів повинна бути більше 0")
                 return
 
-            self.data_controller.db.add_baby_kick(date_str, time_str, count)
+            self.data_controller.db.add_baby_kick(date_str, time_str, count, user_id)
             self.load_kicks()
 
             QMessageBox.information(self, "Успіх", "Запис поштовхів успішно збережено")
-            logger.info(f"Збережено новий запис поштовхів: {date_str} {time_str}, кількість: {count}")
+            logger.info(
+                f"Збережено новий запис поштовхів для користувача {user_id}: {date_str} {time_str}, кількість: {count}")
 
         except Exception as e:
             QMessageBox.critical(self, "Помилка", f"Не вдалося зберегти запис: {str(e)}")
-            logger.error(f"Помилка при збереженні запису поштовхів: {str(e)}")
+            logger.error(f"Помилка при збереженні запису поштовхів для користувача {user_id}: {str(e)}")

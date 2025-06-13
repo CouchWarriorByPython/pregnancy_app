@@ -1,10 +1,11 @@
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QHBoxLayout, QCalendarWidget, QDialog, QCheckBox, QMessageBox, QFrame
+from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QHBoxLayout, QCalendarWidget, QDialog, QCheckBox, QMessageBox, \
+    QFrame
 from PyQt6.QtGui import QFont
 from PyQt6.QtCore import Qt
 from utils.base_widgets import StyledButton, StyledInput, StyledComboBox, StyledTimeEdit, StyledCard
 from styles import CalendarScreenStyles, BaseStyles, Colors
-from controllers.data_controller import DataController
 from utils.logger import get_logger
+from utils.user_mixin import UserMixin
 
 logger = get_logger('calendar_screen')
 
@@ -133,7 +134,7 @@ class EventDialog(QDialog):
         }
 
 
-class CalendarScreen(QWidget):
+class CalendarScreen(QWidget, UserMixin):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.parent = parent
@@ -194,43 +195,52 @@ class CalendarScreen(QWidget):
         self._load_events()
 
     def _init_services(self):
-        user_id = self._get_current_user_id()
-        if user_id:
-            self.data_controller = DataController(user_id)
-            if hasattr(self.parent, 'reminder_service'):
-                self.reminder_service = self.parent.reminder_service
+        """Ініціалізує сервіси при показі екрану"""
+        if self.init_data_controller():
+            logger.info(f"CalendarScreen ініціалізований з user_id: {self.get_current_user_id()}")
 
-    def _get_current_user_id(self):
-        if hasattr(self.parent, 'current_user_id'):
-            return self.parent.current_user_id
-        return None
+            # Отримуємо reminder_service з MainWindow
+            main_window = self._find_main_window()
+            if main_window and hasattr(main_window, 'reminder_service'):
+                self.reminder_service = main_window.reminder_service
+        else:
+            logger.warning("CalendarScreen: не вдалося ініціалізувати DataController")
 
     def date_clicked(self, date):
         self._show_events_for_date(date)
 
     def _show_events_for_date(self, date):
-        if not self.data_controller:
+        """Показує події для вибраної дати"""
+        if not self.is_user_authenticated():
+            self.events_list.setText("Необхідно увійти в систему для перегляду подій")
             return
 
-        date_str = date.toString("yyyy-MM-dd")
-        events = self.data_controller.db.get_events_for_date(date_str)
+        user_id = self.get_current_user_id()
 
-        if events:
-            events_text = ""
-            for event in events:
-                time_str = event.get('time', 'Весь день')
+        try:
+            date_str = date.toString("yyyy-MM-dd")
+            events = self.data_controller.db.get_events_for_date(date_str, user_id)
 
-                if time_str != 'Весь день' and 'end_time' in event:
-                    time_str = f"{time_str} - {event['end_time']}"
+            if events:
+                events_text = ""
+                for event in events:
+                    time_str = event.get('time', 'Весь день')
 
-                events_text += f"• {time_str} - {event['title']} ({event['event_type']})\n"
+                    if time_str != 'Весь день' and 'end_time' in event:
+                        time_str = f"{time_str} - {event['end_time']}"
 
-                if event.get('description') and 'Нагадування' in event['description']:
-                    events_text += "  🔔 З нагадуванням\n"
+                    events_text += f"• {time_str} - {event['title']} ({event['event_type']})\n"
 
-            self.events_list.setText(events_text.strip())
-        else:
-            self.events_list.setText("На цей день немає запланованих подій")
+                    if event.get('description') and 'Нагадування' in event['description']:
+                        events_text += "  🔔 З нагадуванням\n"
+
+                self.events_list.setText(events_text.strip())
+            else:
+                self.events_list.setText("На цей день немає запланованих подій")
+
+        except Exception as e:
+            logger.error(f"Помилка при завантаженні подій: {str(e)}")
+            self.events_list.setText("Помилка при завантаженні подій")
 
     def _load_events(self):
         if self.data_controller:
@@ -238,7 +248,7 @@ class CalendarScreen(QWidget):
             self._show_events_for_date(today)
 
     def add_event(self):
-        if not self.data_controller:
+        if not self.is_user_authenticated():
             QMessageBox.warning(self, "Помилка", "Необхідно увійти в систему для додавання подій")
             return
 
@@ -250,16 +260,23 @@ class CalendarScreen(QWidget):
             self._save_event(event_data)
 
     def _save_event(self, event_data):
+        user_id = self.get_current_user_id()
+        if not user_id:
+            QMessageBox.warning(self, "Помилка", "Помилка авторизації")
+            return
+
         try:
             date_str = event_data['date'].toString("yyyy-MM-dd")
             time_str = event_data['time'].toString("HH:mm")
 
+            # Зберігаємо подію
             event_id = self.data_controller.db.add_calendar_event(
                 title=event_data['name'],
                 description=f"Тип: {event_data['type']}",
                 start_date=date_str,
                 start_time=time_str,
-                event_type=event_data['type']
+                event_type=event_data['type'],
+                user_id=user_id
             )
 
             if event_data['reminder_enabled'] and self.reminder_service:

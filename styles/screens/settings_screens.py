@@ -67,7 +67,6 @@ class SettingsScreenStyles:
                 color: white;
                 font-weight: 700;
                 border: 2px solid rgba(255, 255, 255, 0.3);
-                transform: scale(1.02);
             }}
             QPushButton:hover:!checked {{
                 background: rgba(255, 255, 255, 0.12);
@@ -75,7 +74,7 @@ class SettingsScreenStyles:
                 border: 1px solid rgba(255, 255, 255, 0.2);
             }}
             QPushButton:pressed {{
-                transform: scale(0.98);
+                background: rgba(255, 255, 255, 0.25);
             }}
         """
 
@@ -173,12 +172,10 @@ class SettingsScreenStyles:
             QPushButton:hover {{
                 background: qlineargradient(x1:0, y1:0, x2:1, y2:1, 
                     stop:0 #DC2626, stop:1 #B91C1C);
-                transform: translateY(-2px);
             }}
             QPushButton:pressed {{
                 background: qlineargradient(x1:0, y1:0, x2:1, y2:1, 
                     stop:0 #B91C1C, stop:1 #991B1B);
-                transform: translateY(0px);
             }}
         """
 
@@ -255,10 +252,10 @@ class ProfileEditorStyles:
             QPushButton:hover {{
                 background: qlineargradient(x1:0, y1:0, x2:1, y2:1, 
                     stop:0 #059669, stop:1 #047857);
-                transform: translateY(-2px);
             }}
             QPushButton:pressed {{
-                transform: translateY(0px);
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:1, 
+                    stop:0 #047857, stop:1 #065F46);
             }}
         """
 
@@ -277,6 +274,16 @@ class PregnancyEditorStyles:
                 padding: 16px;
             }}
         """
+
+    @staticmethod
+    def section_title():
+        """Заголовок секції"""
+        return "color: white; font-weight: 700;"
+
+    @staticmethod
+    def section_subtitle():
+        """Підзаголовок секції"""
+        return "color: rgba(255, 255, 255, 0.8); font-size: 14px; margin-top: 4px;"
 
     @staticmethod
     def form_frame():
@@ -319,7 +326,6 @@ class PregnancyEditorStyles:
             QDateEdit:focus {{
                 border: 2px solid #EC4899;
                 background: rgba(255, 255, 255, 0.18);
-                transform: scale(1.02);
             }}
             QDateEdit::drop-down {{
                 border: none;
@@ -416,10 +422,10 @@ class PregnancyEditorStyles:
             QPushButton:hover {{
                 background: qlineargradient(x1:0, y1:0, x2:1, y2:1, 
                     stop:0 #DB2777, stop:1 #BE185D);
-                transform: translateY(-2px);
             }}
             QPushButton:pressed {{
-                transform: translateY(0px);
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:1, 
+                    stop:0 #BE185D, stop:1 #9D174D);
             }}
         """
 
@@ -438,6 +444,16 @@ class ChildInfoEditorStyles:
                 padding: 16px;
             }}
         """
+
+    @staticmethod
+    def section_title():
+        """Заголовок секції"""
+        return "color: white; font-weight: 700;"
+
+    @staticmethod
+    def section_subtitle():
+        """Підзаголовок секції"""
+        return "color: rgba(255, 255, 255, 0.8); font-size: 14px; margin-top: 4px;"
 
     @staticmethod
     def form_frame():
@@ -521,10 +537,10 @@ class ChildInfoEditorStyles:
             QPushButton:hover {{
                 background: qlineargradient(x1:0, y1:0, x2:1, y2:1, 
                     stop:0 #F57C00, stop:1 #E65100);
-                transform: translateY(-2px);
             }}
             QPushButton:pressed {{
-                transform: translateY(0px);
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:1, 
+                    stop:0 #E65100, stop:1 #D84315);
             }}
         """
 
@@ -634,9 +650,9 @@ class PasswordEditorStyles:
             QPushButton:hover {{
                 background: qlineargradient(x1:0, y1:0, x2:1, y2:1, 
                     stop:0 #DC2626, stop:1 #B91C1C);
-                transform: translateY(-2px);
             }}
             QPushButton:pressed {{
-                transform: translateY(0px);
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:1, 
+                    stop:0 #B91C1C, stop:1 #991B1B);
             }}
         """

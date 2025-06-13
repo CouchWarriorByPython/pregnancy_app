@@ -4,21 +4,20 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
 from reportlab.lib.styles import getSampleStyleSheet
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QTextEdit, QHBoxLayout, QSplitter, QLabel, QMessageBox
 from PyQt6.QtCore import QDate
-from controllers.data_controller import DataController
 from utils.logger import get_logger
 from utils.base_widgets import StyledCard, StyledInput, StyledDateEdit, StyledButton, StyledListWidget, TitleLabel
 from styles import HealthReportStyles, BaseStyles
+from utils.user_mixin import UserMixin
 
 logger = get_logger('health_report')
 
 
-class HealthReportScreen(QWidget):
+class HealthReportScreen(QWidget, UserMixin):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.parent = parent
-        self.data_controller = DataController()
+        self.data_controller = None
         self.setup_ui()
-        self.load_notes()
 
     def setup_ui(self):
         main_layout = QVBoxLayout(self)
@@ -97,22 +96,37 @@ class HealthReportScreen(QWidget):
 
         main_layout.addWidget(splitter)
 
+    def showEvent(self, event):
+        super().showEvent(event)
+        if self.init_data_controller():
+            self.load_notes()
+
     def load_notes(self):
+        if not self.init_data_controller():
+            QMessageBox.warning(self, "Помилка", "Необхідно увійти в систему для перегляду нотаток")
+            return
+
         try:
-            notes = self.data_controller.db.get_health_notes()
+            user_id = self.get_current_user_id()
+            notes = self.data_controller.db.get_health_notes(user_id)
             self.notes_list.clear()
 
             for note in notes:
                 item_text = f"{note['date']} - {note['title']}"
                 self.notes_list.addItem(item_text)
 
-            logger.info(f"Завантажено {len(notes)} нотаток про здоров'я")
+            logger.info(f"Завантажено {len(notes)} нотаток про здоров'я для користувача {user_id}")
         except Exception as e:
             QMessageBox.critical(self, "Помилка", f"Не вдалося завантажити нотатки: {str(e)}")
-            logger.error(f"Помилка при завантаженні нотаток: {str(e)}")
+            logger.error(f"Помилка при завантаженні нотаток для користувача {user_id}: {str(e)}")
 
     def save_note(self):
+        if not self.init_data_controller():
+            QMessageBox.warning(self, "Помилка", "Необхідно увійти в систему для збереження нотаток")
+            return
+
         try:
+            user_id = self.get_current_user_id()
             date_str = self.date_edit.date().toString("yyyy-MM-dd")
             title = self.title_edit.text().strip()
             content = self.content_edit.toPlainText().strip()
@@ -121,21 +135,26 @@ class HealthReportScreen(QWidget):
                 QMessageBox.warning(self, "Помилка", "Введіть текст нотатки")
                 return
 
-            self.data_controller.db.add_health_note(date_str, content, title)
+            self.data_controller.db.add_health_note(date_str, content, title, user_id)
 
             self.title_edit.clear()
             self.content_edit.clear()
             self.load_notes()
 
             QMessageBox.information(self, "Успіх", "Нотатку збережено")
-            logger.info(f"Збережено нову нотатку про здоров'я: {date_str}, {title}")
+            logger.info(f"Збережено нову нотатку про здоров'я для користувача {user_id}: {date_str}, {title}")
         except Exception as e:
             QMessageBox.critical(self, "Помилка", f"Не вдалося зберегти нотатку: {str(e)}")
-            logger.error(f"Помилка при збереженні нотатки: {str(e)}")
+            logger.error(f"Помилка при збереженні нотатки для користувача {user_id}: {str(e)}")
 
     def export_to_pdf(self):
+        if not self.init_data_controller():
+            QMessageBox.warning(self, "Помилка", "Необхідно увійти в систему для експорту")
+            return
+
         try:
-            notes = self.data_controller.db.get_health_notes()
+            user_id = self.get_current_user_id()
+            notes = self.data_controller.db.get_health_notes(user_id)
             if not notes:
                 QMessageBox.information(self, "Інформація", "Немає нотаток для експорту")
                 return
@@ -143,9 +162,9 @@ class HealthReportScreen(QWidget):
             today = datetime.date.today().strftime("%Y-%m-%d")
             file_name = f"health_report_{today}.pdf"
 
-            pregnancy_data = self.data_controller.pregnancy_data
             current_week = self.data_controller.get_current_week() or "невідомо"
             user_profile = self.data_controller.user_profile
+            pregnancy_data = self.data_controller.pregnancy_data
 
             document = SimpleDocTemplate(file_name, pageSize=A4, rightMargin=72, leftMargin=72, topMargin=72,
                                          bottomMargin=72)
@@ -161,9 +180,9 @@ class HealthReportScreen(QWidget):
 
             content.append(Paragraph("Інформація про користувача", subtitle_style))
             content.append(Spacer(1, 6))
-            content.append(Paragraph(f"Ім'я: {user_profile.name}", normal_style))
+            content.append(Paragraph(f"Ім'я: {user_profile.name if user_profile else 'Не вказано'}", normal_style))
             content.append(Paragraph(f"Поточний тиждень: {current_week}", normal_style))
-            if pregnancy_data.due_date:
+            if pregnancy_data and pregnancy_data.due_date:
                 content.append(
                     Paragraph(f"Очікувана дата пологів: {pregnancy_data.due_date.strftime('%d.%m.%Y')}", normal_style))
             content.append(Spacer(1, 12))
@@ -183,7 +202,7 @@ class HealthReportScreen(QWidget):
             document.build(content)
 
             QMessageBox.information(self, "Успіх", f"PDF-звіт збережено як {file_name}")
-            logger.info(f"Експортовано PDF-звіт: {file_name}")
+            logger.info(f"Експортовано PDF-звіт для користувача {user_id}: {file_name}")
         except Exception as e:
             QMessageBox.critical(self, "Помилка", f"Не вдалося експортувати PDF: {str(e)}")
-            logger.error(f"Помилка при експорті PDF: {str(e)}")
+            logger.error(f"Помилка при експорті PDF для користувача {user_id}: {str(e)}")

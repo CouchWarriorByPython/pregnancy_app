@@ -4,19 +4,19 @@ from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QLabel, QPushButton,
                              QMessageBox, QFrame, QSlider, QTabWidget, QGridLayout, QProgressBar)
 from PyQt6.QtCore import Qt, QDate, QTime, QTimer
 from PyQt6.QtGui import QFont
-from controllers.data_controller import DataController
 from utils.logger import get_logger
 from styles import ContractionCounterStyles, SliderStyles
 from styles.base import BaseStyles
+from utils.user_mixin import UserMixin
 
 logger = get_logger('contraction_counter')
 
 
-class ContractionCounterScreen(QWidget):
+class ContractionCounterScreen(QWidget, UserMixin):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.parent = parent
-        self.data_controller = DataController()
+        self.data_controller = None
 
         self.timer = QTimer()
         self.timer.timeout.connect(self.update_timer)
@@ -26,7 +26,6 @@ class ContractionCounterScreen(QWidget):
         self.is_timing = False
 
         self.setup_ui()
-        self.load_contractions()
 
     def setup_ui(self):
         main_layout = QVBoxLayout(self)
@@ -69,7 +68,7 @@ class ContractionCounterScreen(QWidget):
         """
         info_label = QLabel(info_text)
         info_label.setWordWrap(True)
-        info_label.setStyleSheet(ContractionCounterStyles.info_label())
+        info_label.setStyleSheet(BaseStyles.text_secondary())
         layout.addWidget(info_label)
 
         timer_frame = QFrame()
@@ -96,7 +95,7 @@ class ContractionCounterScreen(QWidget):
 
         self.stop_btn = QPushButton("Зупинити перейму")
         self.stop_btn.setEnabled(False)
-        self.stop_btn.setStyleSheet(f"{BaseStyles.button_error()}\n{ContractionCounterStyles.disabled_button()}")
+        self.stop_btn.setStyleSheet(BaseStyles.button_error())
         self.stop_btn.clicked.connect(self.stop_contraction)
 
         buttons_layout.addWidget(self.start_btn)
@@ -223,6 +222,11 @@ class ContractionCounterScreen(QWidget):
 
         layout.addLayout(buttons_layout)
 
+    def showEvent(self, event):
+        super().showEvent(event)
+        if self.init_data_controller():
+            self.load_contractions()
+
     def update_timer(self):
         if self.is_timing:
             self.current_seconds += 1
@@ -253,10 +257,15 @@ class ContractionCounterScreen(QWidget):
         logger.info(f"Зупинено відлік перейми. Тривалість: {self.current_seconds} секунд")
 
     def save_timed_contraction(self):
+        if not self.init_data_controller():
+            QMessageBox.warning(self, "Помилка", "Необхідно увійти в систему для збереження записів")
+            return
+
         try:
             if self.is_timing:
                 self.stop_contraction()
 
+            user_id = self.get_current_user_id()
             date_str = QDate.currentDate().toString("yyyy-MM-dd")
 
             if self.start_time:
@@ -267,7 +276,8 @@ class ContractionCounterScreen(QWidget):
                 duration = self.current_seconds
                 intensity = self.intensity_slider.value()
 
-                self.data_controller.db.add_contraction(date_str, start_time_str, end_time_str, duration, intensity)
+                self.data_controller.db.add_contraction(date_str, start_time_str, end_time_str, duration, intensity,
+                                                        user_id)
 
                 self.current_seconds = 0
                 self.timer_label.setText("00:00")
@@ -276,36 +286,48 @@ class ContractionCounterScreen(QWidget):
                 self.load_contractions()
 
                 QMessageBox.information(self, "Успіх", "Запис про перейму успішно збережено")
-                logger.info(f"Збережено перейму: {date_str}, {start_time_str}-{end_time_str}, {duration} сек, інтенсивність: {intensity}")
+                logger.info(
+                    f"Збережено перейму для користувача {user_id}: {date_str}, {start_time_str}-{end_time_str}, {duration} сек, інтенсивність: {intensity}")
             else:
                 QMessageBox.warning(self, "Попередження", "Спочатку скористайтеся таймером для вимірювання перейми")
 
         except Exception as e:
             QMessageBox.critical(self, "Помилка", f"Не вдалося зберегти запис: {str(e)}")
-            logger.error(f"Помилка при збереженні перейми з таймера: {str(e)}")
+            logger.error(f"Помилка при збереженні перейми з таймера для користувача {user_id}: {str(e)}")
 
     def save_manual_contraction(self):
+        if not self.init_data_controller():
+            QMessageBox.warning(self, "Помилка", "Необхідно увійти в систему для збереження записів")
+            return
+
         try:
+            user_id = self.get_current_user_id()
             date_str = self.date_edit.date().toString("yyyy-MM-dd")
             start_time_str = self.start_time_edit.time().toString("HH:mm:ss")
             end_time_str = self.end_time_edit.time().toString("HH:mm:ss")
             duration = self.duration_spin.value()
             intensity = self.manual_intensity_spin.value()
 
-            self.data_controller.db.add_contraction(date_str, start_time_str, end_time_str, duration, intensity)
+            self.data_controller.db.add_contraction(date_str, start_time_str, end_time_str, duration, intensity,
+                                                    user_id)
             self.load_contractions()
 
             QMessageBox.information(self, "Успіх", "Запис про перейму успішно збережено")
-            logger.info(f"Збережено перейму (ручний запис): {date_str}, {start_time_str}-{end_time_str}, {duration} сек, інтенсивність: {intensity}")
+            logger.info(
+                f"Збережено перейму (ручний запис) для користувача {user_id}: {date_str}, {start_time_str}-{end_time_str}, {duration} сек, інтенсивність: {intensity}")
 
         except Exception as e:
             QMessageBox.critical(self, "Помилка", f"Не вдалося зберегти запис: {str(e)}")
-            logger.error(f"Помилка при збереженні перейми вручну: {str(e)}")
+            logger.error(f"Помилка при збереженні перейми вручну для користувача {user_id}: {str(e)}")
 
     def load_contractions(self):
+        if not self.init_data_controller():
+            return
+
         try:
+            user_id = self.get_current_user_id()
             days = self.period_spin.value() if hasattr(self, 'period_spin') else 1
-            contractions = self.data_controller.db.get_contractions(days)
+            contractions = self.data_controller.db.get_contractions(user_id, days)
 
             if hasattr(self, 'contractions_list'):
                 self.contractions_list.clear()
@@ -315,9 +337,10 @@ class ContractionCounterScreen(QWidget):
                                 f"{contraction['duration']} сек., інтенсивність: {contraction['intensity']}/10"
                     self.contractions_list.addItem(item_text)
 
-                logger.info(f"Завантажено {len(contractions)} записів переймів за {days} день/днів")
+                logger.info(
+                    f"Завантажено {len(contractions)} записів переймів за {days} день/днів для користувача {user_id}")
 
         except Exception as e:
             if hasattr(self, 'contractions_list'):
                 QMessageBox.critical(self, "Помилка", f"Не вдалося завантажити історію переймів: {str(e)}")
-            logger.error(f"Помилка при завантаженні переймів: {str(e)}")
+            logger.error(f"Помилка при завантаженні переймів для користувача {user_id}: {str(e)}")

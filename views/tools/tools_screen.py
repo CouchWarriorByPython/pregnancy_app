@@ -1,10 +1,10 @@
 from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, QScrollArea,
-                             QFrame, QGridLayout, QSizePolicy, QMessageBox, QStackedWidget)
+                             QFrame, QGridLayout, QSizePolicy, QMessageBox)
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont
 
-from controllers.data_controller import DataController
 from styles import BaseStyles, ToolsScreenStyles
+from utils.user_mixin import UserMixin
 
 from .health_report import HealthReportScreen
 from .kegel_exercises import KegelExercisesScreen
@@ -16,7 +16,7 @@ from .blood_pressure_monitor import BloodPressureMonitorScreen
 from .wishlist import WishlistScreen
 
 
-class ToolCard(QFrame):
+class ToolCard(QFrame, UserMixin):
     def __init__(self, title, description, screen_class, accent_color="#FF8C00", parent=None):
         super().__init__(parent)
         self.screen_class = screen_class
@@ -72,29 +72,23 @@ class ToolCard(QFrame):
             if self.screen_class:
                 try:
                     tool_screen = self.screen_class(self.parent)
-                    main_stack = self._find_main_stack()
+                    main_window = self._find_main_window()
 
-                    if main_stack:
-                        index = main_stack.addWidget(tool_screen)
-                        main_stack.setCurrentIndex(index)
+                    if main_window and hasattr(main_window, 'stack_widget'):
+                        index = main_window.stack_widget.addWidget(tool_screen)
+                        main_window.stack_widget.setCurrentIndex(index)
                     else:
                         QMessageBox.warning(self, "Помилка", "Не вдалося відкрити інструмент")
                 except Exception as e:
                     QMessageBox.critical(self, "Помилка", f"Не вдалося відкрити інструмент: {str(e)}")
         super().mouseReleaseEvent(event)
 
-    def _find_main_stack(self):
-        if hasattr(self.parent, 'parent') and self.parent.parent:
-            for child in self.parent.parent.findChildren(QStackedWidget):
-                return child
-        return None
 
-
-class ToolsScreen(QWidget):
+class ToolsScreen(QWidget, UserMixin):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.parent = parent
-        self.data_controller = DataController()
+        self.data_controller = None
         self._setup_ui()
 
     def _setup_ui(self):
@@ -144,14 +138,21 @@ class ToolsScreen(QWidget):
         cards_grid.setSpacing(15)
 
         tools_data = [
-            ("Звіт про здоров'я", "Створіть PDF-звіт із усіма показниками вашого здоров'я за період", "#FF5252", HealthReportScreen),
-            ("Вправи Кегеля", "Інструкції та таймер для виконання вправ Кегеля протягом вагітності", "#9C27B0", KegelExercisesScreen),
+            ("Звіт про здоров'я", "Створіть PDF-звіт із усіма показниками вашого здоров'я за період", "#FF5252",
+             HealthReportScreen),
+            ("Вправи Кегеля", "Інструкції та таймер для виконання вправ Кегеля протягом вагітності", "#9C27B0",
+             KegelExercisesScreen),
             ("Монітор ваги", "Відстежуйте зміни ваги протягом вагітності", "#757575", WeightMonitorScreen),
-            ("Лічильник поштовхів", "Рахуйте і записуйте поштовхи дитини для моніторингу активності", "#4CAF50", KickCounterScreen),
-            ("Лічильник переймів", "Вимірюйте частоту та тривалість переймів під час підготовки до пологів", "#2196F3", ContractionCounterScreen),
-            ("Розмір живота", "Записуйте зміни розміру живота, щоб відстежувати ріст дитини", "#FF9800", BellyTrackerScreen),
-            ("Монітор тиску", "Контролюйте артеріальний тиск протягом вагітності", "#E91E63", BloodPressureMonitorScreen),
-            ("Список бажань", "Створіть список речей, які потрібно придбати для вас та дитини", "#673AB7", WishlistScreen)
+            ("Лічильник поштовхів", "Рахуйте і записуйте поштовхи дитини для моніторингу активності", "#4CAF50",
+             KickCounterScreen),
+            ("Лічильник переймів", "Вимірюйте частоту та тривалість переймів під час підготовки до пологів", "#2196F3",
+             ContractionCounterScreen),
+            ("Розмір живота", "Записуйте зміни розміру живота, щоб відстежувати ріст дитини", "#FF9800",
+             BellyTrackerScreen),
+            ("Монітор тиску", "Контролюйте артеріальний тиск протягом вагітності", "#E91E63",
+             BloodPressureMonitorScreen),
+            ("Список бажань", "Створіть список речей, які потрібно придбати для вас та дитини", "#673AB7",
+             WishlistScreen)
         ]
 
         for i, (title, description, color, screen_class) in enumerate(tools_data):
@@ -159,3 +160,7 @@ class ToolsScreen(QWidget):
             cards_grid.addWidget(card, i // 2, i % 2)
 
         return cards_grid
+
+    def showEvent(self, event):
+        super().showEvent(event)
+        self.init_data_controller()

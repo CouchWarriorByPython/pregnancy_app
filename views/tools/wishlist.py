@@ -2,22 +2,21 @@ from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QLabel, QHBoxLayout, QListWid
                              QFormLayout, QDialog, QDialogButtonBox)
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QColor
-from controllers.data_controller import DataController
 from utils.logger import get_logger
 from utils.base_widgets import (StyledCard, StyledInput, StyledComboBox, StyledDoubleSpinBox,
                                 StyledCheckBox, StyledButton, StyledListWidget, TitleLabel)
 from styles import WishlistStyles, BaseStyles
+from utils.user_mixin import UserMixin
 
 logger = get_logger('wishlist')
 
 
-class WishlistScreen(QWidget):
+class WishlistScreen(QWidget, UserMixin):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.parent = parent
-        self.data_controller = DataController()
+        self.data_controller = None
         self.setup_ui()
-        self.load_wishlist()
 
     def setup_ui(self):
         main_layout = QVBoxLayout(self)
@@ -125,13 +124,23 @@ class WishlistScreen(QWidget):
 
         main_layout.addWidget(splitter)
 
+    def showEvent(self, event):
+        super().showEvent(event)
+        if self.init_data_controller():
+            self.load_wishlist()
+
     def load_wishlist(self):
+        if not self.init_data_controller():
+            QMessageBox.warning(self, "Помилка", "Необхідно увійти в систему для перегляду списку бажань")
+            return
+
         try:
+            user_id = self.get_current_user_id()
             category = None
             if self.filter_combo.currentIndex() > 0:
                 category = self.filter_combo.currentText()
 
-            items = self.data_controller.db.get_wishlist_items(category)
+            items = self.data_controller.db.get_wishlist_items(user_id, category)
             self.wishlist.clear()
 
             colors = WishlistStyles.priority_colors()
@@ -169,14 +178,19 @@ class WishlistScreen(QWidget):
 
                 self.wishlist.addItem(list_item)
 
-            logger.info(f"Завантажено {len(items)} елементів списку бажань")
+            logger.info(f"Завантажено {len(items)} елементів списку бажань для користувача {user_id}")
 
         except Exception as e:
             QMessageBox.critical(self, "Помилка", f"Не вдалося завантажити список бажань: {str(e)}")
-            logger.error(f"Помилка при завантаженні списку бажань: {str(e)}")
+            logger.error(f"Помилка при завантаженні списку бажань для користувача {user_id}: {str(e)}")
 
     def add_wishlist_item(self):
+        if not self.init_data_controller():
+            QMessageBox.warning(self, "Помилка", "Необхідно увійти в систему для додавання товарів")
+            return
+
         try:
+            user_id = self.get_current_user_id()
             title = self.title_edit.text().strip()
             if not title:
                 QMessageBox.warning(self, "Попередження", "Введіть назву товару")
@@ -196,10 +210,11 @@ class WishlistScreen(QWidget):
 
             is_purchased = self.purchased_check.isChecked()
 
-            item_id = self.data_controller.db.add_wishlist_item(title, description, category, price, priority)
+            item_id = self.data_controller.db.add_wishlist_item(title, description, category, price, priority,
+                                                                user_id)
 
             if is_purchased:
-                self.data_controller.db.mark_wishlist_item_purchased(item_id)
+                self.data_controller.db.mark_wishlist_item_purchased(item_id, user_id)
 
             self.title_edit.clear()
             self.description_edit.clear()
@@ -209,14 +224,19 @@ class WishlistScreen(QWidget):
             self.load_wishlist()
 
             QMessageBox.information(self, "Успіх", "Товар успішно додано до списку бажань")
-            logger.info(f"Додано новий товар до списку бажань: {title}")
+            logger.info(f"Додано новий товар до списку бажань для користувача {user_id}: {title}")
 
         except Exception as e:
             QMessageBox.critical(self, "Помилка", f"Не вдалося додати товар: {str(e)}")
-            logger.error(f"Помилка при додаванні товару до списку бажань: {str(e)}")
+            logger.error(f"Помилка при додаванні товару до списку бажань для користувача {user_id}: {str(e)}")
 
     def mark_as_purchased(self):
+        if not self.init_data_controller():
+            QMessageBox.warning(self, "Помилка", "Необхідно увійти в систему")
+            return
+
         try:
+            user_id = self.get_current_user_id()
             selected_items = self.wishlist.selectedItems()
 
             if not selected_items:
@@ -230,18 +250,23 @@ class WishlistScreen(QWidget):
                 QMessageBox.information(self, "Інформація", "Цей товар вже позначено як придбаний")
                 return
 
-            self.data_controller.db.mark_wishlist_item_purchased(item_data['id'])
+            self.data_controller.db.mark_wishlist_item_purchased(item_data['id'], user_id)
             self.load_wishlist()
 
             QMessageBox.information(self, "Успіх", "Товар позначено як придбаний")
-            logger.info(f"Товар позначено як придбаний: {item_data['title']}")
+            logger.info(f"Товар позначено як придбаний для користувача {user_id}: {item_data['title']}")
 
         except Exception as e:
             QMessageBox.critical(self, "Помилка", f"Не вдалося оновити статус товару: {str(e)}")
-            logger.error(f"Помилка при позначенні товару як придбаного: {str(e)}")
+            logger.error(f"Помилка при позначенні товару як придбаного для користувача {user_id}: {str(e)}")
 
     def delete_item(self):
+        if not self.init_data_controller():
+            QMessageBox.warning(self, "Помилка", "Необхідно увійти в систему")
+            return
+
         try:
+            user_id = self.get_current_user_id()
             selected_items = self.wishlist.selectedItems()
 
             if not selected_items:
@@ -258,21 +283,26 @@ class WishlistScreen(QWidget):
             )
 
             if confirm == QMessageBox.StandardButton.Yes:
-                success = self.data_controller.db.delete_wishlist_item(item_data['id'])
+                success = self.data_controller.db.delete_wishlist_item(item_data['id'], user_id)
 
                 if success:
                     self.load_wishlist()
                     QMessageBox.information(self, "Успіх", "Товар видалено зі списку бажань")
-                    logger.info(f"Товар видалено зі списку бажань: {item_data['title']}")
+                    logger.info(f"Товар видалено зі списку бажань для користувача {user_id}: {item_data['title']}")
                 else:
                     QMessageBox.warning(self, "Попередження", "Товар не знайдено")
 
         except Exception as e:
             QMessageBox.critical(self, "Помилка", f"Не вдалося видалити товар: {str(e)}")
-            logger.error(f"Помилка при видаленні товару зі списку бажань: {str(e)}")
+            logger.error(f"Помилка при видаленні товару зі списку бажань для користувача {user_id}: {str(e)}")
 
     def edit_item(self, item):
+        if not self.init_data_controller():
+            QMessageBox.warning(self, "Помилка", "Необхідно увійти в систему")
+            return
+
         try:
+            user_id = self.get_current_user_id()
             item_data = item.data(Qt.ItemDataRole.UserRole)
 
             dialog = QDialog(self)
@@ -364,16 +394,16 @@ class WishlistScreen(QWidget):
 
                 success = self.data_controller.db.update_wishlist_item(
                     item_data['id'], new_title, new_description, new_category,
-                    new_price, new_priority, new_is_purchased
+                    new_price, new_priority, new_is_purchased, user_id
                 )
 
                 if success:
                     self.load_wishlist()
                     QMessageBox.information(self, "Успіх", "Товар успішно оновлено")
-                    logger.info(f"Товар оновлено: {new_title}")
+                    logger.info(f"Товар оновлено для користувача {user_id}: {new_title}")
                 else:
                     QMessageBox.warning(self, "Попередження", "Товар не знайдено")
 
         except Exception as e:
             QMessageBox.critical(self, "Помилка", f"Не вдалося оновити товар: {str(e)}")
-            logger.error(f"Помилка при редагуванні товару: {str(e)}")
+            logger.error(f"Помилка при редагуванні товару для користувача {user_id}: {str(e)}")

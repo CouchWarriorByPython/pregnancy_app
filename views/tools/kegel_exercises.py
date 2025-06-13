@@ -5,11 +5,12 @@ from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QMessageBox, QHBoxLayo
 from utils.logger import get_logger
 from utils.base_widgets import TitleLabel, StyledButton
 from styles import KegelExercisesStyles
+from utils.user_mixin import UserMixin
 
 logger = get_logger('kegel_exercises')
 
 
-class KegelExercisesScreen(QWidget):
+class KegelExercisesScreen(QWidget, UserMixin):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.parent = parent

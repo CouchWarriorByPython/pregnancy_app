@@ -1,21 +1,20 @@
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QMessageBox, QSplitter, QFormLayout
 from PyQt6.QtCore import Qt, QDate
-from controllers.data_controller import DataController
 from utils.logger import get_logger
 from utils.base_widgets import (StyledCard, StyledDateEdit, StyledDoubleSpinBox,
-                               StyledInput, StyledButton, StyledListWidget, TitleLabel)
+                                StyledInput, StyledButton, StyledListWidget, TitleLabel)
 from styles import BellyTrackerStyles, BaseStyles
+from utils.user_mixin import UserMixin
 
 logger = get_logger('belly_tracker')
 
 
-class BellyTrackerScreen(QWidget):
+class BellyTrackerScreen(QWidget, UserMixin):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.parent = parent
-        self.data_controller = DataController()
+        self.data_controller = None
         self.setup_ui()
-        self.load_measurements()
 
     def setup_ui(self):
         main_layout = QVBoxLayout(self)
@@ -88,9 +87,19 @@ class BellyTrackerScreen(QWidget):
 
         main_layout.addWidget(splitter)
 
+    def showEvent(self, event):
+        super().showEvent(event)
+        if self.init_data_controller():
+            self.load_measurements()
+
     def load_measurements(self):
+        if not self.init_data_controller():
+            QMessageBox.warning(self, "Помилка", "Необхідно увійти в систему для перегляду записів")
+            return
+
         try:
-            measurements = self.data_controller.db.get_belly_measurements()
+            user_id = self.get_current_user_id()
+            measurements = self.data_controller.db.get_belly_measurements(user_id)
             self.measurement_list.clear()
 
             for measurement in measurements:
@@ -99,14 +108,19 @@ class BellyTrackerScreen(QWidget):
                     item_text += f" - {measurement['notes']}"
                 self.measurement_list.addItem(item_text)
 
-            logger.info(f"Завантажено {len(measurements)} записів про розміри живота")
+            logger.info(f"Завантажено {len(measurements)} записів про розміри живота для користувача {user_id}")
 
         except Exception as e:
             QMessageBox.critical(self, "Помилка", f"Не вдалося завантажити вимірювання: {str(e)}")
-            logger.error(f"Помилка при завантаженні вимірювань: {str(e)}")
+            logger.error(f"Помилка при завантаженні вимірювань для користувача {user_id}: {str(e)}")
 
     def save_measurement(self):
+        if not self.init_data_controller():
+            QMessageBox.warning(self, "Помилка", "Необхідно увійти в систему для збереження записів")
+            return
+
         try:
+            user_id = self.get_current_user_id()
             date_str = self.date_edit.date().toString("yyyy-MM-dd")
             measurement = self.measurement_spin.value()
             notes = self.notes_edit.text().strip()
@@ -115,13 +129,14 @@ class BellyTrackerScreen(QWidget):
                 QMessageBox.warning(self, "Помилка", "Введіть реальний розмір живота")
                 return
 
-            self.data_controller.db.add_belly_measurement(date_str, measurement, notes)
+            self.data_controller.db.add_belly_measurement(date_str, measurement, notes, user_id)
             self.notes_edit.clear()
             self.load_measurements()
 
             QMessageBox.information(self, "Успіх", "Запис збережено")
-            logger.info(f"Збережено новий запис про розмір живота: {date_str}, {measurement} см")
+            logger.info(
+                f"Збережено новий запис про розмір живота для користувача {user_id}: {date_str}, {measurement} см")
 
         except Exception as e:
             QMessageBox.critical(self, "Помилка", f"Не вдалося зберегти запис: {str(e)}")
-            logger.error(f"Помилка при збереженні запису про розмір живота: {str(e)}")
+            logger.error(f"Помилка при збереженні запису про розмір живота для користувача {user_id}: {str(e)}")

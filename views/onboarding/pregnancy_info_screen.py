@@ -5,11 +5,12 @@ from utils.logger import get_logger
 from utils.base_widgets import StyledButton, TitleLabel, QDateEdit
 from styles import OnboardingScreenStyles
 from datetime import datetime
+from utils.user_mixin import UserMixin
 
 logger = get_logger('pregnancy_info_screen')
 
 
-class PregnancyInfoScreen(QWidget):
+class PregnancyInfoScreen(QWidget, UserMixin):
     proceed_signal = pyqtSignal(dict)
 
     def __init__(self, parent=None):
@@ -114,16 +115,8 @@ class PregnancyInfoScreen(QWidget):
         conception_date = last_period_date.addDays(14)
         self.conception_edit.setDate(conception_date)
 
-    def _get_current_user_id(self):
-        if hasattr(self.parent, 'current_user_id'):
-            if callable(self.parent.current_user_id):
-                return self.parent.current_user_id()
-            else:
-                return self.parent.current_user_id
-        return None
-
     def on_next_clicked(self):
-        user_id = self._get_current_user_id()
+        user_id = self.get_current_user_id()
         if not user_id:
             QMessageBox.critical(self, "Помилка", "Користувач не авторизований")
             return

@@ -1,13 +1,13 @@
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QFormLayout, QFrame, QMessageBox
-from controllers.data_controller import DataController
 from utils.logger import get_logger
 from utils.base_widgets import StyledInput, StyledComboBox, StyledButton, TitleLabel
 from styles import ChildInfoEditorStyles
+from utils.user_mixin import UserMixin
 
 logger = get_logger('child_info_editor')
 
 
-class ChildInfoEditor(QWidget):
+class ChildInfoEditor(QWidget, UserMixin):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.parent = parent
@@ -70,25 +70,12 @@ class ChildInfoEditor(QWidget):
 
         return form_frame
 
-    def _get_current_user_id(self):
-        if hasattr(self.parent, 'current_user_id'):
-            if callable(self.parent.current_user_id):
-                return self.parent.current_user_id()
-            else:
-                return self.parent.current_user_id
-        if hasattr(self.parent, 'parent') and hasattr(self.parent.parent, 'current_user_id'):
-            return self.parent.parent.current_user_id
-        return None
-
     def load_child_data(self):
-        user_id = self._get_current_user_id()
-        if not user_id:
-            logger.warning("Користувач не авторизований")
+        if not self.init_data_controller():
+            logger.warning("Не вдалося ініціалізувати DataController")
             self.name_edit.setText("")
             self.gender_combo.setCurrentText("❓ Невідомо")
             return
-
-        self.data_controller = DataController(user_id)
 
         if not self.data_controller.pregnancy_data:
             self.name_edit.setText("")

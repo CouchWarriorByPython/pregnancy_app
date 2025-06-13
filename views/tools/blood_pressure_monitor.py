@@ -1,22 +1,21 @@
 from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QLabel, QHBoxLayout,
                              QMessageBox, QSplitter, QFormLayout, QSpacerItem, QSizePolicy)
 from PyQt6.QtCore import Qt, QDate, QTime
-from controllers.data_controller import DataController
 from utils.logger import get_logger
 from utils.base_widgets import (StyledCard, StyledDateEdit, StyledTimeEdit, StyledSpinBox,
-                               StyledInput, StyledButton, StyledListWidget, TitleLabel)
+                                StyledInput, StyledButton, StyledListWidget, TitleLabel)
 from styles import BloodPressureStyles, BaseStyles
+from utils.user_mixin import UserMixin
 
 logger = get_logger('blood_pressure_monitor')
 
 
-class BloodPressureMonitorScreen(QWidget):
+class BloodPressureMonitorScreen(QWidget, UserMixin):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.parent = parent
-        self.data_controller = DataController()
+        self.data_controller = None
         self.setup_ui()
-        self.load_pressure_records()
 
     def setup_ui(self):
         main_layout = QVBoxLayout(self)
@@ -116,10 +115,20 @@ class BloodPressureMonitorScreen(QWidget):
 
         main_layout.addWidget(splitter)
 
+    def showEvent(self, event):
+        super().showEvent(event)
+        if self.init_data_controller():
+            self.load_pressure_records()
+
     def load_pressure_records(self):
+        if not self.init_data_controller():
+            QMessageBox.warning(self, "Помилка", "Необхідно увійти в систему для перегляду записів")
+            return
+
         try:
+            user_id = self.get_current_user_id()
             days = self.period_spin.value() if hasattr(self, 'period_spin') else 30
-            records = self.data_controller.db.get_blood_pressure(days)
+            records = self.data_controller.db.get_blood_pressure(user_id, days)
             self.pressure_list.clear()
 
             for record in records:
@@ -130,14 +139,19 @@ class BloodPressureMonitorScreen(QWidget):
                     item_text += f" - {record['notes']}"
                 self.pressure_list.addItem(item_text)
 
-            logger.info(f"Завантажено {len(records)} записів про тиск за {days} днів")
+            logger.info(f"Завантажено {len(records)} записів про тиск за {days} днів для користувача {user_id}")
 
         except Exception as e:
             QMessageBox.critical(self, "Помилка", f"Не вдалося завантажити записи про тиск: {str(e)}")
-            logger.error(f"Помилка при завантаженні записів про тиск: {str(e)}")
+            logger.error(f"Помилка при завантаженні записів про тиск для користувача {user_id}: {str(e)}")
 
     def save_pressure(self):
+        if not self.init_data_controller():
+            QMessageBox.warning(self, "Помилка", "Необхідно увійти в систему для збереження записів")
+            return
+
         try:
+            user_id = self.get_current_user_id()
             date_str = self.date_edit.date().toString("yyyy-MM-dd")
             time_str = self.time_edit.time().toString("HH:mm")
             systolic = self.systolic_spin.value()
@@ -150,12 +164,14 @@ class BloodPressureMonitorScreen(QWidget):
                                     "Верхній тиск повинен бути більшим за нижній.")
                 return
 
-            self.data_controller.db.add_blood_pressure(date_str, time_str, systolic, diastolic, pulse, notes)
+            self.data_controller.db.add_blood_pressure(date_str, time_str, systolic, diastolic, pulse, notes,
+                                                       user_id)
             self.notes_edit.clear()
             self.load_pressure_records()
 
             QMessageBox.information(self, "Успіх", "Запис збережено")
-            logger.info(f"Збережено новий запис тиску: {date_str} {time_str}, {systolic}/{diastolic}, пульс: {pulse}")
+            logger.info(
+                f"Збережено новий запис тиску для користувача {user_id}: {date_str} {time_str}, {systolic}/{diastolic}, пульс: {pulse}")
 
             if systolic >= 140 or diastolic >= 90:
                 QMessageBox.warning(self, "Увага! Підвищений тиск",
@@ -164,4 +180,4 @@ class BloodPressureMonitorScreen(QWidget):
 
         except Exception as e:
             QMessageBox.critical(self, "Помилка", f"Не вдалося зберегти запис: {str(e)}")
-            logger.error(f"Помилка при збереженні запису тиску: {str(e)}")
+            logger.error(f"Помилка при збереженні запису тиску для користувача {user_id}: {str(e)}")

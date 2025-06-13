@@ -3,11 +3,12 @@ from controllers.auth_controller import AuthController
 from utils.logger import get_logger
 from utils.base_widgets import StyledInput, StyledButton, TitleLabel, StyledScrollArea
 from styles import PasswordEditorStyles
+from utils.user_mixin import UserMixin
 
 logger = get_logger('password_editor')
 
 
-class PasswordEditor(QWidget):
+class PasswordEditor(QWidget, UserMixin):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.parent = parent
@@ -87,11 +88,11 @@ class PasswordEditor(QWidget):
         layout.addWidget(info_title)
 
         tips_text = """
-• Використовуйте мінімум 8 символів
-• Комбінуйте великі та малі літери
-• Додавайте цифри та спеціальні символи
-• Не використовуйте особисту інформацію
-• Уникайте простих послідовностей
+- Використовуйте мінімум 8 символів
+- Комбінуйте великі та малі літери
+- Додавайте цифри та спеціальні символи
+- Не використовуйте особисту інформацію
+- Уникайте простих послідовностей
         """.strip()
 
         tips_label = QLabel(tips_text)
@@ -132,7 +133,7 @@ class PasswordEditor(QWidget):
             QMessageBox.warning(self, "❌ Помилка валідації", validation_error)
             return
 
-        user_id = self._get_current_user_id()
+        user_id = self.get_current_user_id()
         if not user_id:
             QMessageBox.critical(self, "❌ Помилка авторизації", "Користувач не авторизований")
             return
@@ -185,13 +186,3 @@ class PasswordEditor(QWidget):
         self.current_password_input.clear()
         self.new_password_input.clear()
         self.confirm_password_input.clear()
-
-    def _get_current_user_id(self):
-        if hasattr(self.parent, 'current_user_id'):
-            if callable(self.parent.current_user_id):
-                return self.parent.current_user_id()
-            else:
-                return self.parent.current_user_id
-        if hasattr(self.parent, 'parent') and hasattr(self.parent.parent, 'current_user_id'):
-            return self.parent.parent.current_user_id
-        return None

@@ -60,6 +60,7 @@ class MainWindow(QMainWindow):
             'verification': VerificationScreen(parent=self)
         }
 
+        # Ініціалізуємо основні екрани без user_id - вони будуть оновлені пізніше
         self.main_screens = {
             'child_info': ChildInfoScreen(self),
             'user_info': UserInfoScreen(self),
@@ -208,16 +209,32 @@ class MainWindow(QMainWindow):
             self.reminder_service = ReminderService(
                 self.data_controller.db,
                 self.current_user_id,
-                self.current_user_email
+                self.current_user_email,
+                self
             )
             self.reminder_service.start()
 
     def _update_screens_with_user_data(self):
-        for screen_name, screen in self.main_screens.items():
-            if hasattr(screen, 'data_controller'):
-                screen.data_controller = DataController(self.current_user_id)
-            if hasattr(screen, 'parent'):
-                screen.parent = self
+        """Оновлює всі екрани з поточними даними користувача"""
+        logger.info(f"Оновлення екранів з даними користувача {self.current_user_id}")
+
+        # Оновлюємо weeks screen
+        if hasattr(self.main_screens['weeks'], 'data_controller'):
+            self.main_screens['weeks'].data_controller = DataController(self.current_user_id)
+            self.main_screens['weeks'].current_week = self.main_screens[
+                                                          'weeks'].data_controller.get_current_week() or 33
+
+        # Оновлюємо calendar screen
+        if hasattr(self.main_screens['calendar'], 'data_controller'):
+            self.main_screens['calendar'].data_controller = DataController(self.current_user_id)
+
+        # Оновлюємо tools screen
+        if hasattr(self.main_screens['tools'], 'data_controller'):
+            self.main_screens['tools'].data_controller = DataController(self.current_user_id)
+
+        # Оновлюємо settings screen - тут особливо важливо передати current_user_id
+        if hasattr(self.main_screens['settings'], '_init_data_controller'):
+            self.main_screens['settings']._init_data_controller()
 
     def navigate_to(self, screen_name):
         logger.info(f"Перехід на екран: {screen_name}")

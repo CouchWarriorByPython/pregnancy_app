@@ -1,42 +1,27 @@
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QMessageBox
 from PyQt6.QtGui import QFont
 from PyQt6.QtCore import Qt
-from controllers.data_controller import DataController
+from utils.logger import get_logger
+from utils.user_mixin import UserMixin
 from styles import SettingsScreenStyles
 from .profile_editor import ProfileEditor
 from .pregnancy_editor import PregnancyEditor
 from .child_info_editor import ChildInfoEditor
 from .password_editor import PasswordEditor
 
+logger = get_logger('settings_screen')
 
-class SettingsScreen(QWidget):
+
+class SettingsScreen(QWidget, UserMixin):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.parent = parent
         self.data_controller = None
-        self._init_data_controller()
         self._init_editors()
         self._setup_ui()
 
-    def _init_data_controller(self):
-        user_id = self._get_current_user_id()
-        if user_id:
-            self.data_controller = DataController(user_id)
-        else:
-            self.data_controller = DataController()
-
-    def _get_current_user_id(self):
-        if hasattr(self.parent, 'current_user_id') and self.parent.current_user_id:
-            return self.parent.current_user_id
-
-        if (hasattr(self.parent, 'parent') and
-                hasattr(self.parent.parent, 'current_user_id') and
-                self.parent.parent.current_user_id):
-            return self.parent.parent.current_user_id
-
-        return None
-
     def _init_editors(self):
+        """Ініціалізує всі редактори"""
         self.editors = [
             ("Профіль", ProfileEditor(self)),
             ("Вагітність", PregnancyEditor(self)),
@@ -134,10 +119,14 @@ class SettingsScreen(QWidget):
         )
 
         if reply == QMessageBox.StandardButton.Yes:
-            if hasattr(self.parent, 'logout'):
-                self.parent.logout()
+            main_window = self._find_main_window()
+            if main_window and hasattr(main_window, 'logout'):
+                main_window.logout()
+            else:
+                QMessageBox.warning(self, "Помилка", "Не вдалося вийти з системи")
 
     def set_tab(self, index):
+        """Перемикає між табами редакторів"""
         current_size = self.window().size() if self.window() else None
 
         for i, btn in enumerate(self.tab_buttons):
@@ -149,6 +138,16 @@ class SettingsScreen(QWidget):
         if self.window() and current_size and self.window().size() != current_size:
             self.window().resize(current_size)
 
-    @property
-    def current_user_id(self):
-        return self._get_current_user_id()
+    def showEvent(self, event):
+        """Викликається при показі екрану"""
+        super().showEvent(event)
+        if self.init_data_controller():
+            logger.info(f"SettingsScreen ініціалізований з user_id: {self.get_current_user_id()}")
+            for i, (_, editor) in enumerate(self.editors):
+                if editor.isVisible() and hasattr(editor, 'load_data'):
+                    try:
+                        editor.load_data()
+                    except Exception as e:
+                        logger.error(f"Помилка завантаження даних для {editor.__class__.__name__}: {str(e)}")
+        else:
+            logger.warning("SettingsScreen: не вдалося ініціалізувати DataController")

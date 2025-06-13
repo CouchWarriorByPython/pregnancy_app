@@ -4,11 +4,12 @@ from PyQt6.QtGui import QFont
 from utils.logger import get_logger
 from utils.base_widgets import StyledInput, StyledCheckBox, StyledButton, TitleLabel, StyledScrollArea
 from styles import OnboardingScreenStyles
+from utils.user_mixin import UserMixin
 
 logger = get_logger('child_info_screen')
 
 
-class ChildInfoScreen(QWidget):
+class ChildInfoScreen(QWidget, UserMixin):
     proceed_signal = pyqtSignal(dict)
 
     def __init__(self, parent=None):
@@ -94,16 +95,8 @@ class ChildInfoScreen(QWidget):
 
         return section
 
-    def _get_current_user_id(self):
-        if hasattr(self.parent, 'current_user_id'):
-            if callable(self.parent.current_user_id):
-                return self.parent.current_user_id()
-            else:
-                return self.parent.current_user_id
-        return None
-
     def _on_next_clicked(self):
-        user_id = self._get_current_user_id()
+        user_id = self.get_current_user_id()
         if not user_id:
             QMessageBox.critical(self, "Помилка", "Користувач не авторизований")
             return

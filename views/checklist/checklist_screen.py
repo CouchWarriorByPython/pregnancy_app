@@ -5,20 +5,28 @@ from PyQt6.QtGui import QFont
 from styles import ChecklistScreenStyles
 from styles.base import BaseStyles, Colors
 from models.data import CHECKLIST_DATA
+from utils.logger import get_logger
+from utils.user_mixin import UserMixin
+
+logger = get_logger('checklist_screen')
 
 
 class CheckItem(QWidget):
-    def __init__(self, text, description=None, parent=None):
+    def __init__(self, text, description=None, parent=None, trimester=None, section=None, is_checked=False):
         super().__init__(parent)
-        self._setup_ui(text, description)
+        self.text = text
+        self.trimester = trimester
+        self.section = section
+        self._setup_ui(text, description, is_checked)
 
-    def _setup_ui(self, text, description):
+    def _setup_ui(self, text, description, is_checked):
         layout = QHBoxLayout(self)
         layout.setContentsMargins(0, 5, 0, 5)
 
         self.checkbox = QCheckBox()
         self.checkbox.setMinimumSize(30, 30)
         self.checkbox.setStyleSheet(ChecklistScreenStyles.check_item())
+        self.checkbox.setChecked(is_checked)
         self.checkbox.toggled.connect(self._on_checkbox_toggled)
         layout.addWidget(self.checkbox)
 
@@ -40,14 +48,48 @@ class CheckItem(QWidget):
         while parent and not isinstance(parent, ChecklistScreen):
             parent = parent.parent()
         if parent:
+            parent.save_item_state(self.trimester, self.section, self.text, checked)
             parent.update_progress(parent.current_trimester_index)
 
 
-class ChecklistScreen(QWidget):
+class ChecklistScreen(QWidget, UserMixin):
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.parent = parent
         self.current_trimester_index = 0
+        self.data_controller = None
+        self.checklist_state = {}
         self._setup_ui()
+
+    def _load_checklist_state(self):
+        """Завантажує стан чекліста з бази даних"""
+        if self.data_controller:
+            try:
+                user_id = self.get_current_user_id()
+                self.checklist_state = self.data_controller.db.get_checklist_state(user_id)
+                logger.info(f"Завантажено стан чекліста для користувача {user_id}")
+            except Exception as e:
+                logger.error(f"Помилка завантаження стану чекліста: {str(e)}")
+                self.checklist_state = {}
+
+    def save_item_state(self, trimester, section, item_text, is_checked):
+        """Зберігає стан елемента чекліста"""
+        if self.data_controller:
+            try:
+                user_id = self.get_current_user_id()
+                self.data_controller.db.save_checklist_state(
+                    user_id,
+                    trimester,
+                    section,
+                    item_text,
+                    is_checked
+                )
+                # Оновлюємо локальний кеш
+                key = f"{trimester}_{section}_{item_text}"
+                self.checklist_state[key] = is_checked
+                logger.info(f"Збережено стан чекліста: {key} = {is_checked}")
+            except Exception as e:
+                logger.error(f"Помилка збереження стану чекліста: {str(e)}")
 
     def _setup_ui(self):
         main_layout = QVBoxLayout(self)
@@ -132,7 +174,7 @@ class ChecklistScreen(QWidget):
         container_layout.setSpacing(16)
 
         container_layout.addWidget(self._create_progress_frame())
-        container_layout.addWidget(self._create_checklist_section(trimester_data))
+        container_layout.addWidget(self._create_checklist_section(trimester_data, trimester_number))
 
         content_layout.addWidget(content_container)
 
@@ -154,7 +196,7 @@ class ChecklistScreen(QWidget):
 
         return progress_frame
 
-    def _create_checklist_section(self, trimester_data):
+    def _create_checklist_section(self, trimester_data, trimester_number):
         checklist_section = QFrame()
         checklist_section.setObjectName("checklist_section")
         checklist_section.setStyleSheet(ChecklistScreenStyles.checklist_frame())
@@ -167,7 +209,17 @@ class ChecklistScreen(QWidget):
             checklist_layout.addWidget(section_label)
 
             for text, desc in section["items"]:
-                item = CheckItem(text, desc)
+                # Отримуємо збережений стан з бази
+                key = f"{trimester_number}_{section['name']}_{text}"
+                is_checked = self.checklist_state.get(key, False)
+
+                item = CheckItem(
+                    text,
+                    desc,
+                    trimester=trimester_number,
+                    section=section["name"],
+                    is_checked=is_checked
+                )
                 checklist_layout.addWidget(item)
 
         return checklist_section
@@ -199,6 +251,34 @@ class ChecklistScreen(QWidget):
         if progress_bar:
             progress_bar.setStyleSheet(ChecklistScreenStyles.progress_bar_dynamic(progress_percent))
             progress_bar.setText(f"Прогрес: {progress_percent}%")
+
+    def showEvent(self, event):
+        super().showEvent(event)
+        # Використовуємо стандартизований метод
+        if self.init_data_controller():
+            self._load_checklist_state()
+            # Перебудовуємо табы щоб оновити стан чекбоксів
+            self._rebuild_tabs()
+        else:
+            logger.warning("ChecklistScreen: не вдалося ініціалізувати DataController")
+
+    def _rebuild_tabs(self):
+        # Зберігаємо поточний індекс
+        current_index = self.current_trimester_index
+
+        # Видаляємо старі табы
+        while self.trimester_stack.count() > 0:
+            widget = self.trimester_stack.widget(0)
+            self.trimester_stack.removeWidget(widget)
+            widget.deleteLater()
+
+        # Створюємо нові табы зі збереженим станом
+        for i in range(1, 4):
+            tab = self._create_trimester_tab(i)
+            self.trimester_stack.addWidget(tab)
+
+        # Відновлюємо поточний індекс
+        self.set_trimester(current_index)
 
     def resizeEvent(self, event):
         super().resizeEvent(event)

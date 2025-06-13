@@ -1,13 +1,16 @@
 from PyQt6.QtCore import QDate
 from PyQt6.QtGui import QFont
-from controllers.data_controller import DataController
 from datetime import datetime
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton, QDateEdit, QFrame, QMessageBox
 from utils.base_widgets import TitleLabel
 from styles import PregnancyEditorStyles
+from utils.user_mixin import UserMixin
+from utils.logger import get_logger
+
+logger = get_logger('pregnancy_editor')
 
 
-class PregnancyEditor(QWidget):
+class PregnancyEditor(QWidget, UserMixin):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.parent = parent
@@ -102,16 +105,6 @@ class PregnancyEditor(QWidget):
         self.last_period_edit.dateChanged.connect(self.on_dates_changed)
         self.conception_edit.dateChanged.connect(self.on_dates_changed)
 
-    def _get_current_user_id(self):
-        if hasattr(self.parent, 'current_user_id'):
-            if callable(self.parent.current_user_id):
-                return self.parent.current_user_id()
-            else:
-                return self.parent.current_user_id
-        if hasattr(self.parent, 'parent') and hasattr(self.parent.parent, 'current_user_id'):
-            return self.parent.parent.current_user_id
-        return None
-
     def on_dates_changed(self):
         self.update_due_date()
         self.update_pregnancy_info()
@@ -147,8 +140,8 @@ class PregnancyEditor(QWidget):
         return True
 
     def load_pregnancy_data(self):
-        user_id = self._get_current_user_id()
-        if not user_id:
+        if not self.init_data_controller():
+            logger.warning("Не вдалося ініціалізувати DataController")
             self.last_period_edit.setDate(QDate.currentDate().addDays(-280))
             self.conception_edit.setDate(QDate.currentDate().addDays(-266))
             self.update_due_date()
@@ -156,7 +149,6 @@ class PregnancyEditor(QWidget):
             self.days_left_label.setText("⏳ До пологів: не визначено")
             return
 
-        self.data_controller = DataController(user_id)
         pregnancy = self.data_controller.pregnancy_data
 
         if pregnancy and pregnancy.last_period_date:
@@ -178,10 +170,7 @@ class PregnancyEditor(QWidget):
 
     def update_pregnancy_info(self):
         if not self.data_controller:
-            user_id = self._get_current_user_id()
-            if user_id:
-                self.data_controller = DataController(user_id)
-            else:
+            if not self.init_data_controller():
                 self.week_label.setText("⏱️ Поточний термін: не визначено")
                 self.days_left_label.setText("⏳ До пологів: не визначено")
                 return
@@ -223,8 +212,10 @@ class PregnancyEditor(QWidget):
             self.data_controller.save_pregnancy_data()
             self.update_pregnancy_info()
             QMessageBox.information(self, "✅ Успіх", "Дані про вагітність успішно збережено!")
+            logger.info("Дані про вагітність збережено")
         except Exception as e:
             QMessageBox.critical(self, "❌ Помилка", f"Помилка збереження: {str(e)}")
+            logger.error(f"Помилка збереження даних про вагітність: {str(e)}")
 
     def showEvent(self, event):
         super().showEvent(event)

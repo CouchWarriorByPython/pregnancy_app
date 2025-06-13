@@ -2,6 +2,7 @@ from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QSpacerItem, QSizePoli
 from PyQt6.QtCore import pyqtSignal, Qt
 from PyQt6.QtGui import QFont
 from utils.base_widgets import StyledInput, StyledButton, TitleLabel
+from utils.user_mixin import UserMixin
 from styles import AuthScreenStyles
 from controllers.auth_controller import AuthController
 from utils.logger import get_logger
@@ -9,7 +10,7 @@ from utils.logger import get_logger
 logger = get_logger('verification_screen')
 
 
-class VerificationScreen(QWidget):
+class VerificationScreen(QWidget, UserMixin):
     verification_success = pyqtSignal(dict)
     back_to_register = pyqtSignal()
 

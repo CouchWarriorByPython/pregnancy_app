@@ -6,11 +6,12 @@ from utils.base_widgets import (StyledInput, StyledDateEdit, StyledDoubleSpinBox
 from datetime import datetime
 from controllers.data_controller import DataController
 from styles import OnboardingScreenStyles
+from utils.user_mixin import UserMixin
 
 logger = get_logger('user_info_screen')
 
 
-class UserInfoScreen(QWidget):
+class UserInfoScreen(QWidget, UserMixin):
     proceed_signal = pyqtSignal(dict)
 
     def __init__(self, parent=None):
@@ -81,22 +82,12 @@ class UserInfoScreen(QWidget):
 
         return form
 
-    def _get_current_user_id(self):
-        if hasattr(self.parent, 'current_user_id'):
-            if callable(self.parent.current_user_id):
-                return self.parent.current_user_id()
-            else:
-                return self.parent.current_user_id
-        return None
-
     def _load_user_data(self):
-        user_id = self._get_current_user_id()
-        if not user_id:
-            logger.info("Користувач не авторизований, залишаємо дефолтні значення")
+        if not self.init_data_controller():
+            logger.info("Не вдалося ініціалізувати DataController, залишаємо дефолтні значення")
             return
 
         try:
-            self.data_controller = DataController(user_id)
             profile = self.data_controller.user_profile
 
             if not profile:
@@ -120,7 +111,7 @@ class UserInfoScreen(QWidget):
     def _on_finish_clicked(self):
         logger.info("Натиснуто кнопку 'Завершити'")
 
-        user_id = self._get_current_user_id()
+        user_id = self.get_current_user_id()
         if not user_id:
             QMessageBox.critical(self, "Помилка", "Користувач не авторизований")
             return
@@ -138,7 +129,7 @@ class UserInfoScreen(QWidget):
 
         try:
             if not self.data_controller:
-                self.data_controller = DataController(user_id)
+                self.init_data_controller()
 
             profile = self.data_controller.user_profile
             if not profile:

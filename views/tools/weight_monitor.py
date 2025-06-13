@@ -1,21 +1,20 @@
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QHBoxLayout, QMessageBox, QSplitter
 from PyQt6.QtCore import Qt, QDate
-from controllers.data_controller import DataController
 from utils.logger import get_logger
 from utils.base_widgets import (StyledCard, StyledDateEdit, StyledDoubleSpinBox,
-                               StyledButton, StyledListWidget, TitleLabel)
+                                StyledButton, StyledListWidget, TitleLabel)
 from styles import WeightMonitorStyles, BaseStyles
+from utils.user_mixin import UserMixin
 
 logger = get_logger('weight_monitor')
 
 
-class WeightMonitorScreen(QWidget):
+class WeightMonitorScreen(QWidget, UserMixin):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.parent = parent
-        self.data_controller = DataController()
+        self.data_controller = None
         self.setup_ui()
-        self.load_weight_records()
 
     def setup_ui(self):
         main_layout = QVBoxLayout(self)
@@ -54,13 +53,9 @@ class WeightMonitorScreen(QWidget):
         weight_layout.addWidget(self.weight_spin)
         form_frame.layout.addLayout(weight_layout)
 
-        initial_weight = 60.0
-        if self.data_controller.user_profile:
-            initial_weight = self.data_controller.user_profile.weight_before_pregnancy or 60.0
-
-        initial_weight_label = QLabel(f"Вага до вагітності: {initial_weight} кг")
-        initial_weight_label.setStyleSheet(BaseStyles.text_secondary())
-        form_frame.layout.addWidget(initial_weight_label)
+        self.initial_weight_label = QLabel("Вага до вагітності: не визначено")
+        self.initial_weight_label.setStyleSheet(BaseStyles.text_secondary())
+        form_frame.layout.addWidget(self.initial_weight_label)
 
         save_btn = StyledButton("Зберегти запис")
         save_btn.setStyleSheet(WeightMonitorStyles.monitor_button())
@@ -89,28 +84,44 @@ class WeightMonitorScreen(QWidget):
 
         main_layout.addWidget(splitter)
 
+    def showEvent(self, event):
+        super().showEvent(event)
+        if self.init_data_controller():
+            self._update_initial_weight()
+            self.load_weight_records()
+
+    def _update_initial_weight(self):
+        if self.data_controller and self.data_controller.user_profile:
+            initial_weight = self.data_controller.user_profile.weight_before_pregnancy or 60.0
+            self.initial_weight_label.setText(f"Вага до вагітності: {initial_weight} кг")
+
     def load_weight_records(self):
+        if not self.init_data_controller():
+            QMessageBox.warning(self, "Помилка", "Необхідно увійти в систему для перегляду записів")
+            return
+
         try:
-            records = self.data_controller.db.get_weight_records()
-
-            if not hasattr(self, 'weight_list'):
-                logger.warning("Атрибут weight_list не ініціалізований")
-                return
-
+            user_id = self.get_current_user_id()
+            records = self.data_controller.db.get_weight_records(user_id)
             self.weight_list.clear()
 
             for date, weight in records:
                 item_text = f"{date}: {weight} кг"
                 self.weight_list.addItem(item_text)
 
-            logger.info(f"Завантажено {len(records)} записів ваги")
+            logger.info(f"Завантажено {len(records)} записів ваги для користувача {user_id}")
 
         except Exception as e:
             QMessageBox.critical(self, "Помилка", f"Не вдалося завантажити записи ваги: {str(e)}")
-            logger.error(f"Помилка при завантаженні записів ваги: {str(e)}")
+            logger.error(f"Помилка при завантаженні записів ваги для користувача {user_id}: {str(e)}")
 
     def save_weight(self):
+        if not self.init_data_controller():
+            QMessageBox.warning(self, "Помилка", "Необхідно увійти в систему для збереження записів")
+            return
+
         try:
+            user_id = self.get_current_user_id()
             date_str = self.date_edit.date().toString("yyyy-MM-dd")
             weight = self.weight_spin.value()
 
@@ -118,14 +129,12 @@ class WeightMonitorScreen(QWidget):
                 QMessageBox.warning(self, "Помилка", "Введіть реальне значення ваги")
                 return
 
-            self.data_controller.db.add_weight_record(date_str, weight)
-
-            if hasattr(self, 'weight_list'):
-                self.load_weight_records()
+            self.data_controller.db.add_weight_record(date_str, weight, user_id)
+            self.load_weight_records()
 
             QMessageBox.information(self, "Успіх", "Запис успішно збережено")
-            logger.info(f"Збережено новий запис ваги: {date_str}, {weight} кг")
+            logger.info(f"Збережено новий запис ваги для користувача {user_id}: {date_str}, {weight} кг")
 
         except Exception as e:
             QMessageBox.critical(self, "Помилка", f"Не вдалося зберегти запис: {str(e)}")
-            logger.error(f"Помилка при збереженні запису ваги: {str(e)}")
+            logger.error(f"Помилка при збереженні запису ваги для користувача {user_id}: {str(e)}")
