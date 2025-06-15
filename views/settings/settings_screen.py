@@ -45,15 +45,15 @@ class SettingsScreen(QWidget, UserMixin):
 
     def _create_header(self):
         header = QWidget()
-        header.setMinimumHeight(70)
-        header.setStyleSheet(SettingsScreenStyles.main_header())
+        header.setMinimumHeight(50)
+        header.setStyleSheet("background: transparent; border: none;")
 
         layout = QHBoxLayout(header)
-        layout.setContentsMargins(20, 10, 20, 10)
+        layout.setContentsMargins(20, 8, 20, 8)
 
         title_label = QLabel("⚙️ Налаштування")
-        title_label.setFont(QFont('Segoe UI', 20, QFont.Weight.Bold))
-        title_label.setStyleSheet(SettingsScreenStyles.header_title())
+        title_label.setFont(QFont('Segoe UI', 18, QFont.Weight.Bold))
+        title_label.setStyleSheet("color: white; font-weight: 700; background: transparent; border: none;")
         title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(title_label)
 
@@ -61,11 +61,11 @@ class SettingsScreen(QWidget, UserMixin):
 
     def _create_tab_selector(self):
         tab_selector = QWidget()
-        tab_selector.setFixedHeight(80)
-        tab_selector.setStyleSheet(SettingsScreenStyles.tab_selector())
+        tab_selector.setFixedHeight(60)
+        tab_selector.setStyleSheet("background: transparent; border: none;")
 
         layout = QHBoxLayout(tab_selector)
-        layout.setContentsMargins(12, 8, 12, 8)
+        layout.setContentsMargins(12, 6, 12, 6)
         layout.setSpacing(4)
 
         self.tab_buttons = []
@@ -74,7 +74,7 @@ class SettingsScreen(QWidget, UserMixin):
         for i, (name, _) in enumerate(self.editors):
             btn = QPushButton(f"{tab_icons[i]} {name}")
             btn.setCheckable(True)
-            btn.setFixedHeight(64)
+            btn.setFixedHeight(48)
             btn.setStyleSheet(SettingsScreenStyles.tab_button())
             btn.clicked.connect(lambda checked, idx=i: self.set_tab(idx))
             layout.addWidget(btn)
@@ -95,14 +95,14 @@ class SettingsScreen(QWidget, UserMixin):
 
     def _create_logout_section(self):
         logout_section = QWidget()
-        logout_section.setMinimumHeight(90)
-        logout_section.setStyleSheet(SettingsScreenStyles.logout_section())
+        logout_section.setMinimumHeight(70)
+        logout_section.setStyleSheet("background: transparent; border: none;")
 
         layout = QVBoxLayout(logout_section)
-        layout.setContentsMargins(24, 16, 24, 16)
+        layout.setContentsMargins(24, 12, 24, 12)
 
-        logout_btn = QPushButton("🚪 Вийти з акаунту")
-        logout_btn.setMinimumHeight(58)
+        logout_btn = QPushButton("🚪 Вийти")
+        logout_btn.setMinimumHeight(46)
         logout_btn.setStyleSheet(SettingsScreenStyles.logout_button())
         logout_btn.clicked.connect(self.logout)
         layout.addWidget(logout_btn)

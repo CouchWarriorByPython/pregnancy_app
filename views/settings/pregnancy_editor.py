@@ -1,9 +1,9 @@
 from PyQt6.QtCore import QDate
 from PyQt6.QtGui import QFont
 from datetime import datetime
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton, QDateEdit, QFrame, QMessageBox
-from utils.base_widgets import TitleLabel
-from styles import PregnancyEditorStyles
+from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton, QFrame, QMessageBox, QFormLayout
+from utils.base_widgets import TitleLabel, StyledInput, StyledDateEdit
+from styles import PregnancyEditorStyles, OnboardingScreenStyles
 from utils.user_mixin import UserMixin
 from utils.logger import get_logger
 
@@ -19,85 +19,89 @@ class PregnancyEditor(QWidget, UserMixin):
 
     def setup_ui(self):
         main_layout = QVBoxLayout(self)
-        main_layout.setContentsMargins(20, 20, 20, 20)
-        main_layout.setSpacing(20)
+        main_layout.setContentsMargins(20, 10, 20, 10)
+        main_layout.setSpacing(12)
 
-        title_container = QWidget()
-        title_container.setStyleSheet(PregnancyEditorStyles.title_container())
-
-        title_layout = QVBoxLayout(title_container)
-        title = TitleLabel("🤰 Інформація про вагітність", 20)
-        title.setStyleSheet(PregnancyEditorStyles.section_title())
-        title_layout.addWidget(title)
+        # Простий заголовок
+        title = TitleLabel("🤰 Інформація про вагітність", 18)
+        title.setStyleSheet("color: white; font-weight: 700; background: transparent; border: none;")
+        main_layout.addWidget(title)
 
         subtitle = QLabel("Терміни та важливі дати")
-        subtitle.setStyleSheet(PregnancyEditorStyles.section_subtitle())
-        title_layout.addWidget(subtitle)
+        subtitle.setStyleSheet("color: rgba(255, 255, 255, 0.7); font-size: 13px; background: transparent; border: none;")
+        main_layout.addWidget(subtitle)
 
-        main_layout.addWidget(title_container)
-
-        form_frame = QFrame()
-        form_frame.setStyleSheet(PregnancyEditorStyles.form_frame())
-        form_layout = QVBoxLayout(form_frame)
+        # Форма без рамки з підкресленими полями
+        form_layout = QFormLayout()
+        form_layout.setContentsMargins(0, 0, 0, 0)
         form_layout.setSpacing(20)
+        form_layout.setHorizontalSpacing(20)
 
+        # Дата останньої менструації
         last_period_label = QLabel("📅 Дата останньої менструації:")
-        last_period_label.setStyleSheet(PregnancyEditorStyles.field_label())
-        form_layout.addWidget(last_period_label)
+        last_period_label.setStyleSheet("color: white; font-size: 14px; font-weight: 600; background: transparent; border: none;")
+        last_period_label.setMinimumHeight(24)
 
-        self.last_period_edit = QDateEdit()
-        self.last_period_edit.setMinimumHeight(56)
+        self.last_period_edit = StyledDateEdit()
+        self.last_period_edit.setMinimumHeight(24)
+        self.last_period_edit.setMaximumHeight(40)
         self.last_period_edit.setDisplayFormat("dd.MM.yyyy")
-        self.last_period_edit.setCalendarPopup(True)
-        self.last_period_edit.setStyleSheet(PregnancyEditorStyles.date_edit())
-        form_layout.addWidget(self.last_period_edit)
+        self.last_period_edit.setCalendarPopup(False)
 
-        due_date_label = QLabel("🍼 Очікувана дата пологів (розраховується автоматично):")
-        due_date_label.setStyleSheet(PregnancyEditorStyles.field_label())
-        form_layout.addWidget(due_date_label)
+        form_layout.addRow(last_period_label, self.last_period_edit)
+
+        # Очікувана дата пологів (тільки відображення)
+        due_date_label = QLabel("🍼 Очікувана дата пологів:")
+        due_date_label.setStyleSheet("color: white; font-size: 14px; font-weight: 600; background: transparent; border: none;")
+        due_date_label.setMinimumHeight(24)
 
         self.due_date_label_value = QLabel()
-        self.due_date_label_value.setMinimumHeight(56)
-        self.due_date_label_value.setStyleSheet(PregnancyEditorStyles.due_date_label())
-        form_layout.addWidget(self.due_date_label_value)
+        self.due_date_label_value.setMinimumHeight(24)
+        self.due_date_label_value.setMaximumHeight(40)
+        self.due_date_label_value.setStyleSheet("color: rgba(255, 255, 255, 0.8); font-size: 16px; background: transparent; border: none; border-bottom: 2px solid rgba(255, 255, 255, 0.3); padding: 4px 4px 4px 4px;")
 
-        conception_label = QLabel("💫 Дата зачаття (якщо відома):")
-        conception_label.setStyleSheet(PregnancyEditorStyles.field_label())
-        form_layout.addWidget(conception_label)
+        form_layout.addRow(due_date_label, self.due_date_label_value)
 
-        self.conception_edit = QDateEdit()
-        self.conception_edit.setMinimumHeight(56)
+        # Дата зачаття
+        conception_label = QLabel("💫 Дата зачаття:")
+        conception_label.setStyleSheet("color: white; font-size: 14px; font-weight: 600; background: transparent; border: none;")
+        conception_label.setMinimumHeight(24)
+
+        self.conception_edit = StyledDateEdit()
+        self.conception_edit.setMinimumHeight(24)
+        self.conception_edit.setMaximumHeight(40)
         self.conception_edit.setDisplayFormat("dd.MM.yyyy")
-        self.conception_edit.setCalendarPopup(True)
-        self.conception_edit.setStyleSheet(PregnancyEditorStyles.date_edit())
-        form_layout.addWidget(self.conception_edit)
+        self.conception_edit.setCalendarPopup(False)
 
-        main_layout.addWidget(form_frame)
+        form_layout.addRow(conception_label, self.conception_edit)
 
-        info_frame = QFrame()
-        info_frame.setStyleSheet(PregnancyEditorStyles.info_frame())
-        info_layout = QVBoxLayout(info_frame)
-        info_layout.setSpacing(12)
+        main_layout.addLayout(form_layout)
 
+        # Відступ
+        main_layout.addSpacing(20)
+
+        # Інформація без рамки
         info_title = QLabel("📊 Поточна інформація")
         info_title.setFont(QFont('Segoe UI', 16, QFont.Weight.Bold))
-        info_title.setStyleSheet(PregnancyEditorStyles.info_title())
-        info_layout.addWidget(info_title)
+        info_title.setStyleSheet("color: white; font-weight: 700; background: transparent; border: none; margin-top: 8px;")
+        main_layout.addWidget(info_title)
 
         self.week_label = QLabel("⏱️ Поточний термін: не визначено")
-        self.week_label.setFont(QFont('Segoe UI', 15, QFont.Weight.Normal))
-        self.week_label.setStyleSheet(PregnancyEditorStyles.info_label())
-        info_layout.addWidget(self.week_label)
+        self.week_label.setFont(QFont('Segoe UI', 14, QFont.Weight.Normal))
+        self.week_label.setStyleSheet("color: rgba(255, 255, 255, 0.8); background: transparent; border: none;")
+        main_layout.addWidget(self.week_label)
 
         self.days_left_label = QLabel("⏳ До пологів: не визначено")
-        self.days_left_label.setFont(QFont('Segoe UI', 15, QFont.Weight.Normal))
-        self.days_left_label.setStyleSheet(PregnancyEditorStyles.info_label())
-        info_layout.addWidget(self.days_left_label)
+        self.days_left_label.setFont(QFont('Segoe UI', 14, QFont.Weight.Normal))
+        self.days_left_label.setStyleSheet("color: rgba(255, 255, 255, 0.8); background: transparent; border: none;")
+        main_layout.addWidget(self.days_left_label)
 
-        main_layout.addWidget(info_frame)
+        # Розтягуючий spacer для фіксації блоку
+        main_layout.addStretch()
 
-        save_btn = QPushButton("💾 Зберегти зміни")
-        save_btn.setMinimumHeight(58)
+        # Компактна кнопка
+        save_btn = QPushButton("💾 Зберегти")
+        save_btn.setMinimumHeight(44)
         save_btn.setStyleSheet(PregnancyEditorStyles.save_button())
         save_btn.clicked.connect(self.save_pregnancy_data)
         main_layout.addWidget(save_btn)

@@ -1,4 +1,5 @@
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QSpacerItem, QSizePolicy, QMessageBox
+from utils.message_utils import show_info, show_warning, show_error
 from PyQt6.QtCore import pyqtSignal, Qt
 from PyQt6.QtGui import QFont
 from utils.base_widgets import StyledInput, StyledButton, TitleLabel
@@ -80,11 +81,11 @@ class VerificationScreen(QWidget, UserMixin):
         code = self.code_input.text().strip()
 
         if not code:
-            QMessageBox.warning(self, "Помилка", "Введіть код підтвердження")
+            show_warning(self, "Помилка", "Введіть код підтвердження")
             return
 
         if len(code) != 6:
-            QMessageBox.warning(self, "Помилка", "Код повинен містити 6 цифр")
+            show_warning(self, "Помилка", "Код повинен містити 6 цифр")
             return
 
         try:
@@ -93,19 +94,19 @@ class VerificationScreen(QWidget, UserMixin):
                 self.verification_success.emit({"user_id": user.id, "email": user.email})
                 logger.info(f"Успішне підтвердження пошти {self.email}")
             else:
-                QMessageBox.warning(self, "Помилка", "Невірний код підтвердження")
+                show_warning(self, "Помилка", "Невірний код підтвердження")
         except Exception as e:
-            QMessageBox.critical(self, "Помилка", f"Помилка підтвердження: {str(e)}")
+            show_error(self, "Помилка", f"Помилка підтвердження: {str(e)}")
             logger.error(f"Помилка підтвердження: {str(e)}")
 
     def resend_code(self):
         try:
             success = self.auth_controller.resend_verification_code(self.email)
             if success:
-                QMessageBox.information(self, "Успіх", "Код підтвердження надіслано повторно")
+                show_info(self, "Успіх", "Код підтвердження надіслано повторно")
                 logger.info(f"Повторне надсилання коду для {self.email}")
             else:
-                QMessageBox.warning(self, "Помилка", "Не вдалося надіслати код повторно")
+                show_warning(self, "Помилка", "Не вдалося надіслати код повторно")
         except Exception as e:
-            QMessageBox.critical(self, "Помилка", f"Помилка відправки коду: {str(e)}")
+            show_error(self, "Помилка", f"Помилка відправки коду: {str(e)}")
             logger.error(f"Помилка відправки коду: {str(e)}")

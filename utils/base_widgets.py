@@ -1,7 +1,8 @@
 from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QFrame,
                              QLineEdit, QDateEdit, QTimeEdit, QSpinBox, QDoubleSpinBox, QCheckBox,
                              QComboBox, QListWidget, QScrollArea, QFormLayout)
-from PyQt6.QtGui import QFont
+from PyQt6.QtGui import QFont, QPainter, QPen, QBrush, QPolygon
+from PyQt6.QtCore import Qt, QRect, QPoint
 from styles.base import BaseStyles
 
 class BaseWidget(QWidget):
@@ -60,10 +61,105 @@ class StyledInput(QLineEdit, BaseInput):
 class StyledDateEdit(QDateEdit, BaseInput):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self._apply_common_style(self)
-        self.setCalendarPopup(True)
+        
+        self.setCalendarPopup(False)
         self.setDisplayFormat("dd.MM.yyyy")
-        self.setStyleSheet(BaseStyles.form_controls())
+        self.setMinimumHeight(24)
+        self.setMaximumHeight(40)
+        
+        # МАКСИМАЛЬНО агресивний стиль - приховуємо ВСЕ
+        ultra_aggressive_style = """
+            StyledDateEdit {
+                background: transparent !important;
+                color: white !important;
+                border: none !important;
+                border-bottom: 2px solid rgba(139, 92, 246, 1) !important;
+                border-radius: 0px !important;
+                padding: 4px 4px 4px 4px !important;
+                font-size: 16px !important;
+                min-height: 20px !important;
+            }
+            StyledDateEdit:focus {
+                border-bottom: 2px solid rgba(236, 72, 153, 1) !important;
+                background: transparent !important;
+            }
+            QDateEdit {
+                background: transparent !important;
+                color: white !important;
+                border: none !important;
+                border-bottom: 2px solid rgba(139, 92, 246, 1) !important;
+                border-radius: 0px !important;
+                padding: 4px 4px 4px 4px !important;
+                font-size: 16px !important;
+                min-height: 20px !important;
+            }
+            QDateEdit:focus {
+                border-bottom: 2px solid rgba(236, 72, 153, 1) !important;
+                background: transparent !important;
+            }
+            QDateEdit::drop-down, StyledDateEdit::drop-down {
+                width: 0px !important;
+                height: 0px !important;
+                border: none !important;
+                background: transparent !important;
+                subcontrol-position: right;
+                subcontrol-origin: margin;
+                image: none !important;
+            }
+            QDateEdit::down-arrow, StyledDateEdit::down-arrow {
+                image: none !important;
+                width: 0px !important;
+                height: 0px !important;
+                border: none !important;
+                background: transparent !important;
+            }
+            QDateEdit::up-button, QDateEdit::down-button, 
+            StyledDateEdit::up-button, StyledDateEdit::down-button {
+                width: 0px !important;
+                height: 0px !important;
+                border: none !important;
+                background: transparent !important;
+                image: none !important;
+            }
+            QDateEdit QAbstractSpinBox::up-button, QDateEdit QAbstractSpinBox::down-button,
+            StyledDateEdit QAbstractSpinBox::up-button, StyledDateEdit QAbstractSpinBox::down-button {
+                width: 0px !important;
+                height: 0px !important;
+                border: none !important;
+                background: transparent !important;
+                image: none !important;
+            }
+            QDateEdit QAbstractSpinBox::up-arrow, QDateEdit QAbstractSpinBox::down-arrow,
+            StyledDateEdit QAbstractSpinBox::up-arrow, StyledDateEdit QAbstractSpinBox::down-arrow {
+                image: none !important;
+                width: 0px !important;
+                height: 0px !important;
+                border: none !important;
+                background: transparent !important;
+            }
+            QDateEdit::section, StyledDateEdit::section {
+                background: transparent !important;
+                color: white !important;
+                border: none !important;
+                selection-background-color: transparent !important;
+                selection-color: white !important;
+            }
+            QDateEdit::separator, StyledDateEdit::separator {
+                color: white !important;
+                background: transparent !important;
+                border: none !important;
+                image: none !important;
+                width: 0px !important;
+                height: 0px !important;
+            }
+        """
+        self.setStyleSheet(ultra_aggressive_style)
+        
+        # Додатково прибираємо кнопки програмно
+        self.setButtonSymbols(QDateEdit.ButtonSymbols.NoButtons)
+    
+    # Remove custom arrow drawing - just use clean input field
+    pass
 
 class StyledTimeEdit(QTimeEdit, BaseInput):
     def __init__(self, parent=None):

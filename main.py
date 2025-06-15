@@ -21,8 +21,9 @@ from controllers.data_controller import DataController
 from controllers.auth_controller import AuthController
 from utils.logger import get_logger
 from styles.navigation import NavigationStyles
-from styles.base import Colors
+from styles.base import Colors, BaseStyles
 from utils.reminder_service import ReminderService
+from utils.message_utils import show_info, show_warning, show_error
 from datetime import datetime
 
 logger = get_logger('main')
@@ -45,7 +46,13 @@ class MainWindow(QMainWindow):
 
     def _setup_window(self):
         self.setWindowTitle("Щоденник вагітності")
-        self.setStyleSheet(f"QMainWindow {{ background-color: {Colors.BACKGROUND}; }}")
+        self.setStyleSheet(f"""
+            QMainWindow {{
+                background: {Colors.BACKGROUND_GRADIENT};
+                color: {Colors.TEXT_PRIMARY};
+            }}
+            {BaseStyles.message_box()}
+        """)
         screen_size = QApplication.primaryScreen().availableSize()
         self.resize(min(820, screen_size.width() - 40), min(900, screen_size.height() - 60))
         self.setMinimumSize(800, 800)
@@ -251,7 +258,7 @@ class MainWindow(QMainWindow):
         if self.data_controller and self.data_controller.save_child_info(child_data):
             self.show_screen('user_info')
         else:
-            QMessageBox.critical(self, "Помилка", "Не вдалося зберегти інформацію про дитину")
+            show_error(self, "Помилка", "Не вдалося зберегти інформацію про дитину")
 
     def on_user_info_completed(self, user_data):
         logger.info(f"Отримана інформація про користувача: {user_data}")
@@ -264,7 +271,7 @@ class MainWindow(QMainWindow):
             conception = datetime.strptime(pregnancy_data['conception_date'], "%Y-%m-%d").date()
 
             if last_period > conception:
-                QMessageBox.warning(self, "Помилка", "Дата останньої менструації не може бути пізніше дати зачаття")
+                show_warning(self, "Помилка", "Дата останньої менструації не може бути пізніше дати зачаття")
                 return
 
             if self.data_controller:
@@ -276,7 +283,7 @@ class MainWindow(QMainWindow):
                 self.bottom_nav.setVisible(True)
                 self.show_screen('weeks')
         except Exception as e:
-            QMessageBox.critical(self, "Помилка", f"Не вдалося зберегти інформацію про вагітність: {str(e)}")
+            show_error(self, "Помилка", f"Не вдалося зберегти інформацію про вагітність: {str(e)}")
 
     def logout(self):
         self.auth_controller.logout()
@@ -301,6 +308,9 @@ class MainWindow(QMainWindow):
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     app.setStyle("Fusion")
+    
+    # Застосовуємо глобальний стиль для всіх QMessageBox
+    app.setStyleSheet(BaseStyles.message_box())
 
     window = MainWindow()
     window.show()

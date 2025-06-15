@@ -49,15 +49,15 @@ class SettingsScreenStyles:
 
     @staticmethod
     def tab_button():
-        """Кнопки табів налаштувань з покращеним дизайном"""
+        """Кнопки табів налаштувань (спрощені)"""
         return f"""
             QPushButton {{
-                background: rgba(255, 255, 255, 0.05);
+                background: transparent;
                 color: rgba(255, 255, 255, 0.7);
-                border: 1px solid rgba(255, 255, 255, 0.1);
-                font-size: 15px;
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                font-size: 14px;
                 font-weight: 600;
-                padding: 12px 20px;
+                padding: 8px 16px;
                 text-align: center;
                 border-radius: 12px;
                 margin: 2px;
@@ -66,15 +66,12 @@ class SettingsScreenStyles:
                 background: {Colors.PRIMARY_GRADIENT};
                 color: white;
                 font-weight: 700;
-                border: 2px solid rgba(255, 255, 255, 0.3);
+                border: 1px solid rgba(255, 255, 255, 0.3);
             }}
             QPushButton:hover:!checked {{
-                background: rgba(255, 255, 255, 0.12);
+                background: rgba(255, 255, 255, 0.1);
                 color: white;
-                border: 1px solid rgba(255, 255, 255, 0.2);
-            }}
-            QPushButton:pressed {{
-                background: rgba(255, 255, 255, 0.25);
+                border: 1px solid rgba(255, 255, 255, 0.3);
             }}
         """
 
@@ -334,9 +331,11 @@ class PregnancyEditorStyles:
             }}
             QDateEdit::down-arrow {{
                 image: none;
-                border: 6px solid transparent;
-                border-top: 10px solid white;
-                margin-right: 8px;
+                border-left: 6px solid transparent;
+                border-right: 6px solid transparent;
+                border-top: 8px solid rgba(255, 255, 255, 0.7);
+                width: 0px;
+                height: 0px;
             }}
             QCalendarWidget {{
                 background: #1E1B4B;

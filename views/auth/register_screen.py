@@ -1,4 +1,5 @@
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QHBoxLayout, QSpacerItem, QSizePolicy, QMessageBox
+from utils.message_utils import show_info, show_warning, show_error
 from PyQt6.QtCore import pyqtSignal, Qt
 from PyQt6.QtGui import QFont
 from utils.base_widgets import StyledInput, StyledButton, TitleLabel
@@ -97,19 +98,19 @@ class RegisterScreen(QWidget, UserMixin):
         password_confirm = self.password_confirm_input.text()
 
         if not email or not name or not password:
-            QMessageBox.warning(self, "Помилка", "Заповніть всі поля")
+            show_warning(self, "Помилка", "Заповніть всі поля")
             return
 
         if not self.is_valid_email(email):
-            QMessageBox.warning(self, "Помилка", "Введіть коректну електронну пошту")
+            show_warning(self, "Помилка", "Введіть коректну електронну пошту")
             return
 
         if len(password) < 6:
-            QMessageBox.warning(self, "Помилка", "Пароль повинен містити мінімум 6 символів")
+            show_warning(self, "Помилка", "Пароль повинен містити мінімум 6 символів")
             return
 
         if password != password_confirm:
-            QMessageBox.warning(self, "Помилка", "Паролі не співпадають")
+            show_warning(self, "Помилка", "Паролі не співпадають")
             return
 
         try:
@@ -118,9 +119,9 @@ class RegisterScreen(QWidget, UserMixin):
                 self.registration_success.emit(email)
                 logger.info(f"Успішна реєстрація користувача {email}")
             else:
-                QMessageBox.warning(self, "Помилка", "Користувач з такою поштою вже існує")
+                show_warning(self, "Помилка", "Користувач з такою поштою вже існує")
         except Exception as e:
-            QMessageBox.critical(self, "Помилка", f"Помилка реєстрації: {str(e)}")
+            show_error(self, "Помилка", f"Помилка реєстрації: {str(e)}")
             logger.error(f"Помилка реєстрації: {str(e)}")
 
     def is_valid_email(self, email):

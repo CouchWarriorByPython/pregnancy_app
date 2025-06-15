@@ -2,6 +2,7 @@ import os
 import subprocess
 import platform
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QMessageBox, QHBoxLayout, QSpacerItem, QSizePolicy
+from utils.message_utils import show_info, show_warning, show_error
 from utils.logger import get_logger
 from utils.base_widgets import TitleLabel, StyledButton
 from styles import KegelExercisesStyles
@@ -18,53 +19,60 @@ class KegelExercisesScreen(QWidget, UserMixin):
 
     def setup_ui(self):
         main_layout = QVBoxLayout(self)
-        main_layout.setContentsMargins(20, 20, 20, 20)
-        main_layout.setSpacing(20)
+        main_layout.setContentsMargins(20, 10, 20, 10)
+        main_layout.setSpacing(12)
 
-        title = TitleLabel("Вправи Кегеля", 22)
-        title.setStyleSheet("color: #9C27B0; font-size: 22px; font-weight: bold;")
+        # Простий заголовок
+        title = TitleLabel("Вправи Кегеля", 18)
+        title.setStyleSheet("color: white; font-weight: 700; background: transparent; border: none;")
         main_layout.addWidget(title)
 
-        info_text = """
-        <p>Вправи Кегеля - це спеціальні вправи для зміцнення м'язів тазового дна.</p>
-        <p>Регулярне виконання вправ Кегеля під час вагітності може:</p>
-        <ul>
-            <li>Зміцнити м'язи, які підтримують матку, сечовий міхур та кишечник</li>
-            <li>Покращити контроль над сечовим міхуром</li>
-            <li>Підготувати до пологів</li>
-            <li>Прискорити відновлення після пологів</li>
-        </ul>
-        <p>Натисніть кнопку нижче, щоб відкрити детальну інструкцію у PDF-форматі.</p>
-        """
+        subtitle = QLabel("Спеціальні вправи для зміцнення м'язів тазового дна")
+        subtitle.setStyleSheet("color: rgba(255, 255, 255, 0.7); font-size: 13px; background: transparent; border: none;")
+        main_layout.addWidget(subtitle)
 
-        info_label = QLabel(info_text)
-        info_label.setWordWrap(True)
-        info_label.setStyleSheet(KegelExercisesStyles.info_box())
-        main_layout.addWidget(info_label)
+        # Відступ
+        main_layout.addSpacing(20)
 
-        main_layout.addItem(QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding))
+        # Інформація без фону
+        info_title = QLabel("💪 Переваги вправ Кегеля")
+        info_title.setStyleSheet("color: white; font-weight: 700; font-size: 16px; background: transparent; border: none; margin-top: 8px;")
+        main_layout.addWidget(info_title)
 
-        button_layout = QHBoxLayout()
-        button_layout.addStretch()
+        benefits_text = """• Зміцнити м'язи, які підтримують матку, сечовий міхур та кишечник
+• Покращити контроль над сечовим міхуром
+• Підготувати до пологів
+• Прискорити відновлення після пологів"""
 
-        open_pdf_btn = StyledButton("Відкрити інструкцію з вправами")
-        open_pdf_btn.setMinimumHeight(50)
-        open_pdf_btn.setMinimumWidth(250)
+        benefits_label = QLabel(benefits_text)
+        benefits_label.setStyleSheet("color: rgba(255, 255, 255, 0.8); font-size: 14px; background: transparent; border: none;")
+        benefits_label.setWordWrap(True)
+        main_layout.addWidget(benefits_label)
+
+        # Відступ
+        main_layout.addSpacing(20)
+
+        instruction_label = QLabel("📖 Натисніть кнопку нижче, щоб відкрити детальну інструкцію у PDF-форматі")
+        instruction_label.setStyleSheet("color: rgba(255, 255, 255, 0.8); font-size: 14px; background: transparent; border: none;")
+        instruction_label.setWordWrap(True)
+        main_layout.addWidget(instruction_label)
+
+        # Розтягуючий spacer
+        main_layout.addStretch()
+
+        # Компактна кнопка
+        open_pdf_btn = StyledButton("📄 Відкрити інструкцію з вправами")
+        open_pdf_btn.setMinimumHeight(44)
         open_pdf_btn.setStyleSheet(KegelExercisesStyles.exercise_button())
         open_pdf_btn.clicked.connect(self.open_pdf)
-
-        button_layout.addWidget(open_pdf_btn)
-        button_layout.addStretch()
-
-        main_layout.addLayout(button_layout)
-        main_layout.addItem(QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding))
+        main_layout.addWidget(open_pdf_btn)
 
     def open_pdf(self):
         try:
             pdf_path = os.path.join("resources", "Вправи Кегеля.pdf")
 
             if not os.path.exists(pdf_path):
-                QMessageBox.warning(self, "Файл не знайдено",
+                show_warning(self, "Файл не знайдено",
                                     f"Файл {pdf_path} не знайдено.\nПеревірте наявність файлу в папці ресурсів.")
                 logger.error(f"Файл не знайдено: {pdf_path}")
                 return
@@ -81,5 +89,5 @@ class KegelExercisesScreen(QWidget, UserMixin):
             logger.info(f"Відкрито PDF-файл: {pdf_path}")
 
         except Exception as e:
-            QMessageBox.critical(self, "Помилка", f"Не вдалося відкрити файл: {str(e)}")
+            show_error(self, "Помилка", f"Не вдалося відкрити файл: {str(e)}")
             logger.error(f"Помилка при відкритті PDF: {str(e)}")

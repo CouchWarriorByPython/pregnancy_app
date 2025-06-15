@@ -2,11 +2,12 @@ import datetime
 from reportlab.lib.pagesizes import A4
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
 from reportlab.lib.styles import getSampleStyleSheet
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QTextEdit, QHBoxLayout, QSplitter, QLabel, QMessageBox
-from PyQt6.QtCore import QDate
+from PyQt6.QtWidgets import QWidget, QVBoxLayout, QTextEdit, QHBoxLayout, QSplitter, QLabel, QMessageBox, QFormLayout, QAbstractSpinBox
+from utils.message_utils import show_info, show_warning, show_error
+from PyQt6.QtCore import QDate, Qt
 from utils.logger import get_logger
 from utils.base_widgets import StyledCard, StyledInput, StyledDateEdit, StyledButton, StyledListWidget, TitleLabel
-from styles import HealthReportStyles, BaseStyles
+from styles import HealthReportStyles, BaseStyles, OnboardingScreenStyles
 from utils.user_mixin import UserMixin
 
 logger = get_logger('health_report')
@@ -21,80 +22,112 @@ class HealthReportScreen(QWidget, UserMixin):
 
     def setup_ui(self):
         main_layout = QVBoxLayout(self)
-        main_layout.setContentsMargins(20, 20, 20, 20)
-        main_layout.setSpacing(15)
+        main_layout.setContentsMargins(20, 10, 20, 10)
+        main_layout.setSpacing(12)
 
-        title = TitleLabel("Звіт про здоров'я", 22)
-        title.setStyleSheet("color: #FF5252; font-size: 22px; font-weight: bold;")
+        # Простий заголовок
+        title = TitleLabel("Звіт про здоров'я", 18)
+        title.setStyleSheet("color: white; font-weight: 700; background: transparent; border: none;")
         main_layout.addWidget(title)
 
-        splitter = QSplitter()
-        splitter.setChildrenCollapsible(False)
+        subtitle = QLabel("Ведіть щоденник здоров'я та самопочуття")
+        subtitle.setStyleSheet("color: rgba(255, 255, 255, 0.7); font-size: 13px; background: transparent; border: none;")
+        main_layout.addWidget(subtitle)
 
-        left_widget = QWidget()
-        left_layout = QVBoxLayout(left_widget)
-        left_layout.setContentsMargins(10, 10, 10, 10)
+        # Відступ
+        main_layout.addSpacing(20)
 
-        form_frame = StyledCard("Додати нову нотатку")
-        form_frame.setStyleSheet(HealthReportStyles.report_card())
+        # Форма з підкресленими полями
+        form_layout = QFormLayout()
+        form_layout.setContentsMargins(0, 0, 0, 0)
+        form_layout.setSpacing(20)
+        form_layout.setHorizontalSpacing(20)
 
-        date_layout = QHBoxLayout()
-        date_label = QLabel("Дата:")
-        date_label.setStyleSheet(BaseStyles.text_primary())
+        # Дата
+        date_label = QLabel("📅 Дата:")
+        date_label.setStyleSheet("color: white; font-size: 14px; font-weight: 600; background: transparent; border: none;")
+        date_label.setMinimumHeight(24)
+
         self.date_edit = StyledDateEdit()
         self.date_edit.setDate(QDate.currentDate())
-        date_layout.addWidget(date_label)
-        date_layout.addWidget(self.date_edit)
-        form_frame.layout.addLayout(date_layout)
+        form_layout.addRow(date_label, self.date_edit)
 
-        title_label = QLabel("Заголовок:")
-        title_label.setStyleSheet(BaseStyles.text_primary())
-        self.title_edit = StyledInput()
-        form_frame.layout.addWidget(title_label)
-        form_frame.layout.addWidget(self.title_edit)
+        # Заголовок
+        title_label = QLabel("📝 Заголовок:")
+        title_label.setStyleSheet("color: white; font-size: 14px; font-weight: 600; background: transparent; border: none;")
+        title_label.setMinimumHeight(24)
 
-        content_label = QLabel("Текст нотатки:")
-        content_label.setStyleSheet(BaseStyles.text_primary())
+        self.title_edit = StyledInput("Введіть заголовок запису")
+        self.title_edit.setStyleSheet(OnboardingScreenStyles.elegant_input())
+        self.title_edit.setMinimumHeight(24)
+        self.title_edit.setMaximumHeight(40)
+
+        form_layout.addRow(title_label, self.title_edit)
+
+        main_layout.addLayout(form_layout)
+
+        # Текст нотатки
+        content_label = QLabel("📝 Текст нотатки:")
+        content_label.setStyleSheet("color: white; font-size: 14px; font-weight: 600; background: transparent; border: none; margin-top: 8px;")
+        main_layout.addWidget(content_label)
+
         self.content_edit = QTextEdit()
-        self.content_edit.setStyleSheet(BaseStyles.input_field())
-        form_frame.layout.addWidget(content_label)
-        form_frame.layout.addWidget(self.content_edit)
+        self.content_edit.setStyleSheet("background: transparent; border: none; border-bottom: 2px solid rgba(139, 92, 246, 1); color: white; font-size: 16px; padding: 4px 4px 4px 4px; min-height: 100px;")
+        self.content_edit.setPlaceholderText("Опишіть ваше самопочуття, симптоми, настрій...")
+        main_layout.addWidget(self.content_edit)
 
-        save_btn = StyledButton("Зберегти нотатку")
+        # Відступ
+        main_layout.addSpacing(20)
+
+        # Кнопка збереження
+        save_btn = StyledButton("💾 Зберегти нотатку")
+        save_btn.setMinimumHeight(44)
         save_btn.setStyleSheet(HealthReportStyles.export_button())
         save_btn.clicked.connect(self.save_note)
-        form_frame.layout.addWidget(save_btn)
+        main_layout.addWidget(save_btn)
 
-        left_layout.addWidget(form_frame)
-        splitter.addWidget(left_widget)
+        # Відступ
+        main_layout.addSpacing(20)
 
-        right_widget = QWidget()
-        right_layout = QVBoxLayout(right_widget)
-        right_layout.setContentsMargins(10, 10, 10, 10)
-
-        list_frame = StyledCard("Ваші нотатки")
-        list_frame.setStyleSheet(HealthReportStyles.report_card())
+        # Історія без рамки
+        history_title = QLabel("📊 Ваші нотатки")
+        history_title.setStyleSheet("color: white; font-weight: 700; font-size: 16px; background: transparent; border: none; margin-top: 8px;")
+        main_layout.addWidget(history_title)
 
         self.notes_list = StyledListWidget()
-        list_frame.layout.addWidget(self.notes_list)
+        self.notes_list.setStyleSheet("""
+            QListWidget {
+                background: transparent; 
+                border: none; 
+                border-bottom: 2px solid rgba(255, 255, 255, 0.3); 
+                color: white; 
+                font-size: 14px;
+            }
+            QListWidget::item {
+                padding: 8px 4px;
+                border: none;
+                background: transparent;
+                color: white;
+                min-height: 20px;
+            }
+            QListWidget::item:selected {
+                background: rgba(255, 255, 255, 0.1);
+                color: white;
+            }
+        """)
+        self.notes_list.setWordWrap(True)
+        self.notes_list.setTextElideMode(Qt.TextElideMode.ElideNone)
+        main_layout.addWidget(self.notes_list)
 
-        buttons_layout = QHBoxLayout()
-
-        refresh_btn = StyledButton("Оновити список", "secondary")
-        refresh_btn.clicked.connect(self.load_notes)
-
-        export_btn = StyledButton("Експортувати в PDF")
+        # Кнопка експорту
+        export_btn = StyledButton("📄 Експортувати в PDF")
+        export_btn.setMinimumHeight(44)
         export_btn.setStyleSheet(HealthReportStyles.export_button())
         export_btn.clicked.connect(self.export_to_pdf)
+        main_layout.addWidget(export_btn)
 
-        buttons_layout.addWidget(refresh_btn)
-        buttons_layout.addWidget(export_btn)
-        list_frame.layout.addLayout(buttons_layout)
-
-        right_layout.addWidget(list_frame)
-        splitter.addWidget(right_widget)
-
-        main_layout.addWidget(splitter)
+        # Розтягуючий spacer
+        main_layout.addStretch()
 
     def showEvent(self, event):
         super().showEvent(event)
@@ -103,7 +136,7 @@ class HealthReportScreen(QWidget, UserMixin):
 
     def load_notes(self):
         if not self.init_data_controller():
-            QMessageBox.warning(self, "Помилка", "Необхідно увійти в систему для перегляду нотаток")
+            show_warning(self, "Помилка", "Необхідно увійти в систему для перегляду нотаток")
             return
 
         try:
@@ -117,12 +150,12 @@ class HealthReportScreen(QWidget, UserMixin):
 
             logger.info(f"Завантажено {len(notes)} нотаток про здоров'я для користувача {user_id}")
         except Exception as e:
-            QMessageBox.critical(self, "Помилка", f"Не вдалося завантажити нотатки: {str(e)}")
+            show_error(self, "Помилка", f"Не вдалося завантажити нотатки: {str(e)}")
             logger.error(f"Помилка при завантаженні нотаток для користувача {user_id}: {str(e)}")
 
     def save_note(self):
         if not self.init_data_controller():
-            QMessageBox.warning(self, "Помилка", "Необхідно увійти в систему для збереження нотаток")
+            show_warning(self, "Помилка", "Необхідно увійти в систему для збереження нотаток")
             return
 
         try:
@@ -132,7 +165,7 @@ class HealthReportScreen(QWidget, UserMixin):
             content = self.content_edit.toPlainText().strip()
 
             if not content:
-                QMessageBox.warning(self, "Помилка", "Введіть текст нотатки")
+                show_warning(self, "Помилка", "Введіть текст нотатки")
                 return
 
             self.data_controller.db.add_health_note(date_str, content, title, user_id)
@@ -141,22 +174,22 @@ class HealthReportScreen(QWidget, UserMixin):
             self.content_edit.clear()
             self.load_notes()
 
-            QMessageBox.information(self, "Успіх", "Нотатку збережено")
+            show_info(self, "Успіх", "Нотатку збережено")
             logger.info(f"Збережено нову нотатку про здоров'я для користувача {user_id}: {date_str}, {title}")
         except Exception as e:
-            QMessageBox.critical(self, "Помилка", f"Не вдалося зберегти нотатку: {str(e)}")
+            show_error(self, "Помилка", f"Не вдалося зберегти нотатку: {str(e)}")
             logger.error(f"Помилка при збереженні нотатки для користувача {user_id}: {str(e)}")
 
     def export_to_pdf(self):
         if not self.init_data_controller():
-            QMessageBox.warning(self, "Помилка", "Необхідно увійти в систему для експорту")
+            show_warning(self, "Помилка", "Необхідно увійти в систему для експорту")
             return
 
         try:
             user_id = self.get_current_user_id()
             notes = self.data_controller.db.get_health_notes(user_id)
             if not notes:
-                QMessageBox.information(self, "Інформація", "Немає нотаток для експорту")
+                show_info(self, "Інформація", "Немає нотаток для експорту")
                 return
 
             today = datetime.date.today().strftime("%Y-%m-%d")
@@ -201,8 +234,8 @@ class HealthReportScreen(QWidget, UserMixin):
 
             document.build(content)
 
-            QMessageBox.information(self, "Успіх", f"PDF-звіт збережено як {file_name}")
+            show_info(self, "Успіх", f"PDF-звіт збережено як {file_name}")
             logger.info(f"Експортовано PDF-звіт для користувача {user_id}: {file_name}")
         except Exception as e:
-            QMessageBox.critical(self, "Помилка", f"Не вдалося експортувати PDF: {str(e)}")
+            show_error(self, "Помилка", f"Не вдалося експортувати PDF: {str(e)}")
             logger.error(f"Помилка при експорті PDF для користувача {user_id}: {str(e)}")

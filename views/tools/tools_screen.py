@@ -1,5 +1,6 @@
 from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, QScrollArea,
                              QFrame, QGridLayout, QSizePolicy, QMessageBox)
+from utils.message_utils import show_info, show_warning, show_error
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont
 
@@ -78,9 +79,9 @@ class ToolCard(QFrame, UserMixin):
                         index = main_window.stack_widget.addWidget(tool_screen)
                         main_window.stack_widget.setCurrentIndex(index)
                     else:
-                        QMessageBox.warning(self, "Помилка", "Не вдалося відкрити інструмент")
+                        show_warning(self, "Помилка", "Не вдалося відкрити інструмент")
                 except Exception as e:
-                    QMessageBox.critical(self, "Помилка", f"Не вдалося відкрити інструмент: {str(e)}")
+                    show_error(self, "Помилка", f"Не вдалося відкрити інструмент: {str(e)}")
         super().mouseReleaseEvent(event)
 
 

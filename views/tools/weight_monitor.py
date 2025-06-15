@@ -1,9 +1,10 @@
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QHBoxLayout, QMessageBox, QSplitter
+from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QHBoxLayout, QMessageBox, QSplitter, QFormLayout, QAbstractSpinBox
+from utils.message_utils import show_info, show_warning, show_error
 from PyQt6.QtCore import Qt, QDate
 from utils.logger import get_logger
 from utils.base_widgets import (StyledCard, StyledDateEdit, StyledDoubleSpinBox,
-                                StyledButton, StyledListWidget, TitleLabel)
-from styles import WeightMonitorStyles, BaseStyles
+                                StyledButton, StyledListWidget, TitleLabel, StyledInput)
+from styles import WeightMonitorStyles, BaseStyles, OnboardingScreenStyles
 from utils.user_mixin import UserMixin
 
 logger = get_logger('weight_monitor')
@@ -18,71 +19,102 @@ class WeightMonitorScreen(QWidget, UserMixin):
 
     def setup_ui(self):
         main_layout = QVBoxLayout(self)
-        main_layout.setContentsMargins(20, 20, 20, 20)
-        main_layout.setSpacing(15)
+        main_layout.setContentsMargins(20, 10, 20, 10)
+        main_layout.setSpacing(12)
 
-        title = TitleLabel("Моніторинг ваги", 22)
-        title.setStyleSheet("color: #757575; font-size: 22px; font-weight: bold;")
+        # Простий заголовок
+        title = TitleLabel("Моніторинг ваги", 18)
+        title.setStyleSheet("color: white; font-weight: 700; background: transparent; border: none;")
         main_layout.addWidget(title)
 
-        splitter = QSplitter(Qt.Orientation.Horizontal)
-        splitter.setChildrenCollapsible(False)
+        subtitle = QLabel("Відстежуйте зміни ваги під час вагітності")
+        subtitle.setStyleSheet("color: rgba(255, 255, 255, 0.7); font-size: 13px; background: transparent; border: none;")
+        main_layout.addWidget(subtitle)
 
-        left_widget = QWidget()
-        left_layout = QVBoxLayout(left_widget)
-        left_layout.setContentsMargins(10, 10, 10, 10)
+        # Форма з підкресленими полями
+        form_layout = QFormLayout()
+        form_layout.setContentsMargins(0, 0, 0, 0)
+        form_layout.setSpacing(20)
+        form_layout.setHorizontalSpacing(20)
 
-        form_frame = StyledCard("Додати новий запис")
-        form_frame.setStyleSheet(WeightMonitorStyles.monitor_card())
+        # Дата
+        date_label = QLabel("📅 Дата:")
+        date_label.setStyleSheet("color: white; font-size: 14px; font-weight: 600; background: transparent; border: none;")
+        date_label.setMinimumHeight(24)
 
-        date_layout = QHBoxLayout()
-        date_label = QLabel("Дата:")
-        date_label.setStyleSheet(BaseStyles.text_primary())
-        self.date_edit = StyledDateEdit()
-        self.date_edit.setDate(QDate.currentDate())
-        date_layout.addWidget(date_label)
-        date_layout.addWidget(self.date_edit)
-        form_frame.layout.addLayout(date_layout)
+        self.date_edit = StyledInput("дд.мм.рррр")
+        self.date_edit.setText(QDate.currentDate().toString("dd.MM.yyyy"))
+        self.date_edit.setStyleSheet(OnboardingScreenStyles.elegant_input())
+        self.date_edit.setMinimumHeight(24)
+        self.date_edit.setMaximumHeight(40)
+        form_layout.addRow(date_label, self.date_edit)
 
-        weight_layout = QHBoxLayout()
-        weight_label = QLabel("Вага (кг):")
-        weight_label.setStyleSheet(BaseStyles.text_primary())
+        # Вага
+        weight_label = QLabel("⚖️ Вага:")
+        weight_label.setStyleSheet("color: white; font-size: 14px; font-weight: 600; background: transparent; border: none;")
+        weight_label.setMinimumHeight(24)
+
         self.weight_spin = StyledDoubleSpinBox(30.0, 150.0, 1, " кг")
         self.weight_spin.setValue(60.0)
-        weight_layout.addWidget(weight_label)
-        weight_layout.addWidget(self.weight_spin)
-        form_frame.layout.addLayout(weight_layout)
+        self.weight_spin.setButtonSymbols(QAbstractSpinBox.ButtonSymbols.NoButtons)
+        self.weight_spin.setStyleSheet(OnboardingScreenStyles.elegant_input())
+        self.weight_spin.setMinimumHeight(24)
+        self.weight_spin.setMaximumHeight(40)
 
-        self.initial_weight_label = QLabel("Вага до вагітності: не визначено")
-        self.initial_weight_label.setStyleSheet(BaseStyles.text_secondary())
-        form_frame.layout.addWidget(self.initial_weight_label)
+        form_layout.addRow(weight_label, self.weight_spin)
 
-        save_btn = StyledButton("Зберегти запис")
+        main_layout.addLayout(form_layout)
+
+        # Інформація про початкову вагу
+        self.initial_weight_label = QLabel("📊 Вага до вагітності: не визначено")
+        self.initial_weight_label.setStyleSheet("color: rgba(255, 255, 255, 0.8); font-size: 14px; background: transparent; border: none; margin-top: 8px;")
+        main_layout.addWidget(self.initial_weight_label)
+
+        # Відступ
+        main_layout.addSpacing(20)
+
+        # Кнопка збереження
+        save_btn = StyledButton("💾 Зберегти запис")
+        save_btn.setMinimumHeight(44)
         save_btn.setStyleSheet(WeightMonitorStyles.monitor_button())
         save_btn.clicked.connect(self.save_weight)
-        form_frame.layout.addWidget(save_btn)
+        main_layout.addWidget(save_btn)
 
-        left_layout.addWidget(form_frame)
-        splitter.addWidget(left_widget)
+        # Розтягуючий spacer для опускання історії
+        main_layout.addStretch()
 
-        right_widget = QWidget()
-        right_layout = QVBoxLayout(right_widget)
-        right_layout.setContentsMargins(10, 10, 10, 10)
-
-        list_frame = StyledCard("Історія ваги")
-        list_frame.setStyleSheet(WeightMonitorStyles.monitor_card())
+        # Історія без рамки
+        history_title = QLabel("📈 Історія ваги")
+        history_title.setStyleSheet("color: white; font-weight: 700; font-size: 16px; background: transparent; border: none; margin-top: 8px;")
+        main_layout.addWidget(history_title)
 
         self.weight_list = StyledListWidget()
-        list_frame.layout.addWidget(self.weight_list)
+        self.weight_list.setStyleSheet("""
+            QListWidget {
+                background: transparent; 
+                border: none; 
+                border-bottom: 2px solid rgba(255, 255, 255, 0.3); 
+                color: white; 
+                font-size: 14px;
+            }
+            QListWidget::item {
+                padding: 8px 4px;
+                border: none;
+                background: transparent;
+                color: white;
+                min-height: 20px;
+            }
+            QListWidget::item:selected {
+                background: rgba(255, 255, 255, 0.1);
+                color: white;
+            }
+        """)
+        self.weight_list.setWordWrap(True)
+        self.weight_list.setTextElideMode(Qt.TextElideMode.ElideNone)
+        main_layout.addWidget(self.weight_list)
 
-        refresh_btn = StyledButton("Оновити список", "secondary")
-        refresh_btn.clicked.connect(self.load_weight_records)
-        list_frame.layout.addWidget(refresh_btn)
-
-        right_layout.addWidget(list_frame)
-        splitter.addWidget(right_widget)
-
-        main_layout.addWidget(splitter)
+        # Розтягуючий spacer
+        main_layout.addStretch()
 
     def showEvent(self, event):
         super().showEvent(event)
@@ -97,7 +129,7 @@ class WeightMonitorScreen(QWidget, UserMixin):
 
     def load_weight_records(self):
         if not self.init_data_controller():
-            QMessageBox.warning(self, "Помилка", "Необхідно увійти в систему для перегляду записів")
+            show_warning(self, "Помилка", "Необхідно увійти в систему для перегляду записів")
             return
 
         try:
@@ -112,29 +144,42 @@ class WeightMonitorScreen(QWidget, UserMixin):
             logger.info(f"Завантажено {len(records)} записів ваги для користувача {user_id}")
 
         except Exception as e:
-            QMessageBox.critical(self, "Помилка", f"Не вдалося завантажити записи ваги: {str(e)}")
+            show_error(self, "Помилка", f"Не вдалося завантажити записи ваги: {str(e)}")
             logger.error(f"Помилка при завантаженні записів ваги для користувача {user_id}: {str(e)}")
 
     def save_weight(self):
         if not self.init_data_controller():
-            QMessageBox.warning(self, "Помилка", "Необхідно увійти в систему для збереження записів")
+            show_warning(self, "Помилка", "Необхідно увійти в систему для збереження записів")
             return
 
         try:
             user_id = self.get_current_user_id()
-            date_str = self.date_edit.date().toString("yyyy-MM-dd")
+            date_text = self.date_edit.text()
+            
+            # Парсимо дату з тексту
+            try:
+                date_parts = date_text.split('.')
+                if len(date_parts) == 3:
+                    day, month, year = map(int, date_parts)
+                    qdate = QDate(year, month, day)
+                    date_str = qdate.toString("yyyy-MM-dd")
+                else:
+                    date_str = QDate.currentDate().toString("yyyy-MM-dd")
+            except:
+                date_str = QDate.currentDate().toString("yyyy-MM-dd")
+                
             weight = self.weight_spin.value()
 
             if weight < 30.0 or weight > 300.0:
-                QMessageBox.warning(self, "Помилка", "Введіть реальне значення ваги")
+                show_warning(self, "Помилка", "Введіть реальне значення ваги")
                 return
 
             self.data_controller.db.add_weight_record(date_str, weight, user_id)
             self.load_weight_records()
 
-            QMessageBox.information(self, "Успіх", "Запис успішно збережено")
+            show_info(self, "Успіх", "Запис успішно збережено")
             logger.info(f"Збережено новий запис ваги для користувача {user_id}: {date_str}, {weight} кг")
 
         except Exception as e:
-            QMessageBox.critical(self, "Помилка", f"Не вдалося зберегти запис: {str(e)}")
+            show_error(self, "Помилка", f"Не вдалося зберегти запис: {str(e)}")
             logger.error(f"Помилка при збереженні запису ваги для користувача {user_id}: {str(e)}")

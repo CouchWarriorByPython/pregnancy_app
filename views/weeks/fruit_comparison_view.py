@@ -30,13 +30,14 @@ class FruitComparisonView(QFrame):
         self.title_label.setFont(QFont('Arial', 18, QFont.Weight.Bold))
         self.title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.title_label.setWordWrap(True)
-        self.title_label.setStyleSheet(WeeksScreenStyles.fruit_title_label())
+        self.title_label.setStyleSheet(f"color: {Colors.TEXT_PRIMARY}; font-weight: 700; background: transparent; border: none;")
         self.main_layout.addWidget(self.title_label)
 
         self.content_layout = QHBoxLayout()
         self.content_layout.setSpacing(25)
         self.content_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
+        # Картинка
         self.image_label = QLabel()
         self.image_label.setObjectName("fruit_image")
         self.image_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -44,22 +45,22 @@ class FruitComparisonView(QFrame):
         self.image_label.setStyleSheet("background: transparent; border: none;")
         self.content_layout.addWidget(self.image_label)
 
+        # Вага і довжина в простій заокругленій рамці
         size_info_container = QFrame()
-        size_info_container.setStyleSheet(
-            f"background: {Colors.GLASS_SURFACE}; border: 1px solid {Colors.GLASS_BORDER}; border-radius: 20px; padding: 20px;")
+        size_info_container.setStyleSheet("background: transparent; border: 2px solid rgba(255, 255, 255, 0.3); border-radius: 16px; padding: 16px;")
         size_info_layout = QVBoxLayout(size_info_container)
-        size_info_layout.setSpacing(10)
+        size_info_layout.setSpacing(8)
         size_info_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.weight_label = QLabel()
         self.weight_label.setFont(QFont('Arial', 15, QFont.Weight.Bold))
-        self.weight_label.setStyleSheet(f"color: {Colors.TEXT_PRIMARY}; font-weight: 700;")
+        self.weight_label.setStyleSheet(f"color: {Colors.TEXT_PRIMARY}; font-weight: 700; background: transparent; border: none;")
         self.weight_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         size_info_layout.addWidget(self.weight_label)
 
         self.length_label = QLabel()
         self.length_label.setFont(QFont('Arial', 15, QFont.Weight.Bold))
-        self.length_label.setStyleSheet(f"color: {Colors.TEXT_PRIMARY}; font-weight: 700;")
+        self.length_label.setStyleSheet(f"color: {Colors.TEXT_PRIMARY}; font-weight: 700; background: transparent; border: none;")
         self.length_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         size_info_layout.addWidget(self.length_label)
 
@@ -71,7 +72,7 @@ class FruitComparisonView(QFrame):
         self.description_label.setFont(QFont('Arial', 13))
         self.description_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.description_label.setWordWrap(True)
-        self.description_label.setStyleSheet(WeeksScreenStyles.fruit_description_label())
+        self.description_label.setStyleSheet(f"color: {Colors.TEXT_SECONDARY}; font-weight: 500; background: transparent; border: none;")
         self.main_layout.addWidget(self.description_label)
 
         self.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Preferred)

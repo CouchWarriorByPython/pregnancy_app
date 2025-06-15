@@ -2,7 +2,7 @@ from PyQt6.QtWidgets import QWidget, QVBoxLayout, QFormLayout, QFrame, QMessageB
 from controllers.auth_controller import AuthController
 from utils.logger import get_logger
 from utils.base_widgets import StyledInput, StyledButton, TitleLabel, StyledScrollArea
-from styles import PasswordEditorStyles
+from styles import PasswordEditorStyles, OnboardingScreenStyles
 from utils.user_mixin import UserMixin
 
 logger = get_logger('password_editor')
@@ -20,61 +20,84 @@ class PasswordEditor(QWidget, UserMixin):
         self.current_password_input = StyledInput()
         self.current_password_input.setEchoMode(self.current_password_input.EchoMode.Password)
         self.current_password_input.setPlaceholderText("Введіть поточний пароль")
-        self.current_password_input.setStyleSheet(PasswordEditorStyles.password_input())
+        self.current_password_input.setStyleSheet(OnboardingScreenStyles.elegant_input())
 
         self.new_password_input = StyledInput()
         self.new_password_input.setEchoMode(self.new_password_input.EchoMode.Password)
         self.new_password_input.setPlaceholderText("Введіть новий пароль")
-        self.new_password_input.setStyleSheet(PasswordEditorStyles.password_input())
+        self.new_password_input.setStyleSheet(OnboardingScreenStyles.elegant_input())
 
         self.confirm_password_input = StyledInput()
         self.confirm_password_input.setEchoMode(self.confirm_password_input.EchoMode.Password)
         self.confirm_password_input.setPlaceholderText("Підтвердіть новий пароль")
-        self.confirm_password_input.setStyleSheet(PasswordEditorStyles.password_input())
+        self.confirm_password_input.setStyleSheet(OnboardingScreenStyles.elegant_input())
 
     def _setup_ui(self):
         main_layout = QVBoxLayout(self)
-        main_layout.setContentsMargins(20, 20, 20, 20)
-        main_layout.setSpacing(20)
+        main_layout.setContentsMargins(20, 10, 20, 10)
+        main_layout.setSpacing(12)
 
-        title_container = QWidget()
-        title_container.setStyleSheet(PasswordEditorStyles.title_container())
-
-        title_layout = QVBoxLayout(title_container)
-        title_layout.setContentsMargins(0, 0, 0, 0)
-
-        title = TitleLabel("🔐 Зміна паролю", 20)
-        title.setStyleSheet(PasswordEditorStyles.security_title())
-        title_layout.addWidget(title)
+        # Простий заголовок
+        title = TitleLabel("🔐 Зміна паролю", 18)
+        title.setStyleSheet("color: white; font-weight: 700; background: transparent; border: none;")
+        main_layout.addWidget(title)
 
         subtitle = QLabel("Забезпечте безпеку вашого акаунту")
-        subtitle.setStyleSheet(PasswordEditorStyles.security_tips())
-        title_layout.addWidget(subtitle)
+        subtitle.setStyleSheet("color: rgba(255, 255, 255, 0.7); font-size: 13px; background: transparent; border: none;")
+        main_layout.addWidget(subtitle)
 
-        main_layout.addWidget(title_container)
+        # Поради без рамки
+        info_title = QLabel("🛡️ Поради для безпечного паролю")
+        info_title.setStyleSheet("color: white; font-weight: 700; font-size: 16px; background: transparent; border: none; margin-top: 8px;")
+        main_layout.addWidget(info_title)
 
-        scroll_area = StyledScrollArea()
-        content_widget = QWidget()
-        content_layout = QVBoxLayout(content_widget)
-        content_layout.setContentsMargins(0, 0, 0, 0)
-        content_layout.setSpacing(20)
+        tips_text = """- Використовуйте мінімум 8 символів
+- Комбінуйте великі та малі літери
+- Додавайте цифри та спеціальні символи
+- Не використовуйте особисту інформацію
+- Уникайте простих послідовностей"""
 
-        security_info = self._create_security_info()
-        content_layout.addWidget(security_info)
+        tips_label = QLabel(tips_text)
+        tips_label.setStyleSheet("color: rgba(255, 255, 255, 0.8); font-size: 13px; background: transparent; border: none;")
+        tips_label.setWordWrap(True)
+        main_layout.addWidget(tips_label)
 
-        form_frame = self._create_form_frame()
-        content_layout.addWidget(form_frame)
+        # Відступ
+        main_layout.addSpacing(20)
 
-        content_layout.addStretch(1)
+        # Форма з підкресленими полями
+        form_layout = QFormLayout()
+        form_layout.setContentsMargins(0, 0, 0, 0)
+        form_layout.setSpacing(20)
+        form_layout.setHorizontalSpacing(20)
 
-        change_btn = StyledButton("🔒 Змінити пароль")
-        change_btn.setMinimumHeight(56)
+        fields = [
+            ("🔒 Поточний пароль:", self.current_password_input),
+            ("🆕 Новий пароль:", self.new_password_input),
+            ("✅ Підтвердіть новий пароль:", self.confirm_password_input)
+        ]
+
+        for label_text, widget in fields:
+            label = QLabel(label_text)
+            label.setStyleSheet("color: white; font-size: 14px; font-weight: 600; background: transparent; border: none;")
+            label.setMinimumHeight(24)
+            
+            widget.setMinimumHeight(24)
+            widget.setMaximumHeight(40)
+            
+            form_layout.addRow(label, widget)
+
+        main_layout.addLayout(form_layout)
+
+        # Розтягуючий spacer
+        main_layout.addStretch()
+
+        # Компактна кнопка
+        change_btn = StyledButton("🔒 Змінити")
+        change_btn.setMinimumHeight(44)
         change_btn.setStyleSheet(PasswordEditorStyles.change_button())
         change_btn.clicked.connect(self.change_password)
-        content_layout.addWidget(change_btn)
-
-        scroll_area.setWidget(content_widget)
-        main_layout.addWidget(scroll_area, 1)
+        main_layout.addWidget(change_btn)
 
     def _create_security_info(self):
         info_frame = QFrame()

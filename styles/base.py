@@ -18,6 +18,9 @@ class Colors:
     SECONDARY = '#EC4899'
     SECONDARY_HOVER = '#DB2777'
     SECONDARY_PRESSED = '#BE185D'
+    
+    # Акцентний колір
+    ACCENT = '#DB2777'
 
     # Фон та поверхні
     BACKGROUND = '#0F0F23'
@@ -178,16 +181,15 @@ class BaseStyles:
                 border: 2px solid {Colors.PRIMARY};
                 background: rgba(255, 255, 255, 0.12);
             }}
-            QComboBox::drop-down {{
+            QComboBox::drop-down, QDateEdit::drop-down, QTimeEdit::drop-down {{
+                width: 0px;
                 border: none;
-                width: 30px;
                 background: transparent;
             }}
-            QComboBox::down-arrow {{
+            QComboBox::down-arrow, QDateEdit::down-arrow, QTimeEdit::down-arrow {{
                 image: none;
-                border: 5px solid transparent;
-                border-top: 8px solid {Colors.TEXT_PRIMARY};
-                margin-right: 10px;
+                width: 0px;
+                height: 0px;
             }}
             QComboBox QAbstractItemView {{
                 background: {Colors.SURFACE};
@@ -199,19 +201,15 @@ class BaseStyles:
             }}
             QSpinBox::up-button, QSpinBox::down-button,
             QDoubleSpinBox::up-button, QDoubleSpinBox::down-button {{
+                width: 0px;
                 background: transparent;
                 border: none;
-                width: 20px;
             }}
-            QSpinBox::up-arrow, QDoubleSpinBox::up-arrow {{
-                image: url(resources/images/icons/plus.png);
-                width: 16px;
-                height: 16px;
-            }}
+            QSpinBox::up-arrow, QDoubleSpinBox::up-arrow,
             QSpinBox::down-arrow, QDoubleSpinBox::down-arrow {{
-                image: url(resources/images/icons/minus.png);
-                width: 16px;
-                height: 16px;
+                image: none;
+                width: 0px;
+                height: 0px;
             }}
         """
 
@@ -405,5 +403,78 @@ class BaseStyles:
             }}
             QTabBar::tab:hover:!selected {{
                 background: rgba(255, 255, 255, 0.1);
+            }}
+        """
+
+    @staticmethod
+    def message_box():
+        """Глобальний стиль для всіх QMessageBox з зеленими кнопками та прозорим фоном"""
+        return f"""
+            QMessageBox {{
+                background: transparent;
+                color: white;
+                border: none;
+            }}
+            QMessageBox * {{
+                background: transparent;
+                border: none;
+            }}
+            QMessageBox QLabel {{
+                color: white !important;
+                font-size: 14px;
+                font-weight: 500;
+                background: transparent !important;
+                border: none !important;
+                padding: 0px;
+                margin: 0px;
+            }}
+            QMessageBox QLabel#qt_msgbox_label {{
+                color: white !important;
+                background: transparent !important;
+                border: none !important;
+                padding: 0px;
+                margin: 0px;
+            }}
+            QMessageBox QLabel#qt_msgbox_informativelabel {{
+                color: white !important;
+                background: transparent !important;
+                border: none !important;
+                padding: 0px;
+                margin: 0px;
+            }}
+            QMessageBox QLabel#qt_msgbox_icon {{
+                background: transparent !important;
+                border: none !important;
+                padding: 0px;
+                margin: 0px;
+            }}
+            QMessageBox QPushButton {{
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #10B981, stop:1 #059669) !important;
+                color: white !important;
+                border: none !important;
+                border-radius: 12px;
+                padding: 8px 16px;
+                font-weight: 600;
+                font-size: 14px;
+                min-width: 80px;
+                min-height: 32px;
+            }}
+            QMessageBox QPushButton:hover {{
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #059669, stop:1 #047857) !important;
+            }}
+            QMessageBox QPushButton:pressed {{
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #047857, stop:1 #065F46) !important;
+            }}
+            QMessageBox QFrame {{
+                background: transparent !important;
+                border: none !important;
+            }}
+            QMessageBox QWidget {{
+                background: transparent !important;
+                border: none !important;
+            }}
+            QMessageBox::icon {{
+                background: transparent !important;
+                border: none !important;
             }}
         """

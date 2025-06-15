@@ -1,9 +1,10 @@
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QHBoxLayout, QCalendarWidget, QDialog, QCheckBox, QMessageBox, \
     QFrame
+from utils.message_utils import show_info, show_warning, show_error
 from PyQt6.QtGui import QFont
 from PyQt6.QtCore import Qt
 from utils.base_widgets import StyledButton, StyledInput, StyledComboBox, StyledTimeEdit, StyledCard
-from styles import CalendarScreenStyles, BaseStyles, Colors
+from styles import CalendarScreenStyles, BaseStyles, Colors, OnboardingScreenStyles
 from utils.logger import get_logger
 from utils.user_mixin import UserMixin
 
@@ -22,12 +23,12 @@ class EventDialog(QDialog):
         self.setStyleSheet(CalendarScreenStyles.event_dialog())
 
         layout = QVBoxLayout(self)
-        layout.setSpacing(15)
-        layout.setContentsMargins(20, 20, 20, 20)
+        layout.setSpacing(20)
+        layout.setContentsMargins(25, 25, 25, 25)
 
         title_label = QLabel(f"Нова подія на {self.date.toString('dd.MM.yyyy')}")
-        title_label.setFont(QFont('Arial', 16, QFont.Weight.Bold))
-        title_label.setStyleSheet(f"color: {Colors.TEXT_PRIMARY}; margin-bottom: 10px;")
+        title_label.setFont(QFont('Arial', 18, QFont.Weight.Bold))
+        title_label.setStyleSheet(CalendarScreenStyles.event_dialog_title())
         layout.addWidget(title_label)
 
         self._add_form_fields(layout)
@@ -35,32 +36,56 @@ class EventDialog(QDialog):
         self._add_buttons(layout)
 
     def _add_form_fields(self, layout):
-        fields = [
-            ("Назва події:", StyledInput("Наприклад: Візит до гінеколога")),
-            ("Тип події:", StyledComboBox(["Візит до лікаря", "УЗД", "Аналізи", "Особисте"])),
-            ("Час:", StyledTimeEdit())
-        ]
+        # Назва події
+        name_label = QLabel("Назва події:")
+        name_label.setStyleSheet(OnboardingScreenStyles.user_info_field_label())
+        layout.addWidget(name_label)
+        
+        self.input_edit = StyledInput("Наприклад: Візит до гінеколога")
+        self.input_edit.setStyleSheet(OnboardingScreenStyles.elegant_input())
+        layout.addWidget(self.input_edit)
 
-        for label_text, widget in fields:
-            label = QLabel(label_text)
-            label.setStyleSheet(CalendarScreenStyles.event_dialog_field_label())
-            layout.addWidget(label)
-            layout.addWidget(widget)
-            setattr(self, f"{widget.__class__.__name__.lower().replace('styled', '')}_edit", widget)
+        # Тип події
+        type_label = QLabel("Тип події:")
+        type_label.setStyleSheet(OnboardingScreenStyles.user_info_field_label())
+        layout.addWidget(type_label)
+        
+        self.combobox_edit = StyledComboBox(["Візит до лікаря", "УЗД", "Аналізи", "Особисте"])
+        self.combobox_edit.setStyleSheet(OnboardingScreenStyles.elegant_input() + f"""
+            QComboBox QAbstractItemView {{
+                background: {Colors.SURFACE};
+                border: 1px solid {Colors.GLASS_BORDER};
+                border-radius: 12px;
+                color: {Colors.TEXT_PRIMARY};
+                selection-background-color: {Colors.PRIMARY};
+                padding: 8px;
+            }}
+        """)
+        layout.addWidget(self.combobox_edit)
+
+        # Час
+        time_label = QLabel("Час:")
+        time_label.setStyleSheet(OnboardingScreenStyles.user_info_field_label())
+        layout.addWidget(time_label)
+        
+        self.timeedit_edit = StyledInput("00:00")
+        self.timeedit_edit.setStyleSheet(OnboardingScreenStyles.elegant_input())
+        self.timeedit_edit.setPlaceholderText("Формат: ГГ:ХХ (наприклад, 14:30)")
+        layout.addWidget(self.timeedit_edit)
 
     def _add_reminder_section(self, layout):
         reminder_container = QWidget()
         reminder_container.setStyleSheet("background: transparent;")
         container_layout = QVBoxLayout(reminder_container)
-        container_layout.setContentsMargins(0, 10, 0, 0)
+        container_layout.setContentsMargins(0, 15, 0, 0)
         container_layout.setSpacing(0)
 
         reminder_frame = QFrame()
         reminder_frame.setStyleSheet(CalendarScreenStyles.event_dialog_reminder_frame())
 
         frame_layout = QVBoxLayout(reminder_frame)
-        frame_layout.setContentsMargins(20, 15, 20, 15)
-        frame_layout.setSpacing(12)
+        frame_layout.setContentsMargins(0, 0, 0, 0)
+        frame_layout.setSpacing(15)
 
         self.reminder_checkbox = QCheckBox("Додати нагадування")
         self.reminder_checkbox.setStyleSheet(CalendarScreenStyles.event_dialog_reminder_checkbox())
@@ -71,11 +96,11 @@ class EventDialog(QDialog):
         self.reminder_options.setVisible(False)
         self.reminder_options.setStyleSheet("background: transparent;")
         options_layout = QVBoxLayout(self.reminder_options)
-        options_layout.setContentsMargins(35, 0, 0, 0)
-        options_layout.setSpacing(8)
+        options_layout.setContentsMargins(0, 10, 0, 0)
+        options_layout.setSpacing(10)
 
         reminder_label = QLabel("Нагадати за:")
-        reminder_label.setStyleSheet(CalendarScreenStyles.event_dialog_field_label())
+        reminder_label.setStyleSheet(OnboardingScreenStyles.user_info_field_label())
         options_layout.addWidget(reminder_label)
 
         self.reminder_time_combo = StyledComboBox([
@@ -85,7 +110,16 @@ class EventDialog(QDialog):
             "1 годину",
             "2 години"
         ])
-        self.reminder_time_combo.setMinimumHeight(45)
+        self.reminder_time_combo.setStyleSheet(OnboardingScreenStyles.elegant_input() + f"""
+            QComboBox QAbstractItemView {{
+                background: {Colors.SURFACE};
+                border: 1px solid {Colors.GLASS_BORDER};
+                border-radius: 12px;
+                color: {Colors.TEXT_PRIMARY};
+                selection-background-color: {Colors.PRIMARY};
+                padding: 8px;
+            }}
+        """)
         options_layout.addWidget(self.reminder_time_combo)
 
         hint_label = QLabel("💡 Нагадування прийде як системне сповіщення")
@@ -109,7 +143,7 @@ class EventDialog(QDialog):
         layout.addStretch()
 
         buttons_layout = QHBoxLayout()
-        buttons_layout.setSpacing(10)
+        buttons_layout.setSpacing(15)
 
         self.cancel_btn = StyledButton("Скасувати", "secondary")
         self.cancel_btn.setMinimumHeight(45)
@@ -124,10 +158,31 @@ class EventDialog(QDialog):
         layout.addLayout(buttons_layout)
 
     def get_event_data(self):
+        # Парсимо час з текстового поля
+        time_text = self.timeedit_edit.text().strip()
+        if not time_text or time_text == "00:00":
+            from PyQt6.QtCore import QTime
+            time_obj = QTime(0, 0)
+        else:
+            try:
+                from PyQt6.QtCore import QTime
+                parts = time_text.split(':')
+                if len(parts) == 2:
+                    hours = int(parts[0])
+                    minutes = int(parts[1])
+                    if 0 <= hours <= 23 and 0 <= minutes <= 59:
+                        time_obj = QTime(hours, minutes)
+                    else:
+                        time_obj = QTime(0, 0)
+                else:
+                    time_obj = QTime(0, 0)
+            except (ValueError, IndexError):
+                time_obj = QTime(0, 0)
+        
         return {
             'name': self.input_edit.text(),
             'type': self.combobox_edit.currentText(),
-            'time': self.timeedit_edit.time(),
+            'time': time_obj,
             'date': self.date,
             'reminder_enabled': self.reminder_checkbox.isChecked(),
             'reminder_time': self.reminder_time_combo.currentText() if self.reminder_checkbox.isChecked() else None
@@ -249,7 +304,7 @@ class CalendarScreen(QWidget, UserMixin):
 
     def add_event(self):
         if not self.is_user_authenticated():
-            QMessageBox.warning(self, "Помилка", "Необхідно увійти в систему для додавання подій")
+            show_warning(self, "Помилка", "Необхідно увійти в систему для додавання подій")
             return
 
         selected_date = self.calendar.selectedDate()
@@ -262,7 +317,7 @@ class CalendarScreen(QWidget, UserMixin):
     def _save_event(self, event_data):
         user_id = self.get_current_user_id()
         if not user_id:
-            QMessageBox.warning(self, "Помилка", "Помилка авторизації")
+            show_warning(self, "Помилка", "Помилка авторизації")
             return
 
         try:
@@ -299,10 +354,10 @@ class CalendarScreen(QWidget, UserMixin):
                         f"Створено нагадування для події '{event_data['name']}' на {reminder_time['date']} {reminder_time['time']}")
 
             self._show_events_for_date(event_data['date'])
-            QMessageBox.information(self, "Успіх", "Подію успішно додано")
+            show_info(self, "Успіх", "Подію успішно додано")
 
         except Exception as e:
-            QMessageBox.critical(self, "Помилка", f"Не вдалося зберегти подію: {str(e)}")
+            show_error(self, "Помилка", f"Не вдалося зберегти подію: {str(e)}")
             logger.error(f"Помилка збереження події: {str(e)}")
 
     def _calculate_reminder_time(self, event_date, event_time, reminder_offset):

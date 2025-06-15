@@ -1,11 +1,12 @@
 from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QLabel, QHBoxLayout, QListWidgetItem, QMessageBox, QSplitter,
-                             QFormLayout, QDialog, QDialogButtonBox)
+                             QFormLayout, QDialog, QDialogButtonBox, QAbstractSpinBox)
+from utils.message_utils import show_info, show_warning, show_error, show_question
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QColor
 from utils.logger import get_logger
 from utils.base_widgets import (StyledCard, StyledInput, StyledComboBox, StyledDoubleSpinBox,
                                 StyledCheckBox, StyledButton, StyledListWidget, TitleLabel)
-from styles import WishlistStyles, BaseStyles
+from styles import WishlistStyles, BaseStyles, OnboardingScreenStyles
 from utils.user_mixin import UserMixin
 
 logger = get_logger('wishlist')
@@ -20,30 +21,55 @@ class WishlistScreen(QWidget, UserMixin):
 
     def setup_ui(self):
         main_layout = QVBoxLayout(self)
-        main_layout.setContentsMargins(20, 20, 20, 20)
-        main_layout.setSpacing(15)
+        main_layout.setContentsMargins(20, 10, 20, 10)
+        main_layout.setSpacing(12)
 
-        title = TitleLabel("Список бажань", 22)
-        title.setStyleSheet("color: #673AB7; font-size: 22px; font-weight: bold;")
+        # Простий заголовок
+        title = TitleLabel("Список бажань", 18)
+        title.setStyleSheet("color: white; font-weight: 700; background: transparent; border: none;")
         main_layout.addWidget(title)
 
-        splitter = QSplitter(Qt.Orientation.Horizontal)
-        splitter.setChildrenCollapsible(False)
+        subtitle = QLabel("Плануйте покупки для дитини та себе")
+        subtitle.setStyleSheet("color: rgba(255, 255, 255, 0.7); font-size: 13px; background: transparent; border: none;")
+        main_layout.addWidget(subtitle)
 
-        left_widget = QWidget()
-        left_layout = QVBoxLayout(left_widget)
-        left_layout.setContentsMargins(10, 10, 10, 10)
+        # Відступ
+        main_layout.addSpacing(20)
 
-        form_frame = StyledCard("Додати нове бажання")
-        form_frame.setStyleSheet(WishlistStyles.wishlist_card())
+        # Форма з підкресленими полями
+        form_layout = QFormLayout()
+        form_layout.setContentsMargins(0, 0, 0, 0)
+        form_layout.setSpacing(20)
+        form_layout.setHorizontalSpacing(20)
 
-        input_form = QFormLayout()
+        # Назва
+        title_label = QLabel("🏷️ Назва:")
+        title_label.setStyleSheet("color: white; font-size: 14px; font-weight: 600; background: transparent; border: none;")
+        title_label.setMinimumHeight(24)
 
         self.title_edit = StyledInput("Введіть назву товару або послуги")
-        input_form.addRow("Назва:", self.title_edit)
+        self.title_edit.setStyleSheet(OnboardingScreenStyles.elegant_input())
+        self.title_edit.setMinimumHeight(24)
+        self.title_edit.setMaximumHeight(40)
+
+        form_layout.addRow(title_label, self.title_edit)
+
+        # Опис
+        description_label = QLabel("📝 Опис:")
+        description_label.setStyleSheet("color: white; font-size: 14px; font-weight: 600; background: transparent; border: none;")
+        description_label.setMinimumHeight(24)
 
         self.description_edit = StyledInput("Додаткові деталі (розмір, колір, тощо)")
-        input_form.addRow("Опис:", self.description_edit)
+        self.description_edit.setStyleSheet(OnboardingScreenStyles.elegant_input())
+        self.description_edit.setMinimumHeight(24)
+        self.description_edit.setMaximumHeight(40)
+
+        form_layout.addRow(description_label, self.description_edit)
+
+        # Категорія
+        category_label = QLabel("📂 Категорія:")
+        category_label.setStyleSheet("color: white; font-size: 14px; font-weight: 600; background: transparent; border: none;")
+        category_label.setMinimumHeight(24)
 
         category_items = [
             "Одяг для вагітних",
@@ -55,74 +81,130 @@ class WishlistScreen(QWidget, UserMixin):
             "Інше"
         ]
         self.category_combo = StyledComboBox(category_items)
-        input_form.addRow("Категорія:", self.category_combo)
+        self.category_combo.setStyleSheet(OnboardingScreenStyles.elegant_input())
+        self.category_combo.setMinimumHeight(24)
+        self.category_combo.setMaximumHeight(40)
+
+        form_layout.addRow(category_label, self.category_combo)
+
+        # Ціна
+        price_label = QLabel("💰 Ціна:")
+        price_label.setStyleSheet("color: white; font-size: 14px; font-weight: 600; background: transparent; border: none;")
+        price_label.setMinimumHeight(24)
 
         self.price_spin = StyledDoubleSpinBox(0.0, 100000.0, 2, " грн")
-        input_form.addRow("Ціна:", self.price_spin)
+        self.price_spin.setButtonSymbols(QAbstractSpinBox.ButtonSymbols.NoButtons)
+        self.price_spin.setStyleSheet(OnboardingScreenStyles.elegant_input())
+        self.price_spin.setMinimumHeight(24)
+        self.price_spin.setMaximumHeight(40)
+
+        form_layout.addRow(price_label, self.price_spin)
+
+        # Пріоритет
+        priority_label = QLabel("⭐ Пріоритет:")
+        priority_label.setStyleSheet("color: white; font-size: 14px; font-weight: 600; background: transparent; border: none;")
+        priority_label.setMinimumHeight(24)
 
         priority_items = ["Низький", "Середній", "Високий"]
         self.priority_combo = StyledComboBox(priority_items)
         self.priority_combo.setCurrentIndex(1)
-        input_form.addRow("Пріоритет:", self.priority_combo)
+        self.priority_combo.setStyleSheet(OnboardingScreenStyles.elegant_input())
+        self.priority_combo.setMinimumHeight(24)
+        self.priority_combo.setMaximumHeight(40)
 
-        self.purchased_check = StyledCheckBox("Вже придбано")
-        input_form.addRow("", self.purchased_check)
+        form_layout.addRow(priority_label, self.priority_combo)
 
-        form_frame.layout.addLayout(input_form)
+        main_layout.addLayout(form_layout)
 
-        save_btn = StyledButton("Додати в список")
+        # Чекбокс
+        self.purchased_check = StyledCheckBox("✅ Вже придбано")
+        self.purchased_check.setStyleSheet("color: white; font-size: 14px; background: transparent; border: none;")
+        main_layout.addWidget(self.purchased_check)
+
+        # Відступ
+        main_layout.addSpacing(20)
+
+        # Кнопка додавання
+        save_btn = StyledButton("➕ Додати в список")
+        save_btn.setMinimumHeight(44)
         save_btn.setStyleSheet(WishlistStyles.wishlist_button())
         save_btn.clicked.connect(self.add_wishlist_item)
-        form_frame.layout.addWidget(save_btn)
+        main_layout.addWidget(save_btn)
 
-        left_layout.addWidget(form_frame)
-        splitter.addWidget(left_widget)
+        # Відступ
+        main_layout.addSpacing(20)
 
-        right_widget = QWidget()
-        right_layout = QVBoxLayout(right_widget)
-        right_layout.setContentsMargins(10, 10, 10, 10)
-
-        list_frame = StyledCard("Ваш список бажань")
-        list_frame.setStyleSheet(WishlistStyles.wishlist_card())
+        # Фільтр
+        filter_title = QLabel("🔍 Фільтр списку")
+        filter_title.setStyleSheet("color: white; font-weight: 700; font-size: 16px; background: transparent; border: none; margin-top: 8px;")
+        main_layout.addWidget(filter_title)
 
         filter_layout = QHBoxLayout()
-        filter_label = QLabel("Фільтр категорій:")
-        filter_label.setStyleSheet(BaseStyles.text_primary())
+        filter_label = QLabel("📂 Категорія:")
+        filter_label.setStyleSheet("color: white; font-size: 14px; font-weight: 600; background: transparent; border: none;")
 
         filter_items = ["Всі категорії"] + category_items
         self.filter_combo = StyledComboBox(filter_items)
+        self.filter_combo.setStyleSheet(OnboardingScreenStyles.elegant_input())
+        self.filter_combo.setMinimumHeight(24)
+        self.filter_combo.setMaximumHeight(40)
         self.filter_combo.currentIndexChanged.connect(self.load_wishlist)
 
         filter_layout.addWidget(filter_label)
         filter_layout.addWidget(self.filter_combo)
+        filter_layout.addStretch()
 
-        list_frame.layout.addLayout(filter_layout)
+        main_layout.addLayout(filter_layout)
+
+        # Список без рамки
+        list_title = QLabel("📋 Ваш список бажань")
+        list_title.setStyleSheet("color: white; font-weight: 700; font-size: 16px; background: transparent; border: none; margin-top: 8px;")
+        main_layout.addWidget(list_title)
 
         self.wishlist = StyledListWidget()
+        self.wishlist.setStyleSheet("""
+            QListWidget {
+                background: transparent; 
+                border: none; 
+                border-bottom: 2px solid rgba(255, 255, 255, 0.3); 
+                color: white; 
+                font-size: 14px;
+            }
+            QListWidget::item {
+                padding: 8px 4px;
+                border: none;
+                background: transparent;
+                color: white;
+                min-height: 20px;
+            }
+            QListWidget::item:selected {
+                background: rgba(255, 255, 255, 0.1);
+                color: white;
+            }
+        """)
+        self.wishlist.setWordWrap(True)
+        self.wishlist.setTextElideMode(Qt.TextElideMode.ElideNone)
         self.wishlist.itemDoubleClicked.connect(self.edit_item)
-        list_frame.layout.addWidget(self.wishlist)
+        main_layout.addWidget(self.wishlist)
 
+        # Кнопки управління
         buttons_layout = QHBoxLayout()
 
-        refresh_btn = StyledButton("Оновити список", "secondary")
-        refresh_btn.clicked.connect(self.load_wishlist)
-
-        mark_purchased_btn = StyledButton("Позначити як придбане", "success")
+        mark_purchased_btn = StyledButton("✅ Придбано")
+        mark_purchased_btn.setMinimumHeight(44)
         mark_purchased_btn.clicked.connect(self.mark_as_purchased)
 
-        delete_btn = StyledButton("Видалити", "error")
+        delete_btn = StyledButton("🗑️ Видалити")
+        delete_btn.setMinimumHeight(44)
         delete_btn.clicked.connect(self.delete_item)
 
-        buttons_layout.addWidget(refresh_btn)
         buttons_layout.addWidget(mark_purchased_btn)
         buttons_layout.addWidget(delete_btn)
 
-        list_frame.layout.addLayout(buttons_layout)
+        main_layout.addLayout(buttons_layout)
 
-        right_layout.addWidget(list_frame)
-        splitter.addWidget(right_widget)
-
-        main_layout.addWidget(splitter)
+        # Розтягуючий spacer
+        main_layout.addStretch()
 
     def showEvent(self, event):
         super().showEvent(event)
@@ -131,7 +213,7 @@ class WishlistScreen(QWidget, UserMixin):
 
     def load_wishlist(self):
         if not self.init_data_controller():
-            QMessageBox.warning(self, "Помилка", "Необхідно увійти в систему для перегляду списку бажань")
+            show_warning(self, "Помилка", "Необхідно увійти в систему для перегляду списку бажань")
             return
 
         try:
@@ -181,19 +263,19 @@ class WishlistScreen(QWidget, UserMixin):
             logger.info(f"Завантажено {len(items)} елементів списку бажань для користувача {user_id}")
 
         except Exception as e:
-            QMessageBox.critical(self, "Помилка", f"Не вдалося завантажити список бажань: {str(e)}")
+            show_error(self, "Помилка", f"Не вдалося завантажити список бажань: {str(e)}")
             logger.error(f"Помилка при завантаженні списку бажань для користувача {user_id}: {str(e)}")
 
     def add_wishlist_item(self):
         if not self.init_data_controller():
-            QMessageBox.warning(self, "Помилка", "Необхідно увійти в систему для додавання товарів")
+            show_warning(self, "Помилка", "Необхідно увійти в систему для додавання товарів")
             return
 
         try:
             user_id = self.get_current_user_id()
             title = self.title_edit.text().strip()
             if not title:
-                QMessageBox.warning(self, "Попередження", "Введіть назву товару")
+                show_warning(self, "Попередження", "Введіть назву товару")
                 return
 
             description = self.description_edit.text().strip()
@@ -223,16 +305,16 @@ class WishlistScreen(QWidget, UserMixin):
 
             self.load_wishlist()
 
-            QMessageBox.information(self, "Успіх", "Товар успішно додано до списку бажань")
+            show_info(self, "Успіх", "Товар успішно додано до списку бажань")
             logger.info(f"Додано новий товар до списку бажань для користувача {user_id}: {title}")
 
         except Exception as e:
-            QMessageBox.critical(self, "Помилка", f"Не вдалося додати товар: {str(e)}")
+            show_error(self, "Помилка", f"Не вдалося додати товар: {str(e)}")
             logger.error(f"Помилка при додаванні товару до списку бажань для користувача {user_id}: {str(e)}")
 
     def mark_as_purchased(self):
         if not self.init_data_controller():
-            QMessageBox.warning(self, "Помилка", "Необхідно увійти в систему")
+            show_warning(self, "Помилка", "Необхідно увійти в систему")
             return
 
         try:
@@ -240,29 +322,29 @@ class WishlistScreen(QWidget, UserMixin):
             selected_items = self.wishlist.selectedItems()
 
             if not selected_items:
-                QMessageBox.warning(self, "Попередження", "Виберіть товар зі списку")
+                show_warning(self, "Попередження", "Виберіть товар зі списку")
                 return
 
             item = selected_items[0]
             item_data = item.data(Qt.ItemDataRole.UserRole)
 
             if item_data['is_purchased']:
-                QMessageBox.information(self, "Інформація", "Цей товар вже позначено як придбаний")
+                show_info(self, "Інформація", "Цей товар вже позначено як придбаний")
                 return
 
             self.data_controller.db.mark_wishlist_item_purchased(item_data['id'], user_id)
             self.load_wishlist()
 
-            QMessageBox.information(self, "Успіх", "Товар позначено як придбаний")
+            show_info(self, "Успіх", "Товар позначено як придбаний")
             logger.info(f"Товар позначено як придбаний для користувача {user_id}: {item_data['title']}")
 
         except Exception as e:
-            QMessageBox.critical(self, "Помилка", f"Не вдалося оновити статус товару: {str(e)}")
+            show_error(self, "Помилка", f"Не вдалося оновити статус товару: {str(e)}")
             logger.error(f"Помилка при позначенні товару як придбаного для користувача {user_id}: {str(e)}")
 
     def delete_item(self):
         if not self.init_data_controller():
-            QMessageBox.warning(self, "Помилка", "Необхідно увійти в систему")
+            show_warning(self, "Помилка", "Необхідно увійти в систему")
             return
 
         try:
@@ -270,35 +352,34 @@ class WishlistScreen(QWidget, UserMixin):
             selected_items = self.wishlist.selectedItems()
 
             if not selected_items:
-                QMessageBox.warning(self, "Попередження", "Виберіть товар зі списку")
+                show_warning(self, "Попередження", "Виберіть товар зі списку")
                 return
 
             item = selected_items[0]
             item_data = item.data(Qt.ItemDataRole.UserRole)
 
-            confirm = QMessageBox.question(
+            confirm = show_question(
                 self, "Підтвердження видалення",
-                f"Ви впевнені, що хочете видалити товар '{item_data['title']}' зі списку бажань?",
-                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+                f"Ви впевнені, що хочете видалити товар '{item_data['title']}' зі списку бажань?"
             )
 
-            if confirm == QMessageBox.StandardButton.Yes:
+            if confirm:
                 success = self.data_controller.db.delete_wishlist_item(item_data['id'], user_id)
 
                 if success:
                     self.load_wishlist()
-                    QMessageBox.information(self, "Успіх", "Товар видалено зі списку бажань")
+                    show_info(self, "Успіх", "Товар видалено зі списку бажань")
                     logger.info(f"Товар видалено зі списку бажань для користувача {user_id}: {item_data['title']}")
                 else:
-                    QMessageBox.warning(self, "Попередження", "Товар не знайдено")
+                    show_warning(self, "Попередження", "Товар не знайдено")
 
         except Exception as e:
-            QMessageBox.critical(self, "Помилка", f"Не вдалося видалити товар: {str(e)}")
+            show_error(self, "Помилка", f"Не вдалося видалити товар: {str(e)}")
             logger.error(f"Помилка при видаленні товару зі списку бажань для користувача {user_id}: {str(e)}")
 
     def edit_item(self, item):
         if not self.init_data_controller():
-            QMessageBox.warning(self, "Помилка", "Необхідно увійти в систему")
+            show_warning(self, "Помилка", "Необхідно увійти в систему")
             return
 
         try:
@@ -375,7 +456,7 @@ class WishlistScreen(QWidget, UserMixin):
             if result == QDialog.DialogCode.Accepted:
                 new_title = title_edit.text().strip()
                 if not new_title:
-                    QMessageBox.warning(self, "Попередження", "Назва товару не може бути порожньою")
+                    show_warning(self, "Попередження", "Назва товару не може бути порожньою")
                     return
 
                 new_description = description_edit.text().strip()
@@ -399,11 +480,11 @@ class WishlistScreen(QWidget, UserMixin):
 
                 if success:
                     self.load_wishlist()
-                    QMessageBox.information(self, "Успіх", "Товар успішно оновлено")
+                    show_info(self, "Успіх", "Товар успішно оновлено")
                     logger.info(f"Товар оновлено для користувача {user_id}: {new_title}")
                 else:
-                    QMessageBox.warning(self, "Попередження", "Товар не знайдено")
+                    show_warning(self, "Попередження", "Товар не знайдено")
 
         except Exception as e:
-            QMessageBox.critical(self, "Помилка", f"Не вдалося оновити товар: {str(e)}")
+            show_error(self, "Помилка", f"Не вдалося оновити товар: {str(e)}")
             logger.error(f"Помилка при редагуванні товару для користувача {user_id}: {str(e)}")

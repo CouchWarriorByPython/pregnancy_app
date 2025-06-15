@@ -1,4 +1,5 @@
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QHBoxLayout, QSpacerItem, QSizePolicy, QMessageBox
+from utils.message_utils import show_info, show_warning, show_error
 from PyQt6.QtCore import pyqtSignal, Qt
 from PyQt6.QtGui import QFont
 from utils.base_widgets import StyledInput, StyledButton, TitleLabel
@@ -84,11 +85,11 @@ class LoginScreen(QWidget, UserMixin):
         password = self.password_input.text()
 
         if not email or not password:
-            QMessageBox.warning(self, "Помилка", "Заповніть всі поля")
+            show_warning(self, "Помилка", "Заповніть всі поля")
             return
 
         if not self.is_valid_email(email):
-            QMessageBox.warning(self, "Помилка", "Введіть коректну електронну пошту")
+            show_warning(self, "Помилка", "Введіть коректну електронну пошту")
             return
 
         try:
@@ -97,9 +98,9 @@ class LoginScreen(QWidget, UserMixin):
                 self.login_success.emit({"user_id": user.id, "email": user.email})
                 logger.info(f"Успішний вхід користувача {email}")
             else:
-                QMessageBox.warning(self, "Помилка", "Невірна пошта або пароль")
+                show_warning(self, "Помилка", "Невірна пошта або пароль")
         except Exception as e:
-            QMessageBox.critical(self, "Помилка", f"Помилка входу: {str(e)}")
+            show_error(self, "Помилка", f"Помилка входу: {str(e)}")
             logger.error(f"Помилка входу: {str(e)}")
 
     def is_valid_email(self, email):

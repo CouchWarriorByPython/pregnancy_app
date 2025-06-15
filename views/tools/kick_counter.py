@@ -1,9 +1,10 @@
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QHBoxLayout, QMessageBox, QSplitter
+from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QHBoxLayout, QMessageBox, QSplitter, QFormLayout, QAbstractSpinBox
+from utils.message_utils import show_info, show_warning, show_error
 from PyQt6.QtCore import Qt, QDate, QTime
 from utils.logger import get_logger
 from utils.base_widgets import (StyledCard, StyledDateEdit, StyledTimeEdit, StyledSpinBox,
-                                StyledButton, StyledListWidget, TitleLabel)
-from styles import KickCounterStyles, BaseStyles
+                                StyledButton, StyledListWidget, TitleLabel, StyledInput)
+from styles import KickCounterStyles, BaseStyles, OnboardingScreenStyles
 from utils.user_mixin import UserMixin
 
 logger = get_logger('kick_counter')
@@ -18,87 +19,128 @@ class KickCounterScreen(QWidget, UserMixin):
 
     def setup_ui(self):
         main_layout = QVBoxLayout(self)
-        main_layout.setContentsMargins(20, 20, 20, 20)
-        main_layout.setSpacing(15)
+        main_layout.setContentsMargins(20, 10, 20, 10)
+        main_layout.setSpacing(12)
 
-        title = TitleLabel("Лічильник поштовхів", 22)
-        title.setStyleSheet("color: #4CAF50; font-size: 22px; font-weight: bold;")
+        # Простий заголовок
+        title = TitleLabel("Лічильник поштовхів", 18)
+        title.setStyleSheet("color: white; font-weight: 700; background: transparent; border: none;")
         main_layout.addWidget(title)
 
-        splitter = QSplitter(Qt.Orientation.Horizontal)
-        splitter.setChildrenCollapsible(False)
+        subtitle = QLabel("Відстежуйте активність вашої дитини")
+        subtitle.setStyleSheet("color: rgba(255, 255, 255, 0.7); font-size: 13px; background: transparent; border: none;")
+        main_layout.addWidget(subtitle)
 
-        left_widget = QWidget()
-        left_layout = QVBoxLayout(left_widget)
-        left_layout.setContentsMargins(10, 10, 10, 10)
+        # Інформація без фону
+        info_title = QLabel("👶 Про підрахунок поштовхів")
+        info_title.setStyleSheet("color: white; font-weight: 700; font-size: 16px; background: transparent; border: none; margin-top: 8px;")
+        main_layout.addWidget(info_title)
 
-        form_frame = StyledCard("Записати поштовхи")
-        form_frame.setStyleSheet(KickCounterStyles.counter_card())
+        info_text = """• Підрахунок поштовхів допомагає відстежувати здоров'я дитини
+• Рекомендується рахувати щодня в один і той самий час
+• Найкраще після їжі, коли дитина найбільш активна
+• Зменшення активності може бути сигналом для консультації з лікарем"""
 
-        info_text = """
-        <p>Підрахунок поштовхів дитини допомагає відстежувати її активність і здоров'я.</p>
-        <p>Рекомендується рахувати поштовхи щодня в один і той самий час, наприклад, після їжі, 
-        коли дитина найбільш активна.</p>
-        <p>Занепокоєння може викликати значне зменшення кількості поштовхів.</p>
-        """
         info_label = QLabel(info_text)
+        info_label.setStyleSheet("color: rgba(255, 255, 255, 0.8); font-size: 14px; background: transparent; border: none;")
         info_label.setWordWrap(True)
-        info_label.setStyleSheet(KickCounterStyles.info_text())
-        form_frame.layout.addWidget(info_label)
+        main_layout.addWidget(info_label)
 
-        date_layout = QHBoxLayout()
-        date_label = QLabel("Дата:")
-        date_label.setStyleSheet(BaseStyles.text_primary())
-        self.date_edit = StyledDateEdit()
-        self.date_edit.setDate(QDate.currentDate())
-        date_layout.addWidget(date_label)
-        date_layout.addWidget(self.date_edit)
-        form_frame.layout.addLayout(date_layout)
+        # Відступ
+        main_layout.addSpacing(20)
 
-        time_layout = QHBoxLayout()
-        time_label = QLabel("Час:")
-        time_label.setStyleSheet(BaseStyles.text_primary())
-        self.time_edit = StyledTimeEdit()
-        self.time_edit.setTime(QTime.currentTime())
-        time_layout.addWidget(time_label)
-        time_layout.addWidget(self.time_edit)
-        form_frame.layout.addLayout(time_layout)
+        # Форма з підкресленими полями
+        form_layout = QFormLayout()
+        form_layout.setContentsMargins(0, 0, 0, 0)
+        form_layout.setSpacing(20)
+        form_layout.setHorizontalSpacing(20)
 
-        kicks_layout = QHBoxLayout()
-        kicks_label = QLabel("Кількість поштовхів:")
-        kicks_label.setStyleSheet(BaseStyles.text_primary())
+        # Дата
+        date_label = QLabel("📅 Дата:")
+        date_label.setStyleSheet("color: white; font-size: 14px; font-weight: 600; background: transparent; border: none;")
+        date_label.setMinimumHeight(24)
+
+        self.date_edit = StyledInput("дд.мм.рррр")
+        self.date_edit.setText(QDate.currentDate().toString("dd.MM.yyyy"))
+        self.date_edit.setStyleSheet(OnboardingScreenStyles.elegant_input())
+        self.date_edit.setMinimumHeight(24)
+        self.date_edit.setMaximumHeight(40)
+        form_layout.addRow(date_label, self.date_edit)
+
+        # Час
+        time_label = QLabel("🕐 Час:")
+        time_label.setStyleSheet("color: white; font-size: 14px; font-weight: 600; background: transparent; border: none;")
+        time_label.setMinimumHeight(24)
+
+        self.time_edit = StyledInput("гг:хх")
+        self.time_edit.setText(QTime.currentTime().toString("HH:mm"))
+        self.time_edit.setStyleSheet(OnboardingScreenStyles.elegant_input())
+        self.time_edit.setMinimumHeight(24)
+        self.time_edit.setMaximumHeight(40)
+
+        form_layout.addRow(time_label, self.time_edit)
+
+        # Кількість поштовхів
+        kicks_label = QLabel("👶 Кількість поштовхів:")
+        kicks_label.setStyleSheet("color: white; font-size: 14px; font-weight: 600; background: transparent; border: none;")
+        kicks_label.setMinimumHeight(24)
+
         self.kicks_spin = StyledSpinBox(1, 100)
         self.kicks_spin.setValue(10)
-        kicks_layout.addWidget(kicks_label)
-        kicks_layout.addWidget(self.kicks_spin)
-        form_frame.layout.addLayout(kicks_layout)
+        self.kicks_spin.setButtonSymbols(QAbstractSpinBox.ButtonSymbols.NoButtons)
+        self.kicks_spin.setStyleSheet(OnboardingScreenStyles.elegant_input())
+        self.kicks_spin.setMinimumHeight(24)
+        self.kicks_spin.setMaximumHeight(40)
 
-        save_btn = StyledButton("Зберегти запис")
+        form_layout.addRow(kicks_label, self.kicks_spin)
+
+        main_layout.addLayout(form_layout)
+
+        # Відступ
+        main_layout.addSpacing(20)
+
+        # Кнопка збереження
+        save_btn = StyledButton("💾 Зберегти запис")
+        save_btn.setMinimumHeight(44)
         save_btn.setStyleSheet(KickCounterStyles.counter_button())
         save_btn.clicked.connect(self.save_kicks)
-        form_frame.layout.addWidget(save_btn)
+        main_layout.addWidget(save_btn)
 
-        left_layout.addWidget(form_frame)
-        splitter.addWidget(left_widget)
+        # Відступ
+        main_layout.addSpacing(20)
 
-        right_widget = QWidget()
-        right_layout = QVBoxLayout(right_widget)
-        right_layout.setContentsMargins(10, 10, 10, 10)
-
-        list_frame = StyledCard("Історія поштовхів")
-        list_frame.setStyleSheet(KickCounterStyles.counter_card())
+        # Історія без рамки
+        history_title = QLabel("📊 Історія поштовхів")
+        history_title.setStyleSheet("color: white; font-weight: 700; font-size: 16px; background: transparent; border: none; margin-top: 8px;")
+        main_layout.addWidget(history_title)
 
         self.kicks_list = StyledListWidget()
-        list_frame.layout.addWidget(self.kicks_list)
+        self.kicks_list.setStyleSheet("""
+            QListWidget {
+                background: transparent; 
+                border: none; 
+                border-bottom: 2px solid rgba(255, 255, 255, 0.3); 
+                color: white; 
+                font-size: 14px;
+            }
+            QListWidget::item {
+                padding: 8px 4px;
+                border: none;
+                background: transparent;
+                color: white;
+                min-height: 20px;
+            }
+            QListWidget::item:selected {
+                background: rgba(255, 255, 255, 0.1);
+                color: white;
+            }
+        """)
+        self.kicks_list.setWordWrap(True)
+        self.kicks_list.setTextElideMode(Qt.TextElideMode.ElideNone)
+        main_layout.addWidget(self.kicks_list)
 
-        refresh_btn = StyledButton("Оновити історію", "secondary")
-        refresh_btn.clicked.connect(self.load_kicks)
-        list_frame.layout.addWidget(refresh_btn)
-
-        right_layout.addWidget(list_frame)
-        splitter.addWidget(right_widget)
-
-        main_layout.addWidget(splitter)
+        # Розтягуючий spacer
+        main_layout.addStretch()
 
     def showEvent(self, event):
         super().showEvent(event)
@@ -107,7 +149,7 @@ class KickCounterScreen(QWidget, UserMixin):
 
     def load_kicks(self):
         if not self.init_data_controller():
-            QMessageBox.warning(self, "Помилка", "Необхідно увійти в систему для перегляду записів")
+            show_warning(self, "Помилка", "Необхідно увійти в систему для перегляду записів")
             return
 
         try:
@@ -122,31 +164,65 @@ class KickCounterScreen(QWidget, UserMixin):
             logger.info(f"Завантажено {len(kicks)} записів поштовхів для користувача {user_id}")
 
         except Exception as e:
-            QMessageBox.critical(self, "Помилка", f"Не вдалося завантажити історію поштовхів: {str(e)}")
+            show_error(self, "Помилка", f"Не вдалося завантажити історію поштовхів: {str(e)}")
             logger.error(f"Помилка при завантаженні поштовхів для користувача {user_id}: {str(e)}")
 
     def save_kicks(self):
         if not self.init_data_controller():
-            QMessageBox.warning(self, "Помилка", "Необхідно увійти в систему для збереження записів")
+            show_warning(self, "Помилка", "Необхідно увійти в систему для збереження записів")
             return
 
         try:
             user_id = self.get_current_user_id()
-            date_str = self.date_edit.date().toString("yyyy-MM-dd")
-            time_str = self.time_edit.time().toString("HH:mm")
+            date_text = self.date_edit.text().strip()
+            time_text = self.time_edit.text().strip()
+            
+            # Валідація дати
+            try:
+                date_parts = date_text.split('.')
+                if len(date_parts) != 3:
+                    show_warning(self, "Помилка", "Невірний формат дати. Використовуйте формат дд.мм.рррр")
+                    return
+                    
+                day, month, year = map(int, date_parts)
+                qdate = QDate(year, month, day)
+                if not qdate.isValid():
+                    show_warning(self, "Помилка", "Невірна дата")
+                    return
+                date_str = qdate.toString("yyyy-MM-dd")
+            except ValueError:
+                show_warning(self, "Помилка", "Невірний формат дати. Використовуйте формат дд.мм.рррр")
+                return
+                
+            # Валідація часу
+            try:
+                time_parts = time_text.split(':')
+                if len(time_parts) != 2:
+                    show_warning(self, "Помилка", "Невірний формат часу. Використовуйте формат гг:хх")
+                    return
+                    
+                hour, minute = map(int, time_parts)
+                if hour < 0 or hour > 23 or minute < 0 or minute > 59:
+                    show_warning(self, "Помилка", "Невірний час. Години: 0-23, хвилини: 0-59")
+                    return
+                time_str = f"{hour:02d}:{minute:02d}"
+            except ValueError:
+                show_warning(self, "Помилка", "Невірний формат часу. Використовуйте формат гг:хх")
+                return
+                
             count = self.kicks_spin.value()
 
             if count < 1:
-                QMessageBox.warning(self, "Помилка", "Кількість поштовхів повинна бути більше 0")
+                show_warning(self, "Помилка", "Кількість поштовхів повинна бути більше 0")
                 return
 
             self.data_controller.db.add_baby_kick(date_str, time_str, count, user_id)
             self.load_kicks()
 
-            QMessageBox.information(self, "Успіх", "Запис поштовхів успішно збережено")
+            show_info(self, "Успіх", "Запис поштовхів успішно збережено")
             logger.info(
                 f"Збережено новий запис поштовхів для користувача {user_id}: {date_str} {time_str}, кількість: {count}")
 
         except Exception as e:
-            QMessageBox.critical(self, "Помилка", f"Не вдалося зберегти запис: {str(e)}")
+            show_error(self, "Помилка", f"Не вдалося зберегти запис: {str(e)}")
             logger.error(f"Помилка при збереженні запису поштовхів для користувача {user_id}: {str(e)}")

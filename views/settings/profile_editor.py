@@ -1,10 +1,10 @@
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QFormLayout, QLabel, QMessageBox
+from PyQt6.QtWidgets import QWidget, QVBoxLayout, QFormLayout, QLabel, QMessageBox, QHBoxLayout, QAbstractSpinBox
 from PyQt6.QtCore import QDate
 from datetime import datetime
 from utils.logger import get_logger
 from utils.base_widgets import (StyledInput, StyledDateEdit, StyledSpinBox, StyledDoubleSpinBox,
                                 StyledButton, StyledScrollArea, TitleLabel)
-from styles import ProfileEditorStyles
+from styles import ProfileEditorStyles, OnboardingScreenStyles
 from utils.user_mixin import UserMixin
 
 logger = get_logger('profile_editor')
@@ -20,51 +20,63 @@ class ProfileEditor(QWidget, UserMixin):
 
     def _init_controls(self):
         self.name_edit = StyledInput("Введіть ваше ім'я")
+        self.name_edit.setStyleSheet(OnboardingScreenStyles.elegant_input())
+        
         self.email_edit = StyledInput("Електронна пошта")
         self.email_edit.setEnabled(False)
+        self.email_edit.setStyleSheet("background: transparent; color: rgba(255, 255, 255, 0.6); border: none; border-bottom: 2px solid rgba(255, 255, 255, 0.3); border-radius: 0px; padding: 4px 4px 4px 4px; font-size: 16px; min-height: 20px; max-height: 24px;")
 
         self.birth_date_edit = StyledDateEdit()
+        
         self.weight_spin = StyledDoubleSpinBox(30.0, 150.0, 1, " кг")
+        self.weight_spin.setButtonSymbols(QAbstractSpinBox.ButtonSymbols.NoButtons)
+        self.weight_spin.setStyleSheet(OnboardingScreenStyles.elegant_input())
+        
         self.height_spin = StyledSpinBox(100, 220, " см")
+        self.height_spin.setButtonSymbols(QAbstractSpinBox.ButtonSymbols.NoButtons)
+        self.height_spin.setStyleSheet(OnboardingScreenStyles.elegant_input())
+        
         self.prev_pregnancies_spin = StyledSpinBox(0, 10)
+        self.prev_pregnancies_spin.setButtonSymbols(QAbstractSpinBox.ButtonSymbols.NoButtons)
+        self.prev_pregnancies_spin.setStyleSheet(OnboardingScreenStyles.elegant_input())
+        
         self.cycle_spin = StyledSpinBox(21, 35, " днів")
+        self.cycle_spin.setButtonSymbols(QAbstractSpinBox.ButtonSymbols.NoButtons)
+        self.cycle_spin.setStyleSheet(OnboardingScreenStyles.elegant_input())
 
     def _setup_ui(self):
         main_layout = QVBoxLayout(self)
-        main_layout.setContentsMargins(20, 20, 20, 20)
-        main_layout.setSpacing(20)
+        main_layout.setContentsMargins(20, 10, 20, 10)
+        main_layout.setSpacing(12)
 
-        title_container = QWidget()
-        title_container.setStyleSheet(ProfileEditorStyles.title_container())
-
-        title_layout = QVBoxLayout(title_container)
-        title_layout.setContentsMargins(0, 0, 0, 0)
-
-        title = TitleLabel("👤 Ваш профіль", 20)
-        title.setStyleSheet(ProfileEditorStyles.section_title())
-        title_layout.addWidget(title)
+        # Простий заголовок без рамки
+        title = TitleLabel("👤 Ваш профіль", 18)
+        title.setStyleSheet("color: white; font-weight: 700; background: transparent; border: none;")
+        main_layout.addWidget(title)
 
         subtitle = QLabel("Персональна інформація та налаштування")
-        subtitle.setStyleSheet(ProfileEditorStyles.section_subtitle())
-        title_layout.addWidget(subtitle)
+        subtitle.setStyleSheet("color: rgba(255, 255, 255, 0.7); font-size: 13px; background: transparent; border: none;")
+        main_layout.addWidget(subtitle)
 
-        main_layout.addWidget(title_container)
-
+        # Форма зі скролом
         scroll_area = StyledScrollArea()
         form_widget = QWidget()
+        form_widget.setStyleSheet("background: transparent; border: none;")
         self.form_layout = QFormLayout(form_widget)
         self.form_layout.setContentsMargins(0, 0, 0, 0)
         self.form_layout.setSpacing(20)
+        self.form_layout.setHorizontalSpacing(20)
 
         self._add_form_fields()
 
-        save_btn = StyledButton("💾 Зберегти зміни")
-        save_btn.setMinimumHeight(56)
-        save_btn.setStyleSheet(ProfileEditorStyles.save_button())
-        save_btn.clicked.connect(self.save_profile)
-
         scroll_area.setWidget(form_widget)
         main_layout.addWidget(scroll_area, 1)
+
+        # Компактна кнопка збереження
+        save_btn = StyledButton("💾 Зберегти")
+        save_btn.setMinimumHeight(44)
+        save_btn.setStyleSheet(ProfileEditorStyles.save_button())
+        save_btn.clicked.connect(self.save_profile)
         main_layout.addWidget(save_btn)
 
     def _add_form_fields(self):
@@ -79,13 +91,12 @@ class ProfileEditor(QWidget, UserMixin):
         ]
 
         for label, widget in fields:
-            widget.setMinimumHeight(48)
+            widget.setMinimumHeight(24)
+            widget.setMaximumHeight(40)
 
             label_widget = QLabel(label)
-            label_widget.setStyleSheet(ProfileEditorStyles.form_label())
-
-            if widget == self.email_edit:
-                widget.setStyleSheet(ProfileEditorStyles.disabled_email_field())
+            label_widget.setStyleSheet("color: white; font-size: 14px; font-weight: 600; background: transparent; border: none;")
+            label_widget.setMinimumHeight(24)
 
             self.form_layout.addRow(label_widget, widget)
 

@@ -67,15 +67,29 @@ class CalendarScreenStyles:
 
     @staticmethod
     def event_dialog():
-        """Діалог додавання події"""
+        """Діалог додавання події (без рамки)"""
         return f"""
             QDialog {{
                 background: {Colors.BACKGROUND_GRADIENT};
                 color: {Colors.TEXT_PRIMARY};
+                border: none;
                 border-radius: 20px;
-                border: 1px solid {Colors.GLASS_BORDER};
             }}
         """
+
+    @staticmethod
+    def event_dialog_title():
+        """Заголовок діалогу події"""
+        return f"""
+            QLabel {{
+                color: {Colors.TEXT_PRIMARY};
+                background: transparent;
+                border: none;
+                margin-bottom: 15px;
+            }}
+        """
+
+
 
     @staticmethod
     def events_card():
@@ -92,6 +106,8 @@ class CalendarScreenStyles:
                 color: {Colors.TEXT_PRIMARY};
                 font-weight: 500;
                 line-height: 1.5;
+                background: transparent;
+                border: none;
             }}
         """
 
@@ -117,6 +133,8 @@ class CalendarScreenStyles:
                 font-size: 15px;
                 font-weight: 600;
                 spacing: 12px;
+                background: transparent;
+                border: none;
             }}
             QCheckBox::indicator {{
                 width: 24px;
@@ -134,14 +152,12 @@ class CalendarScreenStyles:
 
     @staticmethod
     def event_dialog_reminder_frame():
-        """Фрейм для секції нагадувань"""
+        """Фрейм для секції нагадувань (без додаткової рамки)"""
         return f"""
             QFrame {{
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:1, 
-                    stop:0 rgba(139, 92, 246, 0.1), 
-                    stop:1 rgba(236, 72, 153, 0.1));
-                border: 1px solid rgba(139, 92, 246, 0.3);
-                border-radius: 16px;
+                background: transparent;
+                border: none;
+                border-radius: 0px;
             }}
         """
 
@@ -154,6 +170,8 @@ class CalendarScreenStyles:
                 font-size: 15px;
                 font-weight: 600;
                 spacing: 12px;
+                background: transparent;
+                border: none;
             }}
             QCheckBox::indicator {{
                 width: 24px;
@@ -172,9 +190,25 @@ class CalendarScreenStyles:
     @staticmethod
     def event_dialog_field_label():
         """Підписи полів в діалозі"""
-        return f"color: {Colors.TEXT_PRIMARY}; font-weight: 500; margin-top: 10px;"
+        return f"""
+            QLabel {{
+                color: {Colors.TEXT_PRIMARY};
+                font-weight: 500;
+                margin-top: 10px;
+                background: transparent;
+                border: none;
+            }}
+        """
 
     @staticmethod
     def event_dialog_hint_label():
         """Підказки в діалозі"""
-        return f"color: rgba(255, 255, 255, 0.6); font-size: 12px; margin-top: 5px;"
+        return f"""
+            QLabel {{
+                color: rgba(255, 255, 255, 0.6);
+                font-size: 12px;
+                margin-top: 5px;
+                background: transparent;
+                border: none;
+            }}
+        """

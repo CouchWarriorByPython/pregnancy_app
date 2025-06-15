@@ -45,24 +45,24 @@ class WeeksScreenStyles:
 
     @staticmethod
     def nav_arrow_button():
-        """Кнопки навігації стрілочки"""
+        """Кнопки навігації стрілочки (без рамок)"""
         return f"""
             QPushButton {{
-                background: {Colors.GLASS_SURFACE};
-                border: 1px solid {Colors.GLASS_BORDER};
+                background: transparent;
+                border: none;
                 border-radius: 24px;
                 font-weight: 700;
                 color: white;
                 font-size: 20px;
             }}
             QPushButton:disabled {{
-                background: rgba(255, 255, 255, 0.05);
+                background: transparent;
                 color: rgba(255, 255, 255, 0.3);
-                border: 1px solid rgba(255, 255, 255, 0.1);
+                border: none;
             }}
             QPushButton:hover:enabled {{
-                background: {Colors.SURFACE_HOVER};
-                border: 1px solid rgba(255, 255, 255, 0.3);
+                background: rgba(255, 255, 255, 0.1);
+                border: none;
             }}
         """
 
