@@ -85,6 +85,7 @@ class MainWindow(QMainWindow):
 
         self._connect_auth_signals()
         self._connect_onboarding_signals()
+        self._connect_settings_signals()
 
     def _connect_auth_signals(self):
         self.auth_screens['login'].login_success.connect(self.on_login_success)
@@ -100,6 +101,21 @@ class MainWindow(QMainWindow):
         self.main_screens['child_info'].proceed_signal.connect(self.on_child_info_completed)
         self.main_screens['user_info'].proceed_signal.connect(self.on_user_info_completed)
         self.main_screens['pregnancy_info'].proceed_signal.connect(self.on_pregnancy_info_completed)
+        
+    def _connect_settings_signals(self):
+        """Підключає сигнали з налаштувань"""
+        # Підключаємо сигнал оновлення даних вагітності
+        settings_screen = self.main_screens['settings']
+        pregnancy_editor = None
+        
+        # Знаходимо PregnancyEditor серед редакторів
+        for name, editor in settings_screen.editors:
+            if name == "Вагітність":
+                pregnancy_editor = editor
+                break
+                
+        if pregnancy_editor:
+            pregnancy_editor.pregnancy_data_updated.connect(self.on_pregnancy_data_updated)
 
     def _setup_navigation(self):
         nav_items = [
@@ -228,8 +244,7 @@ class MainWindow(QMainWindow):
         # Оновлюємо weeks screen
         if hasattr(self.main_screens['weeks'], 'data_controller'):
             self.main_screens['weeks'].data_controller = DataController(self.current_user_id)
-            self.main_screens['weeks'].current_week = self.main_screens[
-                                                          'weeks'].data_controller.get_current_week() or 33
+            self.main_screens['weeks'].refresh_current_week()
 
         # Оновлюємо calendar screen
         if hasattr(self.main_screens['calendar'], 'data_controller'):
@@ -284,6 +299,14 @@ class MainWindow(QMainWindow):
                 self.show_screen('weeks')
         except Exception as e:
             show_error(self, "Помилка", f"Не вдалося зберегти інформацію про вагітність: {str(e)}")
+    
+    def on_pregnancy_data_updated(self):
+        """Обробник оновлення даних вагітності з налаштувань"""
+        logger.info("Дані вагітності оновлено в налаштуваннях, оновлюємо weeks screen")
+        if hasattr(self.main_screens['weeks'], 'refresh_current_week'):
+            # Також оновлюємо DataController для weeks screen
+            self.main_screens['weeks'].data_controller = DataController(self.current_user_id)
+            self.main_screens['weeks'].refresh_current_week()
 
     def logout(self):
         self.auth_controller.logout()

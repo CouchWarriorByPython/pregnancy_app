@@ -71,13 +71,30 @@ class WeeksScreen(QWidget):
         self.data_controller = DataController()
         self.baby_dev_controller = BabyDevelopmentController()
 
-        self.current_week = self.data_controller.get_current_week() or 33
+        # Завжди отримуємо поточний тиждень з данних користувача
+        self.current_week = self.data_controller.get_current_week()
+        if not self.current_week:
+            self.current_week = 1  # Якщо немає даних, починаємо з 1 тижня
+        
         self.available_weeks = self.baby_dev_controller.get_available_weeks()
         self.current_displayed_week = None
         self.week_btns = []
 
         logger.info(f"Поточний тиждень вагітності: {self.current_week}")
         self._setup_ui()
+
+    def refresh_current_week(self):
+        """Оновлює поточний тиждень з DataController"""
+        old_week = self.current_week
+        self.current_week = self.data_controller.get_current_week()
+        if not self.current_week:
+            self.current_week = 1
+        
+        if old_week != self.current_week:
+            logger.info(f"Тиждень змінився з {old_week} на {self.current_week}")
+            self._rebuild_week_buttons()
+            self.update_content(self.current_week)
+            self._update_buttons_state()
 
     def _setup_ui(self):
         main_layout = QVBoxLayout(self)
@@ -334,3 +351,9 @@ class WeeksScreen(QWidget):
 
     def next_week(self):
         self._navigate_week(1)
+
+    def showEvent(self, event):
+        """Оновлює поточний тиждень при показі екрану"""
+        super().showEvent(event)
+        # Оновлюємо поточний тиждень кожен раз коли відкривається екран
+        self.refresh_current_week()

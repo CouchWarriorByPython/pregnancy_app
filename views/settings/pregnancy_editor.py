@@ -1,4 +1,4 @@
-from PyQt6.QtCore import QDate
+from PyQt6.QtCore import QDate, pyqtSignal
 from PyQt6.QtGui import QFont
 from datetime import datetime
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton, QFrame, QMessageBox, QFormLayout
@@ -11,6 +11,9 @@ logger = get_logger('pregnancy_editor')
 
 
 class PregnancyEditor(QWidget, UserMixin):
+    # Сигнал для повідомлення про оновлення даних вагітності
+    pregnancy_data_updated = pyqtSignal()
+    
     def __init__(self, parent=None):
         super().__init__(parent)
         self.parent = parent
@@ -217,6 +220,8 @@ class PregnancyEditor(QWidget, UserMixin):
             self.update_pregnancy_info()
             QMessageBox.information(self, "✅ Успіх", "Дані про вагітність успішно збережено!")
             logger.info("Дані про вагітність збережено")
+            # Повідомляємо про оновлення даних
+            self.pregnancy_data_updated.emit()
         except Exception as e:
             QMessageBox.critical(self, "❌ Помилка", f"Помилка збереження: {str(e)}")
             logger.error(f"Помилка збереження даних про вагітність: {str(e)}")

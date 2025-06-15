@@ -69,7 +69,7 @@ class KegelExercisesScreen(QWidget, UserMixin):
 
     def open_pdf(self):
         try:
-            pdf_path = os.path.join("resources", "Вправи Кегеля.pdf")
+            pdf_path = os.path.join("resources", "Kegels_exercises.pdf")
 
             if not os.path.exists(pdf_path):
                 show_warning(self, "Файл не знайдено",
